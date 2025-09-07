@@ -1,27 +1,61 @@
 #pragma once
 
 #include "network/i_server_socket.hpp"
+#include "network/posix_socket.hpp"
 
-class PosixServerSocket : public IServerSocket
+/**
+ * @class PosixServerSocket
+ * @brief PosixServerSocket类实现了PosixServerSocket接口，用于表示服务器套接字。
+ */
+class PosixServerSocket : public IServerSocket, public PosixSocket
 {
 public:
-    struct PosixOption
-    {
-        int level;
-        int opt_name;
-        void* opt_val;
-        socklen_t opt_len;
-    };
-public:
+    /**
+     * @brief 构造函数
+     * @param other 其他套接字
+     */
+    PosixServerSocket(PosixServerSocket&& other);
+    /**
+     * @brief 赋值运算符
+     * @param other 其他套接字
+     * @return 当前套接字
+     */
+    PosixServerSocket& operator=(PosixServerSocket&& other);
+    /**
+     * @brief 构造函数
+     * @param ip ip地址
+     * @param port 端口
+     * @param option 选项
+     */
     PosixServerSocket(const std::string& ip, uint16_t  port, const IOption& option);
+    /**
+     * @brief 析构函数
+     */
     ~PosixServerSocket();
+    /**
+     * @brief 监听
+     */
     void listen()override;
-    PosixOption to_posix_option(const IOption& option);
+    /**
+     * @brief 接受连接
+     * @return 客户端套接字
+     */
     std::unique_ptr<IClientSocket> accept()override;
+    /**
+     * @brief 绑定
+     * @param ip ip地址
+     * @param port 端口
+     */
     void bind(const std::string& ip, uint16_t port)override;
-    bool is_valid()const override;
-    bool set_opt(const IOption& option)override;
-    void close()override;
 private:
-    int m_socket = -1;
+    /**
+     * @brief 析构函数
+     */
+    PosixServerSocket(const PosixServerSocket& other) = delete;
+    /**
+     * @brief 赋值运算符
+     * @param other 其他套接字
+     * @return 当前套接字
+     */
+    PosixServerSocket& operator=(const PosixServerSocket& other) = delete;
 };

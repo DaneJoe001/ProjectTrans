@@ -12,14 +12,19 @@ extern "C"
 #include "network/posix_server_socket.hpp"
 #include "network/posix_client_socket.hpp"
 
-PosixServerSocket::PosixOption PosixServerSocket::to_posix_option(const IOption& option)
+PosixServerSocket::PosixServerSocket(PosixServerSocket&& other)
 {
-    PosixOption posix_option;
-    posix_option.level = option.level;
-    posix_option.opt_name = option.opt_name;
-    posix_option.opt_val = option.opt_val;
-    posix_option.opt_len = option.opt_len;
-    return posix_option;
+    int socket_fd = other.m_socket;
+    other.m_socket = -1;
+    m_socket = socket_fd;
+}
+
+PosixServerSocket& PosixServerSocket::operator=(PosixServerSocket&& other)
+{
+    int socket_fd = other.m_socket;
+    other.m_socket = -1;
+    m_socket = socket_fd;
+    return *this;
 }
 
 PosixServerSocket::PosixServerSocket(const std::string& ip, uint16_t port, const IOption& option)
@@ -34,23 +39,11 @@ PosixServerSocket::PosixServerSocket(const std::string& ip, uint16_t port, const
     this->listen();
 }
 
-void PosixServerSocket::close()
-{
-    if (m_socket > 0)
-    {
-        ::close(m_socket);
-        DANEJOE_LOG_TRACE("default", "Socket", "Closed socket");
-    }
-}
+
 
 PosixServerSocket::~PosixServerSocket()
 {
     this->close();
-}
-
-bool PosixServerSocket::is_valid()const
-{
-    return m_socket > 0;
 }
 
 void PosixServerSocket::bind(const std::string& ip, uint16_t port)
@@ -91,29 +84,20 @@ std::unique_ptr<IClientSocket> PosixServerSocket::accept()
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to accept:Socket is not valid");
     }
-    m_socket = ::accept(m_socket, nullptr, nullptr);
-    return std::make_unique<PosixClientSocket>(m_socket);
-}
-
-bool PosixServerSocket::set_opt(const IOption& option)
-{
-    if (!is_valid())
+    struct sockaddr_in client_addr;
+    socklen_t client_addr_len = sizeof(client_addr);
+    int client_socket = ::accept(m_socket, (struct sockaddr*)&client_addr, &client_addr_len);
+    if (client_socket < 0)
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: socket is not valid");
-        return false;
+        /// @brief 非阻塞模式下获取失败不打印日志
+        if (m_is_non_blocking)
+        {
+            return nullptr;
+        }
+        else
+        {
+            DANEJOE_LOG_ERROR("default", "Socket", "Failed to accept socket");
+        }
     }
-
-    if (option.opt_val == nullptr)
-    {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to set option: option value is null");
-        return false;
-    }
-    int ret = setsockopt(m_socket, option.level, option.opt_name, option.opt_val, option.opt_len);
-    if (ret < 0)
-    {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to set option");
-        return false;
-    }
-    DANEJOE_LOG_TRACE("default", "Socket", "Set option successfully");
-    return true;
+    return std::make_unique<PosixClientSocket>(client_socket);
 }

@@ -16,15 +16,3 @@ public:
 private:
     std::list<std::unique_ptr<ISocket>> m_clients;
 };
-/**
- * socket()
- * bind
- * listen
- * accept
- * send
- * recv
- *
- * connect
- *
- *
-*/

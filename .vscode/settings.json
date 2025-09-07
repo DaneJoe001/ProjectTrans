@@ -75,6 +75,10 @@
         "timer": "cpp",
         "future": "cpp",
         "qmainwindow": "cpp",
-        "qmetaobject": "cpp"
+        "qmetaobject": "cpp",
+        "bitset": "cpp",
+        "complex": "cpp",
+        "any": "cpp",
+        "qapplication": "cpp"
     }
 }
