@@ -1,14 +1,32 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
+#include <memory>
 
 #include "network/i_socket.hpp"
 
 class IClientSocket;
 
-class IServerSocket : public ISocket {
+/**
+ * @class IServerSocket
+ * @brief IServerSocket类实现了IServerSocket接口，用于表示服务器套接字。
+ */
+class IServerSocket : virtual  public ISocket {
 public:
+    /**
+     * @brief 监听
+     */
     virtual void listen() = 0;
+    /**
+     * @brief 接受连接
+     * @return 客户端套接字
+     */
     virtual std::unique_ptr<IClientSocket> accept() = 0;
+    /**
+     * @brief 绑定
+     * @param ip ip地址
+     * @param port 端口
+     */
     virtual void bind(const std::string& ip, uint16_t port) = 0;
 };

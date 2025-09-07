@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <iostream>
+#include <thread>
 
 #include "log/manage_logger.hpp"
 #include "view/main_window.hpp"
@@ -24,10 +25,23 @@ int main(int argc, char** argv)
     while (true)
     {
         std::string data;
-        std::cout << "Enter data: ";
+        DANEJOE_LOG_INFO("default", "Client", "Enter data: ");
         std::cin >> data;
-        socket.send(std::vector<uint8_t>(data.begin(), data.end()));
-        auto recv_data = socket.recieve(5);
-        std::cout << "Received: " << std::string(recv_data.begin(), recv_data.end()) << std::endl;
+        socket.send_all(std::vector<uint8_t>(data.begin(), data.end()));
+        while (true)
+        {
+            if (!socket.is_valid())
+            {
+                return 0;
+            }
+            auto recv_data = socket.read_all();
+            if (recv_data.empty())
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                continue;
+            }
+            DANEJOE_LOG_TRACE("default", "Client", "Received:{} ", std::string(recv_data.begin(), recv_data.end()));
+            break;
+        }
     }
 }
