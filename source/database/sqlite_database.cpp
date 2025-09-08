@@ -1,7 +1,11 @@
+#include <filesystem>
+
 #include "database/sqlite_database.hpp"
 #include "log/manage_logger.hpp"
 
 // 确保 SQLite 命名空间的 Database 类已被正确前向声明或包含
+
+namespace fs = std::filesystem;
 
 DatabaseSQLite::~DatabaseSQLite()
 {
@@ -11,7 +15,12 @@ bool DatabaseSQLite::connect()
 {
     try
     {
-        m_database = std::make_unique<SQLite::Database>(m_config.file_path(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+        if (!fs::exists(m_config.path))
+        {
+            DANEJOE_LOG_ERROR("default", "Database", "Database file path does not exist: {}", m_config.path);
+            return false;
+        }
+        m_database = std::make_unique<SQLite::Database>(m_config.path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
         return true;
     }
     catch (const SQLite::Exception& e)
@@ -36,14 +45,14 @@ bool DatabaseSQLite::execute(const std::string& statement)
             m_error_code = "-1";
             return false;
         }
-        DANEJOE_LOG_TRACE("default","Database","查询完毕 {}", statement);
+        DANEJOE_LOG_TRACE("default", "Database", "查询完毕 {}", statement);
         return true;
     }
     catch (const SQLite::Exception& e)
     {
         m_error_message = e.what();
         m_error_code = std::to_string(e.getErrorCode());
-        DANEJOE_LOG_ERROR("default","Database","error message: {}",m_error_message);
+        DANEJOE_LOG_ERROR("default", "Database", "error message: {}", m_error_message);
     }
     return false;
 }
@@ -51,12 +60,12 @@ bool DatabaseSQLite::execute(const std::string& statement)
 std::vector<std::vector<std::string>> DatabaseSQLite::query(const std::string& statement)
 {
     std::vector<std::vector<std::string>> result;
-    DANEJOE_LOG_TRACE("default","Database","执行查询 {}", statement);
+    DANEJOE_LOG_TRACE("default", "Database", "执行查询 {}", statement);
     try
     {
         if (!m_database)
         {
-            DANEJOE_LOG_ERROR("default","Database","Database not connected");
+            DANEJOE_LOG_ERROR("default", "Database", "Database not connected");
             m_error_message = "Database not connected";
             m_error_code = "-1";
             return result;
@@ -79,7 +88,7 @@ std::vector<std::vector<std::string>> DatabaseSQLite::query(const std::string& s
         m_error_message = e.what();
         m_error_code = std::to_string(e.getErrorCode());
     }
-    DANEJOE_LOG_TRACE("default","Database","查询完毕 {}", statement);
+    DANEJOE_LOG_TRACE("default", "Database", "查询完毕 {}", statement);
     return result;
 }
 

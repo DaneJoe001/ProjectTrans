@@ -5,6 +5,7 @@
 #include "log/manage_logger.hpp"
 #include "view/main_window.hpp"
 #include  "network/posix_client_socket.hpp"
+#include "database/sqlite_database.hpp"
 
 #define CONSOLE_CLIENT
 
@@ -21,6 +22,12 @@ int main(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
+    IDatabase::DatabaseConfig config;
+    config.database_name = "client_database";
+    config.path = "./database/client/client_database.db";
+    DatabaseSQLite db;
+    db.set_config(config);
+    db.connect();
     PosixClientSocket socket("127.0.0.1", 8080);
     while (true)
     {

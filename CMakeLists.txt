@@ -28,6 +28,7 @@ file(GLOB SERVER_SOURCES
 )
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(OpenSSL REQUIRED)
 
 # 使用add_subdirectory方式添加SQLiteCpp
 add_subdirectory(/home/danejoe001/develop_environment/environment_database/database_sqlite/SQLiteCpp ${CMAKE_BINARY_DIR}/external/sqlitecpp)
@@ -49,9 +50,13 @@ target_sources(client PRIVATE ${MOC_SOURCES})
 target_link_libraries(client PRIVATE DaneJoeLog)
 target_link_libraries(client PRIVATE DaneJoeMTQueue)
 target_link_libraries(client PRIVATE SQLiteCpp)
+target_link_libraries(client PRIVATE OpenSSL::SSL)
+target_link_libraries(client PRIVATE OpenSSL::Crypto)
 
 add_executable(server ${SERVER_SOURCES})
 target_include_directories(server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(server PRIVATE DaneJoeLog)
 target_link_libraries(server PRIVATE DaneJoeMTQueue)
 target_link_libraries(server PRIVATE SQLiteCpp)
+target_link_libraries(server PRIVATE OpenSSL::SSL)
+target_link_libraries(server PRIVATE OpenSSL::Crypto)

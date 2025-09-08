@@ -50,6 +50,12 @@ public:
      * @return epoll事件类型
      */
     uint32_t to_epoll_events(EventType type);
+    /**
+     * @brief 接受事件
+     */
+    void acceptable_event();
+    void readable_event(int fd);
+    void writable_event(int fd);
 private:
     /// @brief 最大事件数
     int m_max_events = 1024;
@@ -79,7 +85,7 @@ private:
     /// @brief 套接字事件
     /// @tparam int 逻辑socket标识符
     /// @tparam EventType 事件类型
-    std::unordered_map<int,EventType> m_socket_events;
+    std::unordered_map<int, EventType> m_socket_events;
     /// @brief 业务上下文创建器
     /// @tparam std::unique_ptr<ISocketContextCreator> 业务上下文创建器
     std::unique_ptr<ISocketContextCreator> m_context_creator;

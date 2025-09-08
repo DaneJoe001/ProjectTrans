@@ -56,13 +56,6 @@ public:
         std::string user_name;
         /// @brief 用户密码。
         std::string user_password;
-        /**
-         * @return 文件路径
-         */
-        std::string file_path()const
-        {
-            return path + database_name;
-        }
     };
 public:
     IDatabase();

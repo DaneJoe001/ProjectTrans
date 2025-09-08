@@ -35,7 +35,7 @@ public:
     /**
      * @brief 监听
      */
-    void listen()override;
+    bool listen()override;
     /**
      * @brief 接受连接
      * @return 客户端套接字
@@ -46,7 +46,7 @@ public:
      * @param ip ip地址
      * @param port 端口
      */
-    void bind(const std::string& ip, uint16_t port)override;
+    bool bind(const std::string& ip, uint16_t port)override;
 private:
     /**
      * @brief 析构函数

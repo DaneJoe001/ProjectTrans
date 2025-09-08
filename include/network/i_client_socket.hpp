@@ -39,6 +39,6 @@ public:
      * @param ip ip地址
      * @param port 端口
      */
-    virtual void connect(const std::string& ip, uint16_t port) = 0;
+    virtual bool connect(const std::string& ip, uint16_t port) = 0;
 protected:
 };

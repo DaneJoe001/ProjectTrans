@@ -41,7 +41,7 @@ public:
      * @param ip ip地址
      * @param port 端口
      */
-    void connect(const std::string& ip, uint16_t port) override;
+    bool connect(const std::string& ip, uint16_t port) override;
     /**
      * @brief 读取所有数据
      * @return 数据

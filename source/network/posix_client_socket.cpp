@@ -31,27 +31,28 @@ PosixClientSocket::PosixClientSocket(int socket)
 {
     if (socket < 0)
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to create socket: socket fd is invalid");
+        DANEJOE_LOG_WARN("default", "Socket", "Create socket with invalid fd");
     }
     m_socket = socket;
 }
 
 PosixClientSocket::PosixClientSocket(const std::string& ip, uint16_t port)
 {
-    m_socket = socket(AF_INET, SOCK_STREAM, 0);
+    m_socket = ::socket(AF_INET, SOCK_STREAM, 0);
     if (m_socket < 0)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to create socket");
+        return;
     }
     connect(ip, port);
 }
 
-void PosixClientSocket::connect(const std::string& ip, uint16_t port)
+bool PosixClientSocket::connect(const std::string& ip, uint16_t port)
 {
     if (!is_valid())
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to connect socket: socket is not valid");
-        return;
+        return false;
     }
     struct sockaddr_in server_address;
     std::memset(&server_address, 0, sizeof(server_address));
@@ -62,7 +63,9 @@ void PosixClientSocket::connect(const std::string& ip, uint16_t port)
     if (ret < 0)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to connect socket");
+        return false;
     }
+    return true;
 }
 PosixClientSocket::~PosixClientSocket()
 {
@@ -76,18 +79,21 @@ std::vector<uint8_t> PosixClientSocket::receive(std::size_t size)
     }
     std::size_t has_read = 0;
     std::vector<uint8_t> buffer(size);
+    /// @brief 循环接收数据
     while (has_read < size)
     {
         int ret = ::recv(m_socket, buffer.data() + has_read, size - has_read, 0);
         if (ret < 0)
         {
+            /// @param EINTR 函数被中断
             if (errno == EINTR)
             {
                 continue;
             }
+            /// @param EAGAIN 非阻塞模式下，没有数据可读或缓冲区没有空间可写
             else if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
-                return std::vector<uint8_t>();
+                return buffer;
             }
             else
             {
@@ -105,7 +111,6 @@ std::vector<uint8_t> PosixClientSocket::receive(std::size_t size)
             has_read += ret;
         }
     }
-
     return buffer;
 }
 

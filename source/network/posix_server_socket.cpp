@@ -46,11 +46,12 @@ PosixServerSocket::~PosixServerSocket()
     this->close();
 }
 
-void PosixServerSocket::bind(const std::string& ip, uint16_t port)
+bool PosixServerSocket::bind(const std::string& ip, uint16_t port)
 {
     if (!is_valid())
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Faild to bind:Socket is not valid");
+        return false;
     }
     /// @brief 描述套接字的结构体
     struct sockaddr_in addr;
@@ -62,20 +63,25 @@ void PosixServerSocket::bind(const std::string& ip, uint16_t port)
     if (ret < 0)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to bind socket");
+        return false;
     }
+    return true;
 }
 
-void PosixServerSocket::listen()
+bool PosixServerSocket::listen()
 {
     if (!is_valid())
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to listen:Socket is not valid");
+        return false;
     }
     int ret = ::listen(m_socket, 5);
     if (ret < 0)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to listen socket");
+        return false;
     }
+    return true;
 }
 
 std::unique_ptr<IClientSocket> PosixServerSocket::accept()
@@ -89,15 +95,8 @@ std::unique_ptr<IClientSocket> PosixServerSocket::accept()
     int client_socket = ::accept(m_socket, (struct sockaddr*)&client_addr, &client_addr_len);
     if (client_socket < 0)
     {
-        /// @brief 非阻塞模式下获取失败不打印日志
-        if (m_is_non_blocking)
-        {
-            return nullptr;
-        }
-        else
-        {
-            DANEJOE_LOG_ERROR("default", "Socket", "Failed to accept socket");
-        }
+        DANEJOE_LOG_ERROR("default", "Socket", "Failed to accept socket");
+        return nullptr;
     }
     return std::make_unique<PosixClientSocket>(client_socket);
 }
