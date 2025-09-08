@@ -12,6 +12,7 @@ extern "C"
 
 int PosixSocket::get_id(int fd)
 {
+    /// @brief 返回原始套接字描述符
     return fd;
 }
 
@@ -27,7 +28,7 @@ PosixSocket::PosixOption PosixSocket::to_posix_option(const IOption& option)
 
 void PosixSocket::close()
 {
-    if (m_socket > 0)
+    if (m_socket >= 0)
     {
         ::close(m_socket);
         m_socket = -1;
@@ -119,7 +120,7 @@ int PosixSocket::get_id()const
 
 const void* PosixSocket::get_raw_socket()const
 {
-    return (void*)&m_socket;
+    return (const void*)&m_socket;
 }
 
 bool PosixSocket::operator==(const PosixSocket& rhs)const

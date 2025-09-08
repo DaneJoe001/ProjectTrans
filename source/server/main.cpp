@@ -7,6 +7,7 @@
 #include "network/posix_client_socket.hpp"
 #include "network/epoll_event_loop.hpp"
 #include "server/trans_context.hpp"
+#include "database/sqlite_database.hpp"
 
 using namespace std::literals::chrono_literals;
 
@@ -77,6 +78,12 @@ int main(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
+    IDatabase::DatabaseConfig config;
+    config.database_name = "server_database";
+    config.path = "./database/server/server_database.db";
+    DatabaseSQLite db;
+    db.set_config(config);
+    db.connect();
     std::ofstream log_file("./log/default.log", std::ios::out);
     log_file.clear();
     log_file.close();

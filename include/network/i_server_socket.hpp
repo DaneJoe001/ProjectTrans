@@ -17,7 +17,7 @@ public:
     /**
      * @brief 监听
      */
-    virtual void listen() = 0;
+    virtual bool listen() = 0;
     /**
      * @brief 接受连接
      * @return 客户端套接字
@@ -28,5 +28,5 @@ public:
      * @param ip ip地址
      * @param port 端口
      */
-    virtual void bind(const std::string& ip, uint16_t port) = 0;
+    virtual bool bind(const std::string& ip, uint16_t port) = 0;
 };

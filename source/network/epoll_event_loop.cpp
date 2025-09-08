@@ -75,7 +75,7 @@ bool EpollEventLoop::add_socket(std::unique_ptr<IClientSocket> socket, EventType
     memset(&ev, 0, sizeof(ev));
     /// @brief 转换Epoll事件类型至抽象事件类型
     ev.events = to_epoll_events(type);
-    /// @brief 获取套接字文件描述符
+    /// @brief 获取客户端套接字文件描述符
     int socket_fd = *reinterpret_cast<const int*>(socket->get_raw_socket());
     ev.data.fd = socket_fd;
     int ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, socket_fd, &ev);
@@ -123,6 +123,7 @@ void EpollEventLoop::remove_socket(int socket_id)
 }
 void EpollEventLoop::run()
 {
+    /// @brief 在epoll标识符无效时直接退出
     if (!is_valid())
     {
         DANEJOE_LOG_ERROR("default", "Epoll", "epoll is not valid");
@@ -133,15 +134,11 @@ void EpollEventLoop::run()
     while (m_is_running)
     {
         /// @brief 等待事件发生
-        int ret = ::epoll_wait(
-            /// @brief epoll 文件描述符
-            m_epoll_fd,
-            /// @brief 监听事件
-            events,
-            /// @brief 最大监听事件数量
-            m_max_events,
-            /// @brief 等待时间,-1 表示一直等待
-            1000);
+        /// @brief epoll 文件描述符
+        /// @brief 监听事件
+         /// @brief 最大监听事件数量
+        /// @brief 等待时间,-1 表示一直等待
+        int ret = ::epoll_wait(m_epoll_fd, events, m_max_events, 1000);
         if (ret < 0)
         {
             /// @brief 忽略 EINTR 错误
@@ -157,39 +154,14 @@ void EpollEventLoop::run()
         }
         for (int i = 0;i < ret;i++)
         {
+            /// @brief 获取文件描述符
             int fd = events[i].data.fd;
+            /// @brief 获取对应文件描述符触发的事件
             uint32_t event = events[i].events;
             /// @brief 判断是否为服务器 socket
             if (*reinterpret_cast<const int*>(m_server_socket->get_raw_socket()) == fd)
             {
-                /// @brief 边缘触发模式要求在套接字就绪时必须尽可能多地处理所有可用的连接
-                while (true)
-                {
-                    auto client = m_server_socket->accept();
-                    if (!client)
-                    {
-                        if (errno == EAGAIN || errno == EWOULDBLOCK)
-                        {
-                            break; // 没有更多连接
-                        }
-                        DANEJOE_LOG_ERROR("default", "Epoll", "accept failed: {}", strerror(errno));
-                        break;
-                    }
-                    if (!client->set_non_blocking(true))
-                    {
-                        DANEJOE_LOG_ERROR("default", "Epoll", "set non blocking failed");
-                        client->close();
-                        continue;
-                    }
-                    /// @note 更符合服务器的工作逻辑，确保在处理新连接时仅关注可读事件，而不是可写事件。
-                    if (!add_socket(std::move(client), EventType::Readable | EventType::EdgeTriggered | EventType::PeerClosed))
-                    {
-                        DANEJOE_LOG_ERROR("default", "Epoll", "add socket failed");
-                        continue;
-                    }
-                    DANEJOE_LOG_TRACE("default", "Epoll", "add socket success");
-                    continue;
-                }
+                acceptable_event();
             }
             /// @brief 错误或对端关闭：及时回收 fd，避免无意义的后续处理
             if (event & (EPOLLHUP | EPOLLERR))
@@ -200,50 +172,12 @@ void EpollEventLoop::run()
             /// @brief 客户端读事件
             if (event & EPOLLIN)
             {
-                /// @brief 当前posix实现下，socket_map的键就是(int)fd
-                auto socket_iter = m_sockets.find(fd);
-                if (socket_iter == m_sockets.end())
-                {
-                    remove_socket(PosixClientSocket::get_id(fd));
-                    continue;
-                }
-                std::vector<uint8_t> data = m_sockets.at(fd)->read_all();
-                auto buffer = m_recv_buffers.at(PosixClientSocket::get_id(fd));
-                buffer->push(data.begin(), data.end());
-                m_contexts.at(PosixClientSocket::get_id(fd))->on_recv(buffer);
+                readable_event(fd);
             }
             /// @brief 客户端写事件
             if (event & EPOLLOUT)
             {
-                /// @brief 当前posix实现下，socket_map的键就是(int)fd
-                auto client = m_sockets.at(fd).get();
-                if (!client)
-                {
-                    DANEJOE_LOG_ERROR("default", "Epoll", "Failed to send:client is null");
-                    remove_socket(PosixClientSocket::get_id(fd));
-                    continue;
-                }
-                /// @brief 获取发送缓存
-                auto buffer = m_send_buffers.at(PosixClientSocket::get_id(fd));
-
-                /// @brief 调用发送回调
-                m_contexts.at(PosixClientSocket::get_id(fd))->on_send(buffer);
-                /// @brief 获取发送数据
-                std::vector<uint8_t> data = buffer->try_pop(1024);
-                /// @brief 发送数据
-                m_sockets.at(fd)->send_all(data);
-                /// @brief 写完后修改监听事件
-                if (buffer->empty())
-                {
-                    struct epoll_event ev;
-                    memset(&ev, 0, sizeof(ev));
-                    ev.events = event;
-                    ev.data.fd = fd;
-                    if (epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
-                    {
-                        DANEJOE_LOG_ERROR("default", "Epoll", "epoll_ctl failed!");
-                    }
-                }
+                writable_event(fd);
             }
         }
     }
@@ -316,4 +250,101 @@ uint32_t EpollEventLoop::to_epoll_events(EventType type)
         event |= EPOLLRDHUP;
     }
     return event;
+}
+
+void EpollEventLoop::acceptable_event()
+{
+    /// @brief 边缘触发模式要求在套接字就绪时必须尽可能多地处理所有可用的连接
+    while (true)
+    {
+        /// @brief 尝试接受客户端连接
+        auto client = m_server_socket->accept();
+        if (!client)
+        {
+            /// @brief 如果没有更多连接，则退出循环
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                break;
+            }
+            DANEJOE_LOG_ERROR("default", "Epoll", "accept failed: {}", strerror(errno));
+            break;
+        }
+        /// @brief 确保设置客户端套接字非阻塞
+        if (!client->set_non_blocking(true))
+        {
+            DANEJOE_LOG_ERROR("default", "Epoll", "set non blocking failed");
+            client->close();
+            continue;
+        }
+        /// @note 更符合服务器的工作逻辑，确保在处理新连接时仅关注可读事件，而不是可写事件。
+        if (!add_socket(std::move(client), EventType::Readable | EventType::EdgeTriggered | EventType::PeerClosed))
+        {
+            DANEJOE_LOG_ERROR("default", "Epoll", "add socket failed");
+            continue;
+        }
+        DANEJOE_LOG_TRACE("default", "Epoll", "add socket success");
+        continue;
+    }
+}
+
+void EpollEventLoop::readable_event(int fd)
+{
+    /// @brief 当前posix实现下，socket_map的键就是(int)fd
+    auto socket_iter = m_sockets.find(fd);
+    if (socket_iter == m_sockets.end())
+    {
+        remove_socket(PosixClientSocket::get_id(fd));
+        return;
+    }
+    std::vector<uint8_t> data = m_sockets.at(fd)->read_all();
+    auto buffer = m_recv_buffers.at(PosixClientSocket::get_id(fd));
+    buffer->push(data.begin(), data.end());
+    m_contexts.at(PosixClientSocket::get_id(fd))->on_recv(buffer);
+
+    if (!buffer->full())
+    {
+        struct epoll_event ev;
+        memset(&ev, 0, sizeof(ev));
+        /// @brief 监听可写事件
+        ev.events = EPOLLOUT;
+        ev.data.fd = fd;
+        if (epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
+        {
+            DANEJOE_LOG_ERROR("default", "Epoll", "epoll_ctl failed!");
+        }
+    }
+}
+
+void EpollEventLoop::writable_event(int fd)
+{
+    /// @brief 当前posix实现下，socket_map的键就是(int)fd
+    auto client = m_sockets.at(fd).get();
+    if (!client)
+    {
+        DANEJOE_LOG_ERROR("default", "Epoll", "Failed to send:client is null");
+        remove_socket(PosixClientSocket::get_id(fd));
+        return;
+    }
+    /// @brief 获取发送缓存
+    auto buffer = m_send_buffers.at(PosixClientSocket::get_id(fd));
+
+    /// @brief 调用发送回调
+    m_contexts.at(PosixClientSocket::get_id(fd))->on_send(buffer);
+    /// @brief 获取发送数据
+    std::vector<uint8_t> data = buffer->try_pop(1024);
+    /// @brief 发送数据
+    m_sockets.at(fd)->send_all(data);
+    /// @brief 写完后修改监听事件
+    if (buffer->empty())
+    {
+        struct epoll_event ev;
+        memset(&ev, 0, sizeof(ev));
+        /// @brief 监听可读事件
+        ev.events = EPOLLIN;
+        ev.data.fd = fd;
+        if (epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
+        {
+            DANEJOE_LOG_ERROR("default", "Epoll", "epoll_ctl failed!");
+        }
+    }
 }
