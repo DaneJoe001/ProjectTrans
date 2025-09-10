@@ -11,6 +11,8 @@ extern "C"
 #include "network/posix_client_socket.hpp"
 #include "log/manage_logger.hpp"
 
+/// @todo 将读写引入线程中，避免顺序执行导致缓冲区满阻塞
+
 EpollEventLoop::EpollEventLoop(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator)
 {
     /// @brief 服务器套接字
@@ -87,8 +89,8 @@ bool EpollEventLoop::add_socket(std::unique_ptr<IClientSocket> socket, EventType
     }
     /// @brief 初始化对应的接收缓存
     int socket_id = socket->get_id();
-    m_recv_buffers[socket_id] = std::make_shared<DaneJoe::MTQueue<uint8_t>>();
-    m_send_buffers[socket_id] = std::make_shared<DaneJoe::MTQueue<uint8_t>>();
+    m_recv_buffers[socket_id] = std::make_shared<DaneJoe::MTQueue<uint8_t>>(4096);
+    m_send_buffers[socket_id] = std::make_shared<DaneJoe::MTQueue<uint8_t>>(4096);
     m_sockets[socket_id] = std::move(socket);
     m_socket_events[socket_id] = type;
     m_contexts[socket_id] = m_context_creator->create();
@@ -130,7 +132,7 @@ void EpollEventLoop::run()
         return;
     }
     m_is_running = true;
-    struct epoll_event events[m_max_events];
+    struct epoll_event events[m_max_event_account];
     while (m_is_running)
     {
         /// @brief 等待事件发生
@@ -138,7 +140,7 @@ void EpollEventLoop::run()
         /// @brief 监听事件
          /// @brief 最大监听事件数量
         /// @brief 等待时间,-1 表示一直等待
-        int ret = ::epoll_wait(m_epoll_fd, events, m_max_events, 1000);
+        int ret = ::epoll_wait(m_epoll_fd, events, m_max_event_account, 1000);
         if (ret < 0)
         {
             /// @brief 忽略 EINTR 错误
@@ -166,6 +168,7 @@ void EpollEventLoop::run()
             /// @brief 错误或对端关闭：及时回收 fd，避免无意义的后续处理
             if (event & (EPOLLHUP | EPOLLERR))
             {
+                DANEJOE_LOG_WARN("default", "Epoll", "client socket error or closed!");
                 remove_socket(PosixClientSocket::get_id(fd));
                 continue;
             }
@@ -291,7 +294,7 @@ void EpollEventLoop::readable_event(int fd)
 {
     /// @brief 当前posix实现下，socket_map的键就是(int)fd
     auto socket_iter = m_sockets.find(fd);
-    if (socket_iter == m_sockets.end())
+    if (socket_iter == m_sockets.end() || socket_iter->second == nullptr)
     {
         remove_socket(PosixClientSocket::get_id(fd));
         return;
@@ -318,10 +321,9 @@ void EpollEventLoop::readable_event(int fd)
 void EpollEventLoop::writable_event(int fd)
 {
     /// @brief 当前posix实现下，socket_map的键就是(int)fd
-    auto client = m_sockets.at(fd).get();
-    if (!client)
+    auto client_iter = m_sockets.find(fd);
+    if (client_iter == m_sockets.end() || client_iter->second == nullptr)
     {
-        DANEJOE_LOG_ERROR("default", "Epoll", "Failed to send:client is null");
         remove_socket(PosixClientSocket::get_id(fd));
         return;
     }

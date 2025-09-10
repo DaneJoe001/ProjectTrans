@@ -79,6 +79,11 @@
         "bitset": "cpp",
         "complex": "cpp",
         "any": "cpp",
-        "qapplication": "cpp"
-    }
+        "qapplication": "cpp",
+        "qtextbrowser": "cpp",
+        "qlineedit": "cpp",
+        "qpushbutton": "cpp",
+        "map": "cpp"
+    },
+    "commentTranslate.browse.mode": "contrast"
 }

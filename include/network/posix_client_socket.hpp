@@ -43,7 +43,7 @@ public:
      */
     bool connect(const std::string& ip, uint16_t port) override;
     /**
-     * @brief 读取所有数据
+     * @brief 读取所有数据,使用前确保处于非阻塞模式
      * @return 数据
      */
     std::vector<uint8_t> read_all() override;
