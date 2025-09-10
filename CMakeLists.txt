@@ -12,6 +12,7 @@ set(CMAKE_AUTOUIC ON )
 
 set(MOC_HEADERS 
     "include/view/main_window.hpp"
+    "include/view/connection_test_dialog.hpp"
 )
 
 file(GLOB CLIENT_SOURCES
@@ -27,6 +28,9 @@ file(GLOB SERVER_SOURCES
     "source/database/*.cpp"
 )
 
+set(BUILD_CLENT on)
+set(BUILD_SERVER on)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(OpenSSL REQUIRED)
 
@@ -39,24 +43,29 @@ qt6_wrap_cpp(MOC_SOURCES ${MOC_HEADERS})
 add_subdirectory(/home/danejoe001/personal_code/code_cpp_library/library_danejoe_log ${CMAKE_BINARY_DIR}/external/danejoe_log)
 add_subdirectory(/home/danejoe001/personal_code/code_cpp_library/library_danejoe_mt_queue ${CMAKE_BINARY_DIR}/external/danejoe_mt_queue)
 
-add_executable(client ${CLIENT_SOURCES})
-target_link_libraries(client PRIVATE 
-    Qt6::Core 
-    Qt6::Gui 
-    Qt6::Widgets
-)
-target_include_directories(client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_sources(client PRIVATE ${MOC_SOURCES})
-target_link_libraries(client PRIVATE DaneJoeLog)
-target_link_libraries(client PRIVATE DaneJoeMTQueue)
-target_link_libraries(client PRIVATE SQLiteCpp)
-target_link_libraries(client PRIVATE OpenSSL::SSL)
-target_link_libraries(client PRIVATE OpenSSL::Crypto)
 
-add_executable(server ${SERVER_SOURCES})
-target_include_directories(server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(server PRIVATE DaneJoeLog)
-target_link_libraries(server PRIVATE DaneJoeMTQueue)
-target_link_libraries(server PRIVATE SQLiteCpp)
-target_link_libraries(server PRIVATE OpenSSL::SSL)
-target_link_libraries(server PRIVATE OpenSSL::Crypto)
+if(BUILD_CLENT)
+    add_executable(client ${CLIENT_SOURCES})
+    target_link_libraries(client PRIVATE 
+        Qt6::Core 
+        Qt6::Gui 
+        Qt6::Widgets
+    )
+    target_include_directories(client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_sources(client PRIVATE ${MOC_SOURCES})
+    target_link_libraries(client PRIVATE DaneJoeLog)
+    target_link_libraries(client PRIVATE DaneJoeMTQueue)
+    target_link_libraries(client PRIVATE SQLiteCpp)
+    target_link_libraries(client PRIVATE OpenSSL::SSL)
+    target_link_libraries(client PRIVATE OpenSSL::Crypto)
+endif()
+
+if(BUILD_SERVER)
+    add_executable(server ${SERVER_SOURCES})
+    target_include_directories(server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(server PRIVATE DaneJoeLog)
+    target_link_libraries(server PRIVATE    DaneJoeMTQueue)
+    target_link_libraries(server PRIVATE SQLiteCpp)
+    target_link_libraries(server PRIVATE OpenSSL::SSL)
+    target_link_libraries(server PRIVATE    OpenSSL::Crypto)
+endif()

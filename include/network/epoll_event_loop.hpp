@@ -58,7 +58,7 @@ public:
     void writable_event(int fd);
 private:
     /// @brief 最大事件数
-    int m_max_events = 1024;
+    int m_max_event_account = 1024;
     /// @brief epoll文件描述符
     int m_epoll_fd = -1;
     /// @brief 是否运行

@@ -7,7 +7,7 @@
 #include "log/manage_logger.hpp"
 #include "mt_queue/mt_queue.hpp"
 
-DaneJoe::MTQueue<uint8_t> temp;
+DaneJoe::MTQueue<uint8_t> temp(4096);
 void TransContext::on_recv(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)
 {
     std::vector<uint8_t> data = buffer->try_pop(1024);
