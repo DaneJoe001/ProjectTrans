@@ -15,6 +15,7 @@ int main(int argc, char** argv)
     QApplication app(argc, argv);
     DANEJOE_LOG_TRACE("default", "Client", "Hello,world!");
     MainWindow window;
+    window.init();
     window.show();
     return app.exec();
 }

@@ -7,8 +7,28 @@ ConnectionGuard::ConnectionGuard(std::unique_ptr<ClientConnection> connection)
 }
 ConnectionGuard::~ConnectionGuard()
 {
-    ConnectionManager::get_instance().recycle_connection(std::move(m_connection));
+    if (m_connection)
+    {
+        ConnectionManager::get_instance().recycle_connection(std::move(m_connection));
+    }
 }
+ConnectionGuard::ConnectionGuard(ConnectionGuard&& other)noexcept
+{
+    m_connection = std::move(other.m_connection);
+    other.m_connection = nullptr;
+}
+
+ConnectionGuard& ConnectionGuard::operator=(ConnectionGuard&& other)noexcept
+{
+    if (this == &other)
+    {
+        return *this;
+    }
+    m_connection = std::move(other.m_connection);
+    other.m_connection = nullptr;
+    return *this;
+}
+
 ClientConnection* ConnectionGuard::operator->()
 {
     return m_connection.get();
@@ -24,30 +44,27 @@ ConnectionManager& ConnectionManager::get_instance()
 }
 void ConnectionManager::add_connection(const std::string& ip, uint16_t port)
 {
-    std::scoped_lock<std::mutex, std::mutex> lock(m_max_count_mutex, m_connection_mutex);
+    /// @todo 添加同一ip和port的连接上限设置
+    std::lock_guard<std::mutex> lock(m_connection_mutex);
     if (m_connection_count >= m_max_connection_count)
     {
-        DANEJOE_LOG_WARN("default", "Connection Manager", "Failed to create add new connectionr:Max connection count reached!");
+        DANEJOE_LOG_WARN("default", "Connection Manager", "Failed to add new connection: Max connection count reached!");
         return;
     }
-    m_connections.emplace(std::make_pair(ip, port), std::make_unique<ClientConnection>(ip, port));
-    m_connection_status.emplace(std::make_pair(ip, port), 1);
+
+    m_connection_info_map.emplace(std::make_pair(ip, port), ConnectionInfo{ std::make_unique<ClientConnection>(ip, port), ConnectionStatus::Available, std::chrono::steady_clock::now() });
+
     m_connection_count++;
 }
 void ConnectionManager::remove_connection(const std::string& ip, uint16_t port)
 {
     std::lock_guard<std::mutex> lock(m_connection_mutex);
-    auto connection_range = m_connections.equal_range(std::make_pair(ip, port));
-    auto connection_count = m_connections.count(std::make_pair(ip, port));
+    auto connection_id = std::make_pair(ip, port);
+    auto connection_range = m_connection_info_map.equal_range(connection_id);
     /// @note erase 一次
     for (auto it = connection_range.first; it != connection_range.second;)
     {
-        auto statu_it = m_connection_status.find(std::make_pair(ip, port));
-        if (statu_it != m_connection_status.end())
-        {
-            m_connection_status.erase(statu_it);
-        }
-        it = m_connections.erase(it);
+        it = m_connection_info_map.erase(it);
         m_connection_count--;
     }
 }
@@ -55,24 +72,21 @@ std::unique_ptr<ClientConnection> ConnectionManager::get_connection(const std::s
 {
     std::lock_guard<std::mutex> lock(m_connection_mutex);
     auto connection_id = std::make_pair(ip, port);
-    auto status_range = m_connection_status.equal_range(connection_id);
-    auto connection_range = m_connections.equal_range(connection_id);
-    auto status_it = status_range.first;
+    auto connection_range = m_connection_info_map.equal_range(connection_id);
     auto connection_it = connection_range.first;
-
-    std::size_t count = m_connections.count(connection_id);
-    if (count == 0)
+    if (connection_range.first == connection_range.second)
     {
         DANEJOE_LOG_WARN("default", "Connection Manager", "Failed to get connection:No connection found!");
         return nullptr;
     }
 
-    for (; status_it != status_range.second && connection_it != connection_range.second; ++status_it, ++connection_it)
+    for (; connection_it != connection_range.second;++connection_it)
     {
-        if (status_it->second == ConnectionStatus::Available)
+        if (connection_it->second.m_status == ConnectionStatus::Available)
         {
-            status_it->second = ConnectionStatus::Unavailable;
-            return std::move(connection_it->second);
+            connection_it->second.m_last_used_time = std::chrono::steady_clock::now();
+            connection_it->second.m_status = ConnectionStatus::Unavailable;
+            return std::move(connection_it->second.m_connection);
         }
     }
     DANEJOE_LOG_WARN("default", "Connection Manager", "Connection is already in use!");
@@ -81,26 +95,29 @@ std::unique_ptr<ClientConnection> ConnectionManager::get_connection(const std::s
 
 void ConnectionManager::recycle_connection(std::unique_ptr<ClientConnection> connection)
 {
+    if (!connection)
+    {
+        DANEJOE_LOG_WARN("default", "Connection Manager", "Connection is nullptr!");
+        return;
+    }
     std::lock_guard<std::mutex> lock(m_connection_mutex);
     auto connection_id = connection->get_id();
-    auto status_range = m_connection_status.equal_range(connection_id);
-    auto connection_range = m_connections.equal_range(connection_id);
-    auto status_it = status_range.first;
+    auto connection_range = m_connection_info_map.equal_range(connection_id);
     auto connection_it = connection_range.first;
 
-    std::size_t count = m_connections.count(connection_id);
-    if (count == 0)
+    if (connection_range.first == connection_range.second)
     {
         DANEJOE_LOG_WARN("default", "Connection Manager", "Failed to recycle connection:No connection record found!");
         return;
     }
 
-    for (; status_it != status_range.second && connection_it != connection_range.second; ++status_it, ++connection_it)
+    for (; connection_it != connection_range.second; ++connection_it)
     {
-        if (status_it->second == ConnectionStatus::Unavailable)
+        if (connection_it->second.m_status == ConnectionStatus::Unavailable)
         {
-            status_it->second = ConnectionStatus::Available;
-            connection_it->second = std::move(connection);
+            connection_it->second.m_last_used_time = std::chrono::steady_clock::now();
+            connection_it->second.m_status = ConnectionStatus::Available;
+            connection_it->second.m_connection = std::move(connection);
             return;
         }
     }
@@ -109,36 +126,41 @@ void ConnectionManager::recycle_connection(std::unique_ptr<ClientConnection> con
 
 void ConnectionManager::clear_unused_connections()
 {
+    /// @todo 完善超时机制
     std::lock_guard<std::mutex> lock(m_connection_mutex);
-    auto status_it = m_connection_status.begin();
-    while (status_it != m_connection_status.end())
+    auto connection_info_it = m_connection_info_map.begin();
+    while (connection_info_it != m_connection_info_map.end())
     {
-        if (status_it->second == ConnectionStatus::Unavailable)
+        if (connection_info_it->second.m_status == ConnectionStatus::Available)
         {
-            /// @brief 找到对应的连接
-            auto connection_it = m_connections.find(status_it->first);
-            if (connection_it != m_connections.end())
-            {
-                m_connections.erase(connection_it);
-            }
-            /// @note erase 返回下一个迭代器
-            status_it = m_connection_status.erase(status_it);
+            connection_info_it = m_connection_info_map.erase(connection_info_it);
             m_connection_count--;
         }
         else
         {
-            ++status_it;
+            ++connection_info_it;
         }
     }
 }
 
 void ConnectionManager::set_max_connection_count(int count)
 {
-    std::lock_guard<std::mutex> lock(m_max_count_mutex);
+    std::lock_guard<std::mutex> lock(m_connection_mutex);
     m_max_connection_count = count;
 }
 
-int ConnectionManager::get_connection_count()
+int ConnectionManager::get_connection_count()const
 {
+    std::lock_guard<std::mutex> lock(m_connection_mutex);
     return m_connection_count;
+}
+
+ConnectionGuard ConnectionManager::get_connection_guard(const std::string& ip, uint16_t port)
+{
+    return ConnectionGuard(get_connection(ip, port));
+}
+
+const ClientConnection* ConnectionGuard::operator->()const
+{
+    return m_connection.get();
 }

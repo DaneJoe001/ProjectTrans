@@ -22,6 +22,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
+    void init();
 signals:
     /**
      * @brief 数据接收完成信号，定时器循环调用，接收数据
@@ -33,10 +34,7 @@ private:
 public slots:
     void on_connection_test_action_triggered();
     void on_connection_test_dialog_closed();
-    void on_message_send(const std::vector<uint8_t>& data);
-    void on_message_received(const std::vector<uint8_t>& data);
 private:
-    ClientConnection m_client;
     bool m_is_on_connection_test = false;
 
     QString m_window_title = "Client";
