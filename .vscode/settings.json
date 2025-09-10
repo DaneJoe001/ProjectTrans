@@ -83,7 +83,8 @@
         "qtextbrowser": "cpp",
         "qlineedit": "cpp",
         "qpushbutton": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "qtextedit": "cpp"
     },
     "commentTranslate.browse.mode": "contrast"
 }

@@ -7,14 +7,10 @@
 #include "view/main_window.hpp"
 #include "log/manage_logger.hpp"
 
-MainWindow::MainWindow(QWidget* parent) :m_client("127.0.0.1", 8080)
+MainWindow::MainWindow(QWidget* parent) :QMainWindow(parent) {}
+
+void MainWindow::init()
 {
-    IDatabase::DatabaseConfig config;
-    config.database_name = "client_database";
-    config.path = "./database/client/client_database.db";
-
-    m_client.init_database(config);
-
     setWindowTitle(m_window_title);
     setGeometry(400, 400, 800, 600);
     /// @brief 菜单栏
@@ -67,36 +63,22 @@ MainWindow::MainWindow(QWidget* parent) :m_client("127.0.0.1", 8080)
     m_view_menu->addAction(m_sort_action);
 
     m_connection_test_dialog = new ConnectionTestDialog(this);
+    m_connection_test_dialog->init();
 
     connect(m_connection_test_action, &QAction::triggered, this, &MainWindow::on_connection_test_action_triggered);
     connect(m_connection_test_dialog, &QDialog::finished, this, &MainWindow::on_connection_test_dialog_closed);
-    connect(this, &MainWindow::message_received, this, &MainWindow::on_message_received);
-    connect(m_connection_test_dialog, &ConnectionTestDialog::send_data, this, &MainWindow::on_message_send);
 
     startTimer(1000);
 }
 
 void MainWindow::timerEvent(QTimerEvent* event)
 {
-    auto data = m_client.recieve();
-    if (!data.empty())
-    {
-        emit(message_received(data));
-    }
+
 }
 
 MainWindow::~MainWindow()
 {
 
-}
-
-void MainWindow::on_message_received(const std::vector<uint8_t>& data)
-{
-    DANEJOE_LOG_TRACE("default", "MainWindow", "on_message_received");
-    if (m_is_on_connection_test)
-    {
-        m_connection_test_dialog->on_message_received(data);
-    }
 }
 
 void MainWindow::on_connection_test_action_triggered()
@@ -110,10 +92,4 @@ void MainWindow::on_connection_test_dialog_closed()
 {
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_connection_test_dialog_closed");
     m_is_on_connection_test = false;
-}
-
-void MainWindow::on_message_send(const std::vector<uint8_t>& data)
-{
-    DANEJOE_LOG_TRACE("default", "MainWindow", "on_message_send");
-    m_client.send(data);
 }
