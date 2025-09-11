@@ -1,4 +1,5 @@
 #include <format>
+#include <cctype>
 
 #include "network/url_resolver.hpp"
 #include "log/manage_logger.hpp"
@@ -32,7 +33,7 @@ UrlResolver::UrlInfo UrlResolver::parse(const std::string& url)
     else
     {
         /// @brief 当有端口号时
-        info.ip = to_ip(url.substr(pos + 3, port_sign_pos - 3));
+        info.ip = to_ip(url.substr(pos + 3, port_sign_pos - protocol_str.size() - 3));
         info.port = std::stoi(url.substr(port_sign_pos + 1, ip_end_pos - port_sign_pos - 1));
     }
     info.path = url.substr(ip_end_pos);
@@ -46,15 +47,20 @@ std::string UrlResolver::build(const UrlInfo& info)
 
 UrlResolver::UrlProtocol UrlResolver::to_protocol(const std::string& protocol)
 {
-    if (protocol == "http")
+    std::string temp = protocol;
+    for (auto& ch : temp)
+    {
+        ch = std::tolower(ch);
+    }
+    if (temp == "http")
     {
         return UrlProtocol::HTTP;
     }
-    else if (protocol == "https")
+    else if (temp == "https")
     {
         return UrlProtocol::HTTPS;
     }
-    else if (protocol == "danejoe")
+    else if (temp == "danejoe")
     {
         return UrlProtocol::DANEJOE;
     }
@@ -67,7 +73,9 @@ UrlResolver::UrlProtocol UrlResolver::to_protocol(const std::string& protocol)
 std::string UrlResolver::to_ip(const std::string& url)
 {
     /// @todo parse IPv4 and more
-    return "0.0.0.0";
+    DANEJOE_LOG_WARN("default", "UrlResolver", "Current IP parser is not implemented!");
+    DANEJOE_LOG_WARN("default", "UrlResolver", "Return raw url: {}!", url);
+    return url;
 }
 
 uint16_t UrlResolver::default_port(UrlProtocol protocol)
