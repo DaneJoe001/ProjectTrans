@@ -11,21 +11,32 @@ set(CMAKE_AUTORCC ON )
 set(CMAKE_AUTOUIC ON )
 
 set(MOC_HEADERS 
-    "include/view/main_window.hpp"
-    "include/view/connection_test_dialog.hpp"
+    "include/client/view/main_window.hpp"
+    "include/client/view/connection_test_dialog.hpp"
+    "include/client/view/new_download_dialog.hpp"
+    "include/client/view/new_upload_dialog.hpp"
+    "include/client/view/trans_dialog.hpp"
 )
 
 file(GLOB CLIENT_SOURCES CONFIGURE_DEPENDS
-    "source/client/*.cpp"
-    "source/view/*.cpp"
-    "source/network/*.cpp"
-    "source/database/*.cpp"
+    "source/client/connect/*.cpp"
+    "source/client/main/*.cpp"
+    "source/client/model/*.cpp"
+    "source/client/repository/*.cpp"
+    "source/client/service/*.cpp"
+    "source/client/view/*.cpp"
+    "source/common/network/*.cpp"
+    "source/common/database/*.cpp"
 )
 
 file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
-    "source/server/*.cpp"
-    "source/network/*.cpp"
-    "source/database/*.cpp"
+    "source/server/connect/*.cpp"
+    "source/server/main/*.cpp"
+    "source/server/model/*.cpp"
+    "source/server/repository/*.cpp"
+    "source/server/service/*.cpp"
+    "source/common/network/*.cpp"
+    "source/common/database/*.cpp"
 )
 
 set(BUILD_CLENT on)
