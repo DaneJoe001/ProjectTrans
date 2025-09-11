@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget* parent) :QMainWindow(parent) {}
 void MainWindow::init()
 {
     setWindowTitle(m_window_title);
-    setGeometry(400, 400, 800, 600);
+    setGeometry(400, 200, 800, 600);
     /// @brief 菜单栏
     m_menubar = new QMenuBar(this);
     setMenuBar(m_menubar);

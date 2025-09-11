@@ -15,14 +15,14 @@ set(MOC_HEADERS
     "include/view/connection_test_dialog.hpp"
 )
 
-file(GLOB CLIENT_SOURCES
+file(GLOB CLIENT_SOURCES CONFIGURE_DEPENDS
     "source/client/*.cpp"
     "source/view/*.cpp"
     "source/network/*.cpp"
     "source/database/*.cpp"
 )
 
-file(GLOB SERVER_SOURCES
+file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
     "source/server/*.cpp"
     "source/network/*.cpp"
     "source/database/*.cpp"

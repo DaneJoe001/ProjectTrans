@@ -47,7 +47,7 @@ void ConnectionTestDialog::init()
     m_main_layout->addWidget(m_send_label);
     m_main_layout->addWidget(m_send_text_edit);
 
-    this->setGeometry(100, 50, 400, 500);
+    this->setGeometry(450, 250, 400, 500);
 
     m_url_line_edit->setText(QString::fromStdString("danejoe://127.0.0.1:8080"));
 
