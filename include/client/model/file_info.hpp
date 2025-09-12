@@ -9,6 +9,7 @@ struct FileInfo
 {
     int file_id;
     std::string saved_name;
+    std::string source_path;
     std::string saved_path;
     std::size_t file_size;
     Operation operation;

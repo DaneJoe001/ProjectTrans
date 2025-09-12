@@ -5,6 +5,7 @@
 extern "C"
 {
 #include <sys/epoll.h>
+#include <unistd.h>
 }
 
 #include "common/network/epoll_event_loop.hpp"

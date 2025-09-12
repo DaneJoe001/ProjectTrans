@@ -15,6 +15,7 @@ bool FileInfoRepository::ensure_table_exists()
         CREATE TABLE IF NOT EXISTS file_info (
             file_id INTEGER PRIMARY KEY,
             saved_name TEXT NOT NULL,
+            source_path TEXT NOT NULL,
             saved_path TEXT NOT NULL,
             file_size INTEGER NOT NULL,
             operation INTEGER NOT NULL,
@@ -24,6 +25,7 @@ bool FileInfoRepository::ensure_table_exists()
             finished_time INTEGER NOT NULL   -- 使用 INTEGER 存储时间戳
         );
     )");
+
     return result;
 }
 

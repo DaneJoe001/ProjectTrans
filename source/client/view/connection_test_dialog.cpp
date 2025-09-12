@@ -6,6 +6,7 @@
 #include<QWidget>
 #include<QVBoxLayout>
 #include<QTextEdit>
+#include<QMessageBox>
 
 #include "common/network/url_resolver.hpp"
 #include "client/view/connection_test_dialog.hpp"
@@ -31,15 +32,18 @@ void ConnectionTestDialog::init()
     m_url_label = new QLabel("URL:", this);
     m_url_line_edit = new QLineEdit(this);
     m_send_push_button = new QPushButton("Send", this);
+    m_connect_push_button = new QPushButton("Connect", this);
 
     m_url_widget = new QWidget(this);
     m_url_layout = new QHBoxLayout(m_url_widget);
     m_url_layout->addWidget(m_url_label);
     m_url_layout->addWidget(m_url_line_edit);
+    m_url_layout->addWidget(m_connect_push_button);
     m_url_layout->addWidget(m_send_push_button);
     m_url_layout->setStretch(0, 1);
     m_url_layout->setStretch(1, 8);
-    m_url_layout->setStretch(4, 1);
+    m_url_layout->setStretch(2, 1);
+    m_url_layout->setStretch(3, 1);
 
     m_main_layout->addWidget(m_recv_label);
     m_main_layout->addWidget(m_recv_text_browser);
@@ -47,12 +51,13 @@ void ConnectionTestDialog::init()
     m_main_layout->addWidget(m_send_label);
     m_main_layout->addWidget(m_send_text_edit);
 
-    this->setGeometry(450, 250, 400, 500);
+    this->setGeometry(450, 250, 500, 400);
 
     m_url_line_edit->setText(QString::fromStdString("danejoe://127.0.0.1:8080"));
 
     connect(m_send_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_send_push_button_clicked);
     connect(this, &ConnectionTestDialog::message_received, this, &ConnectionTestDialog::on_message_received);
+    connect(m_connect_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_connect_push_button_clicked);
 
     startTimer(1000);
 }
@@ -63,20 +68,34 @@ void ConnectionTestDialog::on_send_push_button_clicked()
     m_send_text_edit->clear();
     auto data = text.toUtf8();
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_send_push_button_clicked():{}", text.toStdString());
+    if (!m_connection->is_connected())
+    {
+        QMessageBox::warning(this, "Error", "Not connected");
+        return;
+    }
+    m_connection->send(std::vector<uint8_t>(data.begin(), data.end()));
+}
+
+void ConnectionTestDialog::on_connect_push_button_clicked()
+{
     QString url = m_url_line_edit->text();
     UrlResolver::UrlInfo info = UrlResolver::parse(url.toStdString());
 
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "URL Parsed:{}:{}:{}", UrlResolver::to_string(info.protocol), info.ip, info.port);
 
     m_connection = std::move(ConnectionManager::get_instance().get_connection(info.ip, info.port));
-    if (!m_connection)
+    if (!m_connection || !m_connection->is_connected())
     {
         ConnectionManager::get_instance().add_connection(info.ip, info.port);
         m_connection = std::move(ConnectionManager::get_instance().get_connection(info.ip, info.port));
     }
-    if (m_connection)
+    if (m_connection->is_connected())
     {
-        m_connection->send(std::vector<uint8_t>(data.begin(), data.end()));
+        QMessageBox::information(this, "Success", "Connected");
+    }
+    else
+    {
+        QMessageBox::warning(this, "Error", "Failed to connect");
     }
 }
 

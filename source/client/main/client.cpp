@@ -1,8 +1,12 @@
+#include <filesystem>
+
 #include "client/main/client.hpp"
 #include "log/manage_logger.hpp"
 #include "common/database/database_manager.hpp"
 #include "client/repository/file_info_repository.hpp"
 #include "client/repository/block_request_info_repository.hpp"
+
+namespace fs = std::filesystem;
 
 void init_database()
 {
@@ -27,5 +31,14 @@ void init_database()
     if (!is_exist)
     {
         DANEJOE_LOG_ERROR("default", "client", "Failed to create table block_request_info");
+    }
+}
+
+void clear_database()
+{
+    fs::path path = "./database/client/client_database.db";
+    if (fs::exists(path))
+    {
+        fs::remove(path);
     }
 }

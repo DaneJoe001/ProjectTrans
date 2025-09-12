@@ -84,7 +84,11 @@
         "qlineedit": "cpp",
         "qpushbutton": "cpp",
         "map": "cpp",
-        "qtextedit": "cpp"
+        "qtextedit": "cpp",
+        "regex": "cpp",
+        "qhboxlayout": "cpp",
+        "qfiledialog": "cpp",
+        "qwidget": "cpp"
     },
     "commentTranslate.browse.mode": "contrast"
 }

@@ -40,5 +40,10 @@ public:
      * @param port 端口
      */
     virtual bool connect(const std::string& ip, uint16_t port) = 0;
+    /**
+     * @brief 是否已连接
+     * @return bool
+     */
+    virtual bool is_connected() = 0;
 protected:
 };
