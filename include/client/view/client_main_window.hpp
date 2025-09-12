@@ -17,12 +17,12 @@ class TransDialog;
 class NewDownloadDialog;
 class NewUploadDialog;
 
-class MainWindow : public QMainWindow
+class ClientMainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    MainWindow(QWidget* parent = nullptr);
-    ~MainWindow();
+    ClientMainWindow(QWidget* parent = nullptr);
+    ~ClientMainWindow();
     void init();
 signals:
     /**

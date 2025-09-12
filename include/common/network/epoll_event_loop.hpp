@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "common/network/i_event_loop.hpp"
 #include "common/network/posix_server_socket.hpp"
 #include "common/network/i_socket_context.hpp"

@@ -34,3 +34,7 @@ std::pair<std::string, uint16_t> ClientConnection::get_id()
 {
     return std::pair<std::string, uint16_t>(m_ip, m_port);
 }
+bool ClientConnection::is_connected()
+{
+    return m_socket.is_connected();
+}

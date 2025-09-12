@@ -3,7 +3,7 @@
 #include <thread>
 
 #include "log/manage_logger.hpp"
-#include "client/view/main_window.hpp"
+#include "client/view/client_main_window.hpp"
 #include "common/network/posix_client_socket.hpp"
 #include "client/main/client.hpp"
 
@@ -14,9 +14,10 @@
 int main(int argc, char** argv)
 {
     DANEJOE_LOG_TRACE("default", "Client", "Hello,world!");
+    // clear_database();
     init_database();
     QApplication app(argc, argv);
-    MainWindow window;
+    ClientMainWindow window;
     window.init();
     window.show();
     return app.exec();

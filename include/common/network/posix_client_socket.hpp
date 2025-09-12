@@ -63,6 +63,10 @@ public:
      * @param data 数据
      */
     void send(const std::vector<uint8_t>& data) override;
+    /**
+     * @brief 是否已连接
+     */
+    bool is_connected()override;
 private:
     /**
      * @brief 拷贝构造
@@ -74,4 +78,6 @@ private:
      * @return 当前套接字
      */
     PosixClientSocket& operator=(const PosixClientSocket& other) = delete;
+    /// @brief 是否连接
+    bool m_is_connected = false;
 };

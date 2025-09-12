@@ -26,6 +26,7 @@ signals:
     void message_received(const std::vector<uint8_t>& data);
 public slots:
     void on_send_push_button_clicked();
+    void on_connect_push_button_clicked();
     void on_message_received(const std::vector<uint8_t>& data);
 private:
     QLabel* m_url_label;
@@ -33,6 +34,7 @@ private:
     QLabel* m_recv_label;
     QLineEdit* m_url_line_edit;
     QPushButton* m_send_push_button;
+    QPushButton* m_connect_push_button;
     QTextEdit* m_send_text_edit;
     QTextBrowser* m_recv_text_browser;
     QHBoxLayout* m_url_layout;

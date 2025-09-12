@@ -4,16 +4,16 @@
 #include <QTableWidget>
 #include <QString>
 
-#include "client/view/main_window.hpp"
+#include "client/view/client_main_window.hpp"
 #include "log/manage_logger.hpp"
 #include "client/view/connection_test_dialog.hpp"
 #include "client/view/new_download_dialog.hpp"
 #include "client/view/new_upload_dialog.hpp"
 #include "client/view/trans_dialog.hpp"
 
-MainWindow::MainWindow(QWidget* parent) :QMainWindow(parent) {}
+ClientMainWindow::ClientMainWindow(QWidget* parent) :QMainWindow(parent) {}
 
-void MainWindow::init()
+void ClientMainWindow::init()
 {
     setWindowTitle(m_window_title);
     setGeometry(400, 200, 800, 600);
@@ -78,45 +78,45 @@ void MainWindow::init()
 
     m_connection_test_dialog->init();
 
-    connect(m_connection_test_action, &QAction::triggered, this, &MainWindow::on_connection_test_action_triggered);
-    connect(m_new_download_action, &QAction::triggered, this, &MainWindow::on_new_download_action_triggered);
-    connect(m_new_upload_action, &QAction::triggered, this, &MainWindow::on_new_upload_action_triggered);
+    connect(m_connection_test_action, &QAction::triggered, this, &ClientMainWindow::on_connection_test_action_triggered);
+    connect(m_new_download_action, &QAction::triggered, this, &ClientMainWindow::on_new_download_action_triggered);
+    connect(m_new_upload_action, &QAction::triggered, this, &ClientMainWindow::on_new_upload_action_triggered);
 
-    connect(m_connection_test_dialog, &QDialog::finished, this, &MainWindow::on_connection_test_dialog_closed);
+    connect(m_connection_test_dialog, &QDialog::finished, this, &ClientMainWindow::on_connection_test_dialog_closed);
 
     startTimer(1000);
 }
 
-void MainWindow::timerEvent(QTimerEvent* event)
+void ClientMainWindow::timerEvent(QTimerEvent* event)
 {
 
 }
 
-MainWindow::~MainWindow()
+ClientMainWindow::~ClientMainWindow()
 {
 
 }
 
-void MainWindow::on_connection_test_action_triggered()
+void ClientMainWindow::on_connection_test_action_triggered()
 {
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_connection_test_action_triggered");
     m_connection_test_dialog->show();
     m_is_on_connection_test = true;
 }
 
-void MainWindow::on_connection_test_dialog_closed()
+void ClientMainWindow::on_connection_test_dialog_closed()
 {
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_connection_test_dialog_closed");
     m_is_on_connection_test = false;
 }
 
-void MainWindow::on_new_upload_action_triggered()
+void ClientMainWindow::on_new_upload_action_triggered()
 {
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_new_upload_action_triggered");
     m_new_upload_dialog->show();
 }
 
-void MainWindow::on_new_download_action_triggered()
+void ClientMainWindow::on_new_download_action_triggered()
 {
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_new_download_action_triggered");
     m_new_download_dialog->show();

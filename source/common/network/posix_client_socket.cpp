@@ -63,8 +63,10 @@ bool PosixClientSocket::connect(const std::string& ip, uint16_t port)
     if (ret < 0)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to connect socket");
+        m_is_connected = false;
         return false;
     }
+    m_is_connected = true;
     return true;
 }
 PosixClientSocket::~PosixClientSocket()
@@ -231,4 +233,9 @@ void PosixClientSocket::send(const std::vector<uint8_t>& data)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: {}", strerror(errno));
     }
+}
+
+bool PosixClientSocket::is_connected()
+{
+    return m_is_connected;
 }

@@ -46,6 +46,7 @@ bool DatabaseSQLite::execute(const std::string& statement)
             m_error_code = "-1";
             return false;
         }
+        int ret = m_database->exec(statement);
         DANEJOE_LOG_TRACE("default", "Database", "查询完毕 {}", statement);
         return true;
     }
