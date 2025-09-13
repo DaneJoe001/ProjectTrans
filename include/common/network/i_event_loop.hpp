@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <list>
 #include <unordered_map>
@@ -44,6 +45,10 @@ public:
     };
 public:
     /**
+     * @brief 停止事件循环
+     */
+    static void end_loop();
+    /**
      * @brief 构造函数
      */
     IEventLoop() = default;
@@ -70,15 +75,13 @@ public:
      */
     virtual void remove_socket(int socket_id) = 0;
     /**
-     * @brief 停止事件循环
-     */
-    virtual void stop() = 0;
-    /**
      * @brief 判断事件循环是否有效
      * @return 是否有效
      */
     virtual bool is_valid() = 0;
+    virtual void stop() = 0;
 protected:
+    static std::atomic<bool> m_is_running;
 };
 
 /**

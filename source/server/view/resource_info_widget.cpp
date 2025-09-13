@@ -1,7 +1,25 @@
+#include <QTableView>
+#include <QHeaderView>
+#include <QVBoxLayout>
+
 #include "server/view/resource_info_widget.hpp"
+#include "server/model/server_file_info_table_model.hpp"
 
 ResourceInfoWidget::ResourceInfoWidget(QWidget* parent) : QWidget(parent) {}
 void ResourceInfoWidget::init()
 {
+    this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    this->setObjectName("resource_info_widget");
+    m_model = ServerFileInfoTableModel::get_instance();
+    m_model->init();
+    m_table_view = new QTableView(this);
+    m_table_view->setModel(m_model);
+    m_table_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_table_view->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_layout = new QVBoxLayout(this);
+
+    m_layout->addWidget(m_table_view);
+    m_layout->setObjectName("resource_info_widget_layout");
+    m_layout->setStretch(0, 1);
 
 }

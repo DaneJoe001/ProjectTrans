@@ -1,3 +1,5 @@
+#include <format>
+
 #include "client/repository/block_request_info_repository.hpp"
 #include "common/database/database_manager.hpp"
 #include "log/manage_logger.hpp"
@@ -45,6 +47,22 @@ std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_all()
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return std::vector<BlockRequestInfo>();
     }
+    auto data = m_database->query("SELECT * FROM block_request_info;");
+    std::vector<BlockRequestInfo> result = std::vector<BlockRequestInfo>(data.size());
+    for (int i=0;i<data.size();i++)
+    {
+        result[i]=BlockRequestInfo(
+            std::stoi(data[i][0]),
+            std::stoi(data[i][1]),
+            std::stoi(data[i][2]),
+            std::stoi(data[i][3]),
+            static_cast<Operation>(std::stoi(data[i][4])),
+            static_cast<FileState>(std::stoi(data[i][5])),
+            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][6]))),
+            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][7])))
+        );
+    }
+    return result;
 }
 bool BlockRequestInfoRepository::add(const BlockRequestInfo& block_info)
 {
@@ -53,6 +71,17 @@ bool BlockRequestInfoRepository::add(const BlockRequestInfo& block_info)
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
+    return m_database->execute(std::format(
+        "INSERT INTO block_request_info (block_id, file_id, offset, block_size, operation, state, start_time, end_time) VALUES ({}, {}, {}, {}, {}, {}, {}, {});",
+        block_info.block_id,
+        block_info.file_id,
+        block_info.offset,
+        block_info.block_size,
+        static_cast<int>(block_info.operation),
+        static_cast<int>(block_info.state),
+        std::chrono::duration_cast<std::chrono::seconds>(block_info.start_time.time_since_epoch()).count(),
+        std::chrono::duration_cast<std::chrono::seconds>(block_info.end_time.time_since_epoch()).count()
+    ));
 }
 std::optional<BlockRequestInfo> BlockRequestInfoRepository::get_by_id(int block_id)
 {
@@ -61,6 +90,21 @@ std::optional<BlockRequestInfo> BlockRequestInfoRepository::get_by_id(int block_
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return std::nullopt;
     }
+    auto data = m_database->query(std::format("SELECT * FROM block_request_info WHERE block_id = {};", block_id));
+    if (data.size() == 0)
+    {
+        return std::nullopt;
+    }
+    return BlockRequestInfo(
+        std::stoi(data[0][0]),
+        std::stoi(data[0][1]),
+        std::stoi(data[0][2]),
+        std::stoi(data[0][3]),
+        static_cast<Operation>(std::stoi(data[0][4])),
+        static_cast<FileState>(std::stoi(data[0][5])),
+        std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[0][6]))),
+        std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[0][7])))
+    );
 }
 
 bool BlockRequestInfoRepository::update(const BlockRequestInfo& block_info)
@@ -70,6 +114,17 @@ bool BlockRequestInfoRepository::update(const BlockRequestInfo& block_info)
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
+    return m_database->execute(std::format(
+        "UPDATE block_request_info SET file_id = {}, offset = {}, block_size = {}, operation = {}, state = {}, start_time = {}, end_time = {} WHERE block_id = {};",
+        block_info.file_id,
+        block_info.offset,
+        block_info.block_size,
+        static_cast<int>(block_info.operation),
+        static_cast<int>(block_info.state),
+        std::chrono::duration_cast<std::chrono::seconds>(block_info.start_time.time_since_epoch()).count(),
+        std::chrono::duration_cast<std::chrono::seconds>(block_info.end_time.time_since_epoch()).count(),
+        block_info.block_id
+    ));
 }
 bool BlockRequestInfoRepository::remove(int block_id)
 {
@@ -78,4 +133,5 @@ bool BlockRequestInfoRepository::remove(int block_id)
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
+    return m_database->execute(std::format("DELETE FROM block_request_info WHERE block_id = {};", block_id));
 }

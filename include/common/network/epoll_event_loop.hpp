@@ -38,10 +38,6 @@ public:
      */
     void run() override;
     /**
-     * @brief 停止事件循环
-     */
-    void stop() override;
-    /**
      * @brief 判断事件循环是否有效
      * @return 是否有效
      */
@@ -58,13 +54,12 @@ public:
     void acceptable_event();
     void readable_event(int fd);
     void writable_event(int fd);
+    void stop()override;
 private:
     /// @brief 最大事件数
     int m_max_event_account = 1024;
     /// @brief epoll文件描述符
     int m_epoll_fd = -1;
-    /// @brief 是否运行
-    bool m_is_running = false;
     /// @brief 服务器套接字
     std::unique_ptr<PosixServerSocket> m_server_socket;
     /// @brief 接收缓存

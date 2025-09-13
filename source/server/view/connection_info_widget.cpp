@@ -5,5 +5,6 @@ ConnectionInfoWidget::ConnectionInfoWidget(QWidget* parent)
 }
 void ConnectionInfoWidget::init()
 {
-
+    this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    this->setObjectName("connection_info_widget");
 }

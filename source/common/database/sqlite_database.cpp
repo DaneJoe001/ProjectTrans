@@ -21,7 +21,10 @@ bool DatabaseSQLite::connect()
             DANEJOE_LOG_TRACE("default", "Database", "Create file path: {}", m_config.path);
             fs::create_directories(full_path.parent_path());
         }
-        m_database = std::make_unique<SQLite::Database>(m_config.path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_database = std::make_unique<SQLite::Database>(m_config.path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+        }
         return true;
     }
     catch (const SQLite::Exception& e)
@@ -46,8 +49,11 @@ bool DatabaseSQLite::execute(const std::string& statement)
             m_error_code = "-1";
             return false;
         }
-        int ret = m_database->exec(statement);
-        DANEJOE_LOG_TRACE("default", "Database", "查询完毕 {}", statement);
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            int ret = m_database->exec(statement);
+            DANEJOE_LOG_TRACE("default", "Database", "查询完毕 {}", statement);
+        }
         return true;
     }
     catch (const SQLite::Exception& e)
@@ -75,14 +81,17 @@ std::vector<std::vector<std::string>> DatabaseSQLite::query(const std::string& s
 
         SQLite::Statement query(*m_database, statement);
 
-        while (query.executeStep())
         {
-            std::vector<std::string> row;
-            for (int i = 0; i < query.getColumnCount(); i++)
+            std::lock_guard<std::mutex> lock(m_mutex);
+            while (query.executeStep())
             {
-                row.push_back(query.getColumn(i).getString());
+                std::vector<std::string> row;
+                for (int i = 0; i < query.getColumnCount(); i++)
+                {
+                    row.push_back(query.getColumn(i).getString());
+                }
+                result.push_back(row);
             }
-            result.push_back(row);
         }
     }
     catch (const SQLite::Exception& e)

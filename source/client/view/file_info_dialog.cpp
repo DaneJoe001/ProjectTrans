@@ -1,0 +1,1 @@
+#include "client/view/file_info_dialog.hpp"

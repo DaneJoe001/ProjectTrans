@@ -132,9 +132,9 @@ void EpollEventLoop::run()
         DANEJOE_LOG_ERROR("default", "Epoll", "epoll is not valid");
         return;
     }
-    m_is_running = true;
+    m_is_running.store(true);
     struct epoll_event events[m_max_event_account];
-    while (m_is_running)
+    while (m_is_running.load())
     {
         /// @brief 等待事件发生
         /// @brief epoll 文件描述符
@@ -189,7 +189,7 @@ void EpollEventLoop::run()
 
 void EpollEventLoop::stop()
 {
-    m_is_running = false;
+    end_loop();
     // 关闭所有客户端套接字
     for (auto& [socket_id, socket] : m_sockets)
     {

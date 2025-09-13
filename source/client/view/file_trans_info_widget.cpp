@@ -1,0 +1,1 @@
+#include "client/view/file_trans_info_widget.hpp"

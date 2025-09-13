@@ -3,7 +3,7 @@
 #include "client/main/client.hpp"
 #include "log/manage_logger.hpp"
 #include "common/database/database_manager.hpp"
-#include "client/repository/file_info_repository.hpp"
+#include "client/repository/client_file_info_repository.hpp"
 #include "client/repository/block_request_info_repository.hpp"
 
 namespace fs = std::filesystem;
@@ -18,7 +18,7 @@ void init_database()
     auto db = database_manager.get_database("client_database");
     db->set_config(config);
     db->connect();
-    FileInfoRepository file_info_repository;
+    ClientFileInfoRepository file_info_repository;
     file_info_repository.init();
     bool is_exist = file_info_repository.ensure_table_exists();
     if (!is_exist)

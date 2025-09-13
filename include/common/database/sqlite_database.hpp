@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 
 #include <SQLiteCpp/SQLiteCpp.h>
 
@@ -41,6 +42,7 @@ public:
 private:
     /// @brief 数据库连接
     std::unique_ptr<SQLite::Database> m_database;
+    std::mutex m_mutex;
 };
 
 class SQliteDatabaseCreator :public IDatabaseCreator
