@@ -16,12 +16,15 @@ set(MOC_CLIENT_HEADERS
     "include/client/view/new_download_dialog.hpp"
     "include/client/view/new_upload_dialog.hpp"
     "include/client/view/trans_dialog.hpp"
+    "include/client/view/file_info_dialog.hpp"
+    "include/client/view/file_trans_info_widget.hpp"
 )
 
 set(MOC_SERVER_HEADERS 
     "include/server/view/server_main_window.hpp"
     "include/server/view/connection_info_widget.hpp"
     "include/server/view/resource_info_widget.hpp"
+    "include/server/view/add_file_dialog.hpp"
 )
 
 file(GLOB CLIENT_SOURCES CONFIGURE_DEPENDS

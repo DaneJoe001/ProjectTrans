@@ -7,7 +7,7 @@
 #include "server/main/server.hpp"
 #include "common/database/database_manager.hpp"
 #include "common/database/sqlite_database.hpp"
-#include "server/repository/file_info_repository.hpp"
+#include "server/repository/server_file_info_repository.hpp"
 #include "log/manage_logger.hpp"
 #include "common/network/posix_server_socket.hpp"
 #include "common/network/posix_client_socket.hpp"
@@ -17,7 +17,6 @@
 
 namespace fs = std::filesystem;
 
-std::atomic<bool> g_is_server_running = false;
 std::atomic<bool> g_is_panel_running = false;
 
 void clear_log()
@@ -37,7 +36,7 @@ void init_database()
     auto db = database_manager.get_database("server_database");
     db->set_config(config);
     db->connect();
-    FileInfoRepository file_info_repository;
+    ServerFileInfoRepository file_info_repository;
     file_info_repository.init();
     bool is_exist = file_info_repository.ensure_table_exists();
     if (!is_exist)
@@ -75,7 +74,7 @@ void run_server()
 void stop_server_handler(int signal)
 {
     DANEJOE_LOG_TRACE("default", "server", "Server is stopping...");
-    g_is_server_running.store(false);
+    EpollEventLoop::end_loop();
     /// @todo 后续再考虑安全改进
     exit(0);
 }
