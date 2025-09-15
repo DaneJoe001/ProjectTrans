@@ -58,6 +58,8 @@ public:
      * @brief 关闭套接字
      */
     virtual void close() = 0;
+    virtual bool is_readable()const = 0;
+    virtual bool is_writeable()const = 0;
 protected:
     /// @brief 是否为非阻塞模式
     bool m_is_non_blocking = false;

@@ -139,7 +139,7 @@ void EpollEventLoop::run()
         /// @brief 等待事件发生
         /// @brief epoll 文件描述符
         /// @brief 监听事件
-         /// @brief 最大监听事件数量
+        /// @brief 最大监听事件数量
         /// @brief 等待时间,-1 表示一直等待
         int ret = ::epoll_wait(m_epoll_fd, events, m_max_event_account, 1000);
         if (ret < 0)
@@ -167,6 +167,7 @@ void EpollEventLoop::run()
                 acceptable_event();
             }
             /// @brief 错误或对端关闭：及时回收 fd，避免无意义的后续处理
+            /// @param EPOLLHUP hand up 挂起即连接被关闭
             if (event & (EPOLLHUP | EPOLLERR))
             {
                 DANEJOE_LOG_WARN("default", "Epoll", "client socket error or closed!");

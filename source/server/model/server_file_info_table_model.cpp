@@ -69,10 +69,10 @@ bool ServerFileInfoTableModel::setData(const QModelIndex& index, const QVariant&
     {
         return false;
     }
-    int row = index.row();
-    int column = index.column();
     if (role == Qt::EditRole)
     {
+        int row = index.row();
+        int column = index.column();
         if (row < 0 || row >= m_file_info_list.size() || column < 0 || column >= 5)
         {
             return false;

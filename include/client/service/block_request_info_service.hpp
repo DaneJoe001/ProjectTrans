@@ -6,6 +6,7 @@ class BlockRequestInfoService
 {
 public:
     std::vector<BlockRequestInfo> get_all();
+    void init();
     bool add(const BlockRequestInfo& block_info);
     std::optional<BlockRequestInfo> get_by_id(int block_id);
     bool update(const BlockRequestInfo& block_info);

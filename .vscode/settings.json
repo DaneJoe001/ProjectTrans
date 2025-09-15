@@ -94,7 +94,10 @@
         "qvboxlayout": "cpp",
         "qcryptographichash": "cpp",
         "qstringlist": "cpp",
-        "qabstracttablemodel": "cpp"
+        "qabstracttablemodel": "cpp",
+        "qstring": "cpp",
+        "qstackedwidget": "cpp",
+        "qthread": "cpp"
     },
     "commentTranslate.browse.mode": "contrast"
 }

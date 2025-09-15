@@ -12,6 +12,7 @@
 #include "client/view/connection_test_dialog.hpp"
 #include "log/manage_logger.hpp"
 #include "client/connect/connection_manager.hpp"
+#include "client/connect/connection_thread.hpp"
 
 ConnectionTestDialog::ConnectionTestDialog(QWidget* parent)
     : QDialog(parent) {
@@ -53,10 +54,14 @@ void ConnectionTestDialog::init()
 
     this->setGeometry(450, 250, 500, 400);
 
+    m_connection_thread = new ConnectionThread(this);
+
+    /// @note 自定义服务端测试链接
     m_url_line_edit->setText(QString::fromStdString("danejoe://127.0.0.1:8080"));
 
+    connect(m_connection_thread, &ConnectionThread::data_recieved_signal, this, &ConnectionTestDialog::on_message_received);
+    connect(this, &ConnectionTestDialog::send_data_signal, m_connection_thread, &ConnectionThread::data_send_slot);
     connect(m_send_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_send_push_button_clicked);
-    connect(this, &ConnectionTestDialog::message_received, this, &ConnectionTestDialog::on_message_received);
     connect(m_connect_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_connect_push_button_clicked);
 
     startTimer(1000);
@@ -68,12 +73,14 @@ void ConnectionTestDialog::on_send_push_button_clicked()
     m_send_text_edit->clear();
     auto data = text.toUtf8();
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_send_push_button_clicked():{}", text.toStdString());
-    if (!m_connection->is_connected())
+    if (!m_connection_thread)
     {
         QMessageBox::warning(this, "Error", "Not connected");
         return;
     }
-    m_connection->send(std::vector<uint8_t>(data.begin(), data.end()));
+
+    emit(send_data_signal(std::vector<uint8_t>(data.begin(), data.end())));
+
 }
 
 void ConnectionTestDialog::on_connect_push_button_clicked()
@@ -83,14 +90,10 @@ void ConnectionTestDialog::on_connect_push_button_clicked()
 
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "URL Parsed:{}:{}:{}", UrlResolver::to_string(info.protocol), info.ip, info.port);
 
-    m_connection = std::move(ConnectionManager::get_instance().get_connection(info.ip, info.port));
-    if (!m_connection || !m_connection->is_connected())
+    bool is_connect = m_connection_thread->init(info.ip, info.port);
+    if (is_connect)
     {
-        ConnectionManager::get_instance().add_connection(info.ip, info.port);
-        m_connection = std::move(ConnectionManager::get_instance().get_connection(info.ip, info.port));
-    }
-    if (m_connection->is_connected())
-    {
+        m_connection_thread->start();
         QMessageBox::information(this, "Success", "Connected");
     }
     else
@@ -101,26 +104,21 @@ void ConnectionTestDialog::on_connect_push_button_clicked()
 
 void ConnectionTestDialog::on_message_received(const std::vector<uint8_t>& data)
 {
+    DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_message_received()");
     QString text = QString::fromUtf8(QByteArray(reinterpret_cast<const char*>(data.data()), data.size()));
     m_recv_text_browser->append(text);
 }
 
 void ConnectionTestDialog::closeEvent(QCloseEvent* event)
 {
-    if (m_connection)
+    DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "closeEvent()");
+    if (m_connection_thread)
     {
-        ConnectionManager::get_instance().recycle_connection(std::move(m_connection));
+        m_connection_thread->stop();
     }
 }
 
 void ConnectionTestDialog::timerEvent(QTimerEvent* event)
 {
-    if (m_connection)
-    {
-        std::vector<uint8_t> data = m_connection->recieve();
-        if (!data.empty())
-        {
-            emit message_received(data);
-        }
-    }
+
 }

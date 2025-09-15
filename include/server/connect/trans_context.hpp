@@ -14,6 +14,8 @@ public:
      * @param buffer 发送的数据
      */
     void on_send(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)override;
+    void parse_request(const std::vector<uint8_t>& data);
+
 };
 
 class TransContextCreator : public ISocketContextCreator {

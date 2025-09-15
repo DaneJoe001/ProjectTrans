@@ -2,13 +2,16 @@
 
 enum class FileState
 {
+    Unknown,
+    Waiting,
     InTransfer,
     Completed,
-    Failed
+    Failed,
 };
 
 enum class Operation
 {
+    Unknown,
     Download,
     Upload
 };

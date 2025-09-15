@@ -5,6 +5,12 @@ ConnectionGuard::ConnectionGuard(std::unique_ptr<ClientConnection> connection)
     : m_connection(std::move(connection))
 {
 }
+
+ConnectionGuard::operator bool()const
+{
+    return m_connection != nullptr;
+}
+
 ConnectionGuard::~ConnectionGuard()
 {
     if (m_connection)
@@ -46,7 +52,7 @@ void ConnectionManager::add_connection(const std::string& ip, uint16_t port)
 {
     /// @todo 添加同一ip和port的连接上限设置
     std::lock_guard<std::mutex> lock(m_connection_mutex);
-    if (m_connection_count >= m_max_connection_count)
+    if (m_connection_count >= m_max_connection_count || get_connection_count(ip, port) >= m_max_same_ip_port_count)
     {
         DANEJOE_LOG_WARN("default", "Connection Manager", "Failed to add new connection: Max connection count reached!");
         return;
@@ -153,6 +159,12 @@ int ConnectionManager::get_connection_count()const
 {
     std::lock_guard<std::mutex> lock(m_connection_mutex);
     return m_connection_count;
+}
+
+int ConnectionManager::get_connection_count(const std::string& ip, uint16_t port)const
+{
+    auto connection_id = std::make_pair(ip, port);
+    return m_connection_info_map.count(connection_id);
 }
 
 ConnectionGuard ConnectionManager::get_connection_guard(const std::string& ip, uint16_t port)

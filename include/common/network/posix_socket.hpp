@@ -81,6 +81,8 @@ public:
      * @return 是否相等
      */
     bool operator==(int socket_fd)const;
+    bool is_readable()const override;
+    bool is_writeable()const override;
 protected:
     /// @brief 套接字句柄
     int m_socket = -1;

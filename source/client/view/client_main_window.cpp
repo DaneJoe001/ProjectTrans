@@ -1,7 +1,8 @@
 #include <QMenuBar>
 #include <QMenu>
+#include <QWidget>
 #include <QAction>
-#include <QTableWidget>
+#include <QStackedWidget>
 #include <QString>
 
 #include "client/view/client_main_window.hpp"
@@ -10,6 +11,7 @@
 #include "client/view/new_download_dialog.hpp"
 #include "client/view/new_upload_dialog.hpp"
 #include "client/view/trans_dialog.hpp"
+#include "client/view/file_trans_info_widget.hpp"
 
 ClientMainWindow::ClientMainWindow(QWidget* parent) :QMainWindow(parent) {}
 
@@ -77,6 +79,14 @@ void ClientMainWindow::init()
     m_trans_dialog = new TransDialog(this);
 
     m_connection_test_dialog->init();
+
+    /// @brief 主界面堆栈窗口
+    m_stack_widget = new QStackedWidget(this);
+    this->setCentralWidget(m_stack_widget);
+    m_file_trans_info_widget = new FileTransInfoWidget(this);
+    m_file_trans_info_widget->init();
+    m_stack_widget->addWidget(m_file_trans_info_widget);
+    m_stack_widget->setCurrentIndex(0);
 
     connect(m_connection_test_action, &QAction::triggered, this, &ClientMainWindow::on_connection_test_action_triggered);
     connect(m_new_download_action, &QAction::triggered, this, &ClientMainWindow::on_new_download_action_triggered);

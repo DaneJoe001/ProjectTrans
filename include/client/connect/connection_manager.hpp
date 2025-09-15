@@ -16,6 +16,7 @@ class ConnectionGuard
 public:
     ConnectionGuard(std::unique_ptr<ClientConnection> connection);
     ~ConnectionGuard();
+    operator bool()const;
     ClientConnection* operator->();
     const ClientConnection* operator->()const;
     ConnectionGuard& operator=(ConnectionGuard&& other)noexcept;
@@ -62,6 +63,7 @@ public:
     void recycle_connection(std::unique_ptr<ClientConnection> connection);
     void set_max_connection_count(int count);
     int get_connection_count()const;
+    int get_connection_count(const std::string& ip, uint16_t port)const;
     void clear_unused_connections();
 private:
     ConnectionManager();
@@ -72,4 +74,5 @@ private:
     mutable std::mutex m_connection_mutex;
     int m_connection_count = 0;
     int m_max_connection_count = 10;
+    int m_max_same_ip_port_count = 10;
 };

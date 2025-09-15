@@ -60,8 +60,8 @@ std::vector<ClientFileInfo> ClientFileInfoRepository::get_all()
         result[i].operation = static_cast<Operation>(std::stoi(data[i][5]));
         result[i].state = static_cast<FileState>(std::stoi(data[i][6]));
         result[i].md5_code = data[i][7];
-        result[i].create_time = std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][8])));
-        result[i].finished_time = std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][9])));
+        result[i].create_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::stoi(data[i][8])));
+        result[i].finished_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::stoi(data[i][9])));
     }
     return result;
 }
@@ -107,8 +107,8 @@ std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_id(int file_id)
         static_cast<Operation>(std::stoi(data[0][5])),
         static_cast<FileState>(std::stoi(data[0][6])),
         data[0][7],
-        std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[0][8]))),
-        std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[0][9])))
+        std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::stoi(data[0][8]))),
+        std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::stoi(data[0][9])))
     };
 }
 
@@ -135,8 +135,8 @@ std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_md5(const std::st
         static_cast<Operation>(std::stoi(data[0][5])),
         static_cast<FileState>(std::stoi(data[0][6])),
         data[0][7],
-        std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[0][8]))),
-        std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[0][9])))
+        std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::stoi(data[0][8]))),
+        std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::stoi(data[0][9])))
     };
 }
 
