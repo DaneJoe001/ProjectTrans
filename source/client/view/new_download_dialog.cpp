@@ -7,6 +7,8 @@
 #include <QProgressBar>
 
 #include "client/view/new_download_dialog.hpp"
+#include "client/model/trans_manager.hpp"
+#include "log/manage_logger.hpp"
 
 NewDownloadDialog::NewDownloadDialog(QWidget* parent) :QDialog(parent)
 {
@@ -23,6 +25,8 @@ void NewDownloadDialog::init()
     m_url_layout = new QHBoxLayout(m_url_widget);
     m_url_label = new QLabel("URL:", this);
     m_url_line_edit = new QLineEdit(this);
+    /// @note 自定义服务端测试链接
+    m_url_line_edit->setText("danejoe://127.0.0.1:8080/download?file_id=1");
     m_download_push_button = new QPushButton("Download", this);
 
     m_url_layout->addWidget(m_url_label);
@@ -62,4 +66,20 @@ void NewDownloadDialog::init()
     m_main_layout->setStretch(2, 1);
     m_main_layout->setStretch(3, 7);
 
+    m_trans_manager = TransManager::get_instance();
+
+    connect(m_download_push_button, &QPushButton::clicked, this, &NewDownloadDialog::on_download_push_button_clicked);
+}
+
+void NewDownloadDialog::on_download_push_button_clicked()
+{
+    DANEJOE_LOG_TRACE("default", "NewDownloadDialog", "on_download_push_button_clicked");
+    QString url = m_url_line_edit->text();
+    QString username = m_username_line_edit->text();
+    QString password = m_password_line_edit->text();
+    DownloadRequest request;
+    request.file_url = url.toStdString();
+    request.username = username.toStdString();
+    request.password = password.toStdString();
+    m_trans_manager->add_download(request);
 }

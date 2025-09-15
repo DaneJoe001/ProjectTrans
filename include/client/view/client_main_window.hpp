@@ -12,10 +12,12 @@ class QMenuBar;
 class QMenu;
 class QAction;
 class QMenuBar;
+class QStackedWidget;
 class ConnectionTestDialog;
 class TransDialog;
 class NewDownloadDialog;
 class NewUploadDialog;
+class FileTransInfoWidget;
 
 class ClientMainWindow : public QMainWindow
 {
@@ -40,7 +42,7 @@ public slots:
 private:
     bool m_is_on_connection_test = false;
 
-    QString m_window_title = "Client";
+    QString m_window_title = "Efficient Transfer Client";
 
     QMenuBar* m_menubar = nullptr;
 
@@ -63,4 +65,7 @@ private:
     TransDialog* m_trans_dialog = nullptr;
     NewDownloadDialog* m_new_download_dialog = nullptr;
     NewUploadDialog* m_new_upload_dialog = nullptr;
+
+    QStackedWidget* m_stack_widget = nullptr;
+    FileTransInfoWidget* m_file_trans_info_widget = nullptr;
 };

@@ -9,6 +9,7 @@ extern "C"
 
 #include "log/manage_logger.hpp"
 #include "common/network/posix_socket.hpp"
+#include "common/network/poll_socket_monitor.hpp"
 
 int PosixSocket::get_id(int fd)
 {
@@ -131,4 +132,13 @@ bool PosixSocket::operator==(const PosixSocket& rhs)const
 bool PosixSocket::operator==(int socket_fd)const
 {
     return m_socket == socket_fd;
+}
+
+bool PosixSocket::is_readable()const
+{
+    return PollSocketMonitor::get_instance()->is_writeable(this);
+}
+bool PosixSocket::is_writeable()const
+{
+    return PollSocketMonitor::get_instance()->is_writeable(this);
 }

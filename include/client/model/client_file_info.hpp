@@ -8,16 +8,16 @@
 
 struct ClientFileInfo
 {
-    int file_id;
+    int file_id = -1;
     std::string saved_name;
     std::string source_path;
     std::string saved_path;
-    std::size_t file_size;
-    Operation operation;
-    FileState state;
+    std::size_t file_size = 0;
+    Operation operation = Operation::Unknown;
+    FileState state = FileState::Unknown;
     std::string md5_code;
-    std::chrono::time_point<std::chrono::steady_clock> create_time;
-    std::chrono::time_point<std::chrono::steady_clock> finished_time;
+    std::chrono::time_point<std::chrono::system_clock> create_time;
+    std::chrono::time_point<std::chrono::system_clock> finished_time;
     std::string to_string() const
     {
         return std::format("file_id: {}, saved_name: {}, source_path: {}, saved_path: {}, file_size: {}, operation: {}, state: {}, md5_code: {}, create_time: {}, finished_time: {}",

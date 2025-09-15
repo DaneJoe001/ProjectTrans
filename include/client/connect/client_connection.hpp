@@ -12,6 +12,8 @@ public:
     bool is_same(const std::string& ip, uint16_t port);
     std::pair<std::string, uint16_t> get_id();
     bool is_connected();
+    bool is_readable();
+    bool is_writeable();
 private:
     PosixClientSocket m_socket;
     std::string m_ip;

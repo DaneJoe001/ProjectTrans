@@ -4,6 +4,11 @@ std::vector<BlockRequestInfo> BlockRequestInfoService::get_all()
 {
     return block_request_info_repository.get_all();
 }
+
+void BlockRequestInfoService::init()
+{
+    block_request_info_repository.init();
+}
 bool BlockRequestInfoService::add(const BlockRequestInfo& block_info)
 {
     return block_request_info_repository.add(block_info);

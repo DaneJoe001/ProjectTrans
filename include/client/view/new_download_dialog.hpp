@@ -9,6 +9,7 @@ class QTextBrowser;
 class QProgressBar;
 class QHBoxLayout;
 class QVBoxLayout;
+class TransManager;
 
 class NewDownloadDialog : public QDialog
 {
@@ -16,6 +17,8 @@ class NewDownloadDialog : public QDialog
 public:
     NewDownloadDialog(QWidget* parent = nullptr);
     void init();
+public slots:
+    void on_download_push_button_clicked();
 private:
     QVBoxLayout* m_main_layout = nullptr;
 
@@ -34,5 +37,7 @@ private:
 
     QProgressBar* m_download_progress_bar = nullptr;
     QTextBrowser* m_download_info_browser = nullptr;
+
+    TransManager* m_trans_manager = nullptr;
 
 };

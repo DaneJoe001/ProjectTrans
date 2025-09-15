@@ -18,6 +18,7 @@ set(MOC_CLIENT_HEADERS
     "include/client/view/trans_dialog.hpp"
     "include/client/view/file_info_dialog.hpp"
     "include/client/view/file_trans_info_widget.hpp"
+    "include/client/connect/connection_thread.hpp"
 )
 
 set(MOC_SERVER_HEADERS 
