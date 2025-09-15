@@ -1,4 +1,11 @@
 #pragma once
+
+/**
+ * @file i_socket_context.hpp
+ * @brief 套接字上下文接口
+ * @author DaneJoe001
+ */
+ 
 #include <memory>
 #include <cstdint>
 #include <functional>

@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file sqlite_database.hpp
+ * @brief SQLite数据库
+ * @author DaneJoe001
+ */
+
 #include <memory>
 #include <mutex>
 
@@ -14,6 +20,9 @@
 class DatabaseSQLite : public IDatabase
 {
 public:
+    /**
+     * @brief 构造函数
+     */
     DatabaseSQLite() = default;
     /**
      * @brief 析构函数
@@ -42,11 +51,20 @@ public:
 private:
     /// @brief 数据库连接
     std::unique_ptr<SQLite::Database> m_database;
+    /// @brief 互斥锁
     std::mutex m_mutex;
 };
 
+/**
+ * @class SQliteDatabaseCreator
+ * @brief SQLite数据库创建器
+ */
 class SQliteDatabaseCreator :public IDatabaseCreator
 {
 public:
+    /**
+     * @brief 创建数据库
+     * @return 数据库
+     */
     std::shared_ptr<IDatabase> create_database()override;
 };

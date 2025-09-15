@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file posix_socket.hpp
+ * @brief Posix套接字
+ * @author DaneJoe001
+ */
+
 #include <cstdint>
 
 #include <sys/socket.h>
@@ -83,7 +89,15 @@ public:
      * @return 是否相等
      */
     bool operator==(int32_t socket_fd)const;
+    /**
+     * @brief 检查套接字是否可读
+     * @return 是否可读
+     */
     bool is_readable()const override;
+    /**
+     * @brief 检查套接字是否可写
+     * @return 是否可写
+     */
     bool is_writeable()const override;
 protected:
     /// @brief 套接字句柄

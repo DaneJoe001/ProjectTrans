@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file i_client_socket.hpp
+ * @brief 客户端套接字接口
+ * @author DaneJoe001
+ */
+
 #include <string>
 #include <vector>
 #include <cstdint>
