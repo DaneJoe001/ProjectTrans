@@ -3,3 +3,5 @@ test*
 *test
 log/
 *.db
+resource/server/file/*
+resource/client/download/*
