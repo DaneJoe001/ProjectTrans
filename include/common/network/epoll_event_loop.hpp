@@ -32,7 +32,7 @@ public:
      * @brief 移除套接字
      * @param socket_id 套接字标识符
      */
-    void remove_socket(int socket_id) override;
+    void remove_socket(int32_t socket_id) override;
     /**
      * @brief 运行事件循环
      */
@@ -52,37 +52,37 @@ public:
      * @brief 接受事件
      */
     void acceptable_event();
-    void readable_event(int fd);
-    void writable_event(int fd);
+    void readable_event(int32_t fd);
+    void writable_event(int32_t fd);
     void stop()override;
 private:
     /// @brief 最大事件数
-    int m_max_event_account = 1024;
+    int32_t m_max_event_account = 1024;
     /// @brief epoll文件描述符
-    int m_epoll_fd = -1;
+    int32_t m_epoll_fd = -1;
     /// @brief 服务器套接字
     std::unique_ptr<PosixServerSocket> m_server_socket;
     /// @brief 接收缓存
-    /// @tparam int 逻辑socket标识符
+    /// @tparam int32_t 逻辑socket标识符
     /// @tparam std::shared_ptr<DaneJoe::MTQueue<uint8_t>> 接收缓存
-    /// @tparam int 逻辑socket标识符
-    std::unordered_map<int, std::shared_ptr<DaneJoe::MTQueue<uint8_t>>> m_recv_buffers;
+    /// @tparam int32_t 逻辑socket标识符
+    std::unordered_map<int32_t, std::shared_ptr<DaneJoe::MTQueue<uint8_t>>> m_recv_buffers;
     /// @brief 发送缓存
-    /// @tparam int 逻辑socket标识符
+    /// @tparam int32_t 逻辑socket标识符
     /// @tparam std::shared_ptr<DaneJoe::MTQueue<uint8_t>> 发送缓存
-    std::unordered_map<int, std::shared_ptr<DaneJoe::MTQueue<uint8_t>>> m_send_buffers;
+    std::unordered_map<int32_t, std::shared_ptr<DaneJoe::MTQueue<uint8_t>>> m_send_buffers;
     /// @brief 套接字
-    /// @tparam int 逻辑socket标识符
+    /// @tparam int32_t 逻辑socket标识符
     /// @tparam std::unique_ptr<IClientSocket> 套接字
-    std::unordered_map<int, std::unique_ptr<IClientSocket>> m_sockets;
+    std::unordered_map<int32_t, std::unique_ptr<IClientSocket>> m_sockets;
     /// @brief 业务上下文
-    /// @tparam int 逻辑socket标识符
+    /// @tparam int32_t 逻辑socket标识符
     /// @tparam std::shared_ptr<ISocketContext> 业务上下文
-    std::unordered_map<int, std::shared_ptr<ISocketContext>> m_contexts;
+    std::unordered_map<int32_t, std::shared_ptr<ISocketContext>> m_contexts;
     /// @brief 套接字事件
-    /// @tparam int 逻辑socket标识符
+    /// @tparam int32_t 逻辑socket标识符
     /// @tparam EventType 事件类型
-    std::unordered_map<int, EventType> m_socket_events;
+    std::unordered_map<int32_t, EventType> m_socket_events;
     /// @brief 业务上下文创建器
     /// @tparam std::unique_ptr<ISocketContextCreator> 业务上下文创建器
     std::unique_ptr<ISocketContextCreator> m_context_creator;

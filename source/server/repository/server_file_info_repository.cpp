@@ -73,7 +73,7 @@ bool ServerFileInfoRepository::add(const ServerFileInfo& file_info)
         VALUES ('{}', '{}', {}, '{}');
     )", file_info.file_name, file_info.resource_path, file_info.file_size, file_info.md5_code));
 }
-std::optional<ServerFileInfo> ServerFileInfoRepository::get_by_id(int file_id)
+std::optional<ServerFileInfo> ServerFileInfoRepository::get_by_id(int32_t file_id)
 {
     if (!m_database)
     {
@@ -91,7 +91,7 @@ std::optional<ServerFileInfo> ServerFileInfoRepository::get_by_id(int file_id)
         .file_id = std::stoi(data[0][0]),
         .file_name = data[0][1],
         .resource_path = data[0][2],
-        .file_size = std::stoul(data[0][3]),
+        .file_size = (uint32_t)std::stoul(data[0][3]),
         .md5_code = data[0][4]
     };
 }
@@ -107,7 +107,7 @@ bool ServerFileInfoRepository::update(const ServerFileInfo& file_info)
         UPDATE file_info SET file_name = '{}', resource_path = '{}', file_size = {}, md5_code = '{}' WHERE file_id = {};
     )", file_info.file_name, file_info.resource_path, file_info.file_size, file_info.md5_code, file_info.file_id));
 }
-bool ServerFileInfoRepository::remove(int file_id)
+bool ServerFileInfoRepository::remove(int32_t file_id)
 {
     if (!m_database)
     {
@@ -137,12 +137,12 @@ std::optional<ServerFileInfo>  ServerFileInfoRepository::get_by_md5(const std::s
         std::stoi(data[0][0]),
         data[0][1],
         data[0][2],
-        std::stoul(data[0][3]),
+        (uint32_t)std::stoul(data[0][3]),
         data[0][4]
     };
 }
 
-int ServerFileInfoRepository::count()
+int32_t ServerFileInfoRepository::count()
 {
     if (!m_database)
     {

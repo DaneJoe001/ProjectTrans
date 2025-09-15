@@ -14,20 +14,20 @@ extern "C"
 
 PosixClientSocket::PosixClientSocket(PosixClientSocket&& other)
 {
-    int socket_fd = other.m_socket;
+    int32_t socket_fd = other.m_socket;
     other.m_socket = -1;
     m_socket = socket_fd;
 }
 
 PosixClientSocket& PosixClientSocket::operator=(PosixClientSocket&& other)
 {
-    int socket_fd = other.m_socket;
+    int32_t socket_fd = other.m_socket;
     other.m_socket = -1;
     m_socket = socket_fd;
     return *this;
 }
 
-PosixClientSocket::PosixClientSocket(int socket)
+PosixClientSocket::PosixClientSocket(int32_t socket)
 {
     if (socket < 0)
     {
@@ -59,7 +59,7 @@ bool PosixClientSocket::connect(const std::string& ip, uint16_t port)
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(port);
     server_address.sin_addr.s_addr = inet_addr(ip.c_str());
-    int ret = ::connect(m_socket, (struct sockaddr*)&server_address, sizeof(server_address));
+    int32_t ret = ::connect(m_socket, (struct sockaddr*)&server_address, sizeof(server_address));
     if (ret < 0)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to connect socket");
@@ -73,18 +73,18 @@ PosixClientSocket::~PosixClientSocket()
 {
     this->close();
 }
-std::vector<uint8_t> PosixClientSocket::receive(std::size_t size)
+std::vector<uint8_t> PosixClientSocket::receive(uint32_t size)
 {
     if (!is_valid())
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to recieve: socket is not valid");
     }
-    std::size_t has_read = 0;
+    uint32_t has_read = 0;
     std::vector<uint8_t> buffer(size);
     /// @brief 循环接收数据
     while (has_read < size)
     {
-        int ret = ::recv(m_socket, buffer.data() + has_read, size - has_read, 0);
+        int32_t ret = ::recv(m_socket, buffer.data() + has_read, size - has_read, 0);
         if (ret < 0)
         {
             /// @param EINTR 函数被中断
@@ -123,10 +123,10 @@ void PosixClientSocket::send_all(const std::vector<uint8_t>& data)
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: socket is not valid");
         return;
     }
-    std::size_t has_written = 0;
+    uint32_t has_written = 0;
     while (has_written < data.size())
     {
-        int ret = ::send(m_socket, data.data() + has_written, data.size() - has_written, 0);
+        int32_t ret = ::send(m_socket, data.data() + has_written, data.size() - has_written, 0);
         if (ret < 0)
         {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -173,7 +173,7 @@ std::vector<uint8_t> PosixClientSocket::read_all()
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to read_all: socket is not valid");
         return std::vector<uint8_t>();
     }
-    int is_non_blocking = m_is_non_blocking;
+    int32_t is_non_blocking = m_is_non_blocking;
     set_non_blocking(true);
     /// @brief 缓存区
     std::vector<uint8_t> buffer;
@@ -183,7 +183,7 @@ std::vector<uint8_t> PosixClientSocket::read_all()
     while (true)
     {
         /// @todo 修复此处的异常
-        int ret = ::read(m_socket, temp.data(), m_recv_block_size);
+        int32_t ret = ::read(m_socket, temp.data(), m_recv_block_size);
         if (ret < 0)
         {
 
@@ -228,7 +228,7 @@ void PosixClientSocket::send(const std::vector<uint8_t>& data)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: socket is not valid");
     }
-    int ret = ::send(m_socket, data.data(), data.size(), 0);
+    int32_t ret = ::send(m_socket, data.data(), data.size(), 0);
     if (ret < 0)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: {}", strerror(errno));

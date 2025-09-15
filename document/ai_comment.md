@@ -101,7 +101,7 @@ ev.events = EPOLLOUT; // 未合并 EPOLLET/EPOLLRDHUP 等
 - **键索引一致性与“fd == id”的假设**
   - 当前实现假定 `socket_id == fd`；如果未来引入跨平台或句柄重映射，这一假设会破裂。建议：对外保持 `socket_id` 抽象，内部单独保存 fd。
 - **`get_raw_socket()` 暴露原始指针的做法危险**
-  - 通过 `reinterpret_cast<const int*>` 获取 fd 易错，建议提供 `int fd() const` 明确接口，跨平台可由后端自行封装。
+  - 通过 `reinterpret_cast<const int*>` 获取 fd 易错，建议提供 `int32_t fd() const` 明确接口，跨平台可由后端自行封装。
 - **线程安全说明与模型**
   - 注释已声明“当前并非线程安全”。事件循环线程与业务线程交互需要有明确模型：是否允许多线程向 `send_buffers` 写入？`unordered_map` 非线程安全；即使只在事件循环线程使用，`ISocketContext::on_send`/`on_recv` 是否在同一线程回调也需约定，以避免竞态。
 
@@ -123,7 +123,7 @@ DaneJoe::MTQueue<uint8_t> temp(4096);
 - **`read_all` 的副作用与异常路径**
   - 每次调用改变套接字阻塞模式（保存旧状态→设置非阻塞→再恢复），带来竞态与系统调用开销：
 ```167:221:/home/danejoe001/personal_code/code_cpp_project/cpp_project_trans/source/network/posix_client_socket.cpp
-int is_non_blocking = m_is_non_blocking;
+int32_t is_non_blocking = m_is_non_blocking;
 set_non_blocking(true);
 // ...
 set_non_blocking(is_non_blocking);

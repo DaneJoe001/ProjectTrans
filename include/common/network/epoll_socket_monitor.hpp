@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mutex>
+#include <cstdint>
 
 #include  "common/network/i_socket_monitor.hpp"
 
@@ -17,6 +18,6 @@ private:
     ~EpollSocketMonitor();
 private:
     std::mutex m_mutex;
-    int m_epoll_fd = -1;
+    int32_t m_epoll_fd = -1;
 
 };

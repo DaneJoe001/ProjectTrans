@@ -18,7 +18,7 @@ void FileTransInfoTableModel::init()
 {
     m_block_request_info_service.init();
     // 构建测试数据
-    for (int i = 0; i < 5; ++i)
+    for (int32_t i = 0; i < 5; ++i)
     {
         ClientFileInfo file_info;
         file_info.file_id = i + 1;
@@ -46,7 +46,7 @@ FileTransInfoTableModel* FileTransInfoTableModel::get_instance()
     static FileTransInfoTableModel instance;
     return &instance;
 }
-int FileTransInfoTableModel::columnCount(const QModelIndex& parent) const
+int32_t FileTransInfoTableModel::columnCount(const QModelIndex& parent) const
 {
     if (parent.isValid())
     {
@@ -55,7 +55,7 @@ int FileTransInfoTableModel::columnCount(const QModelIndex& parent) const
     return 10;
 }
 
-int FileTransInfoTableModel::rowCount(const QModelIndex& parent) const
+int32_t FileTransInfoTableModel::rowCount(const QModelIndex& parent) const
 {
     if (parent.isValid())
     {
@@ -64,7 +64,7 @@ int FileTransInfoTableModel::rowCount(const QModelIndex& parent) const
     return m_trans_info_list.size();
 }
 
-QVariant FileTransInfoTableModel::data(const QModelIndex& index, int role) const
+QVariant FileTransInfoTableModel::data(const QModelIndex& index, int32_t role) const
 {
     if (!index.isValid())
     {
@@ -72,8 +72,8 @@ QVariant FileTransInfoTableModel::data(const QModelIndex& index, int role) const
     }
     if (role == Qt::DisplayRole)
     {
-        int row = index.row();
-        int column = index.column();
+        int32_t row = index.row();
+        int32_t column = index.column();
         switch (column)
         {
         case 0:
@@ -128,7 +128,7 @@ QVariant FileTransInfoTableModel::data(const QModelIndex& index, int role) const
     return QVariant();
 }
 
-bool FileTransInfoTableModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool FileTransInfoTableModel::setData(const QModelIndex& index, const QVariant& value, int32_t role)
 {
     if (!index.isValid())
     {
@@ -136,8 +136,8 @@ bool FileTransInfoTableModel::setData(const QModelIndex& index, const QVariant& 
     }
     if (role == Qt::EditRole)
     {
-        int row = index.row();
-        int column = index.column();
+        int32_t row = index.row();
+        int32_t column = index.column();
         if (row < 0 || row >= m_trans_info_list.size() || column < 0 || column >= 11)
         {
             return false;
@@ -212,7 +212,7 @@ bool FileTransInfoTableModel::setData(const QModelIndex& index, const QVariant& 
     }
     return false;
 }
-QVariant FileTransInfoTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant FileTransInfoTableModel::headerData(int32_t section, Qt::Orientation orientation, int32_t role) const
 {
     /// @brief 判断是否为显示角色
     if (role == Qt::DisplayRole)

@@ -11,7 +11,7 @@
 
 
 #ifndef CONSOLE_CLIENT
-int main(int argc, char** argv)
+int32_t main(int32_t argc, char** argv)
 {
     DANEJOE_LOG_TRACE("default", "Client", "Hello,world!");
     // clear_database();
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 }
 #else
 
-int main(int argc, char** argv)
+int32_t main(int32_t argc, char** argv)
 {
     PosixClientSocket socket("127.0.0.1", 8080);
     while (true)

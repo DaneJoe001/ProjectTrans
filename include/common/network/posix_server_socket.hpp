@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "common/network/i_server_socket.hpp"
 #include "common/network/posix_socket.hpp"
 

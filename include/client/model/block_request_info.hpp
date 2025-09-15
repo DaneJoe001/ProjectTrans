@@ -2,15 +2,16 @@
 
 #include <chrono>
 #include <format>
+#include <cstdint>
 
 #include "client/model/common.hpp"
 
 struct BlockRequestInfo
 {
-    int block_id;
-    int file_id;
-    std::size_t offset;
-    std::size_t block_size;
+    int32_t block_id;
+    int32_t file_id;
+    uint32_t offset;
+    uint32_t block_size;
     Operation operation;
     FileState state;
     std::chrono::time_point<std::chrono::steady_clock> start_time;

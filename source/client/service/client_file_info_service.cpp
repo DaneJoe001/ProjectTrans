@@ -7,7 +7,7 @@ bool ClientFileInfoService::add(const ClientFileInfo& file_info)
 {
     return file_info_repository.add(file_info);
 }
-std::optional<ClientFileInfo> ClientFileInfoService::get_by_id(int file_id)
+std::optional<ClientFileInfo> ClientFileInfoService::get_by_id(int32_t file_id)
 {
     return file_info_repository.get_by_id(file_id);
 }
@@ -16,7 +16,7 @@ bool ClientFileInfoService::update(const ClientFileInfo& file_info)
     return file_info_repository.update(file_info);
 }
 
-bool ClientFileInfoService::remove(int file_id)
+bool ClientFileInfoService::remove(int32_t file_id)
 {
     return file_info_repository.remove(file_id);
 }

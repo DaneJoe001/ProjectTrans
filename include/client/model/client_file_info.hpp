@@ -3,16 +3,17 @@
 #include <string>
 #include <chrono>
 #include <format>
+#include <cstdint>
 
 #include "client/model/common.hpp"
 
 struct ClientFileInfo
 {
-    int file_id = -1;
+    int32_t file_id = -1;
     std::string saved_name;
     std::string source_path;
     std::string saved_path;
-    std::size_t file_size = 0;
+    uint32_t file_size = 0;
     Operation operation = Operation::Unknown;
     FileState state = FileState::Unknown;
     std::string md5_code;

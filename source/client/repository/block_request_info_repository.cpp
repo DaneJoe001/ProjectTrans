@@ -49,9 +49,9 @@ std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_all()
     }
     auto data = m_database->query("SELECT * FROM block_request_info;");
     std::vector<BlockRequestInfo> result = std::vector<BlockRequestInfo>(data.size());
-    for (int i=0;i<data.size();i++)
+    for (int32_t i = 0;i < data.size();i++)
     {
-        result[i]=BlockRequestInfo(
+        result[i] = BlockRequestInfo(
             std::stoi(data[i][0]),
             std::stoi(data[i][1]),
             std::stoi(data[i][2]),
@@ -83,7 +83,7 @@ bool BlockRequestInfoRepository::add(const BlockRequestInfo& block_info)
         std::chrono::duration_cast<std::chrono::seconds>(block_info.end_time.time_since_epoch()).count()
     ));
 }
-std::optional<BlockRequestInfo> BlockRequestInfoRepository::get_by_id(int block_id)
+std::optional<BlockRequestInfo> BlockRequestInfoRepository::get_by_id(int32_t block_id)
 {
     if (!m_database)
     {
@@ -126,7 +126,7 @@ bool BlockRequestInfoRepository::update(const BlockRequestInfo& block_info)
         block_info.block_id
     ));
 }
-bool BlockRequestInfoRepository::remove(int block_id)
+bool BlockRequestInfoRepository::remove(int32_t block_id)
 {
     if (!m_database)
     {

@@ -1,12 +1,14 @@
 #pragma once
 
+#include <cstdint>
+
 #include "client/model/client_file_info.hpp"
 
 struct TransInfo
 {
     ClientFileInfo file_info;
-    std::size_t current_count;
-    std::size_t total_count;
+    uint32_t current_count;
+    uint32_t total_count;
 };
 
 struct DownloadRequest

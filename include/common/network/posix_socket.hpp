@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <sys/socket.h>
 
 #include "common/network/i_socket.hpp"
@@ -17,9 +19,9 @@ public:
     struct PosixOption
     {
         /// @brief 选项级别
-        int level;
+        int32_t level;
         /// @brief 选项名称
-        int opt_name;
+        int32_t opt_name;
         /// @brief 选项值
         void* opt_val;
         /// @brief 选项长度
@@ -31,7 +33,7 @@ public:
      * @param fd 原始socket句柄
      * @todo 必须统一所有继承类，加入模板类型审查是否有该函数
      */
-    static int get_id(int fd);
+    static int32_t get_id(int32_t fd);
     /**
      * @brief 转换为POSIX选项
      * @param option 选项
@@ -57,7 +59,7 @@ public:
      * @brief 获取逻辑标识符
      * @return 逻辑标识符
      */
-    int get_id()const override;
+    int32_t get_id()const override;
     /**
      * @brief 设置非阻塞模式
      * @param status 是否为非阻塞模式
@@ -80,14 +82,14 @@ public:
      * @param socket_fd 套接字句柄
      * @return 是否相等
      */
-    bool operator==(int socket_fd)const;
+    bool operator==(int32_t socket_fd)const;
     bool is_readable()const override;
     bool is_writeable()const override;
 protected:
     /// @brief 套接字句柄
-    int m_socket = -1;
+    int32_t m_socket = -1;
     /// @brief 接收缓存大小
-    std::size_t m_recv_buffer_size = 4096;
+    uint32_t m_recv_buffer_size = 4096;
     /// @brief 接收块大小
-    std::size_t m_recv_block_size = 1024;
+    uint32_t m_recv_block_size = 1024;
 };

@@ -17,7 +17,7 @@ void ServerFileInfoTableModel::init()
     m_file_info_list = QList<ServerFileInfo>(data.begin(), data.end());
 }
 
-int ServerFileInfoTableModel::columnCount(const QModelIndex& parent) const
+int32_t ServerFileInfoTableModel::columnCount(const QModelIndex& parent) const
 {
     if (parent.isValid())
     {
@@ -26,7 +26,7 @@ int ServerFileInfoTableModel::columnCount(const QModelIndex& parent) const
     return m_column_count;
 }
 
-int ServerFileInfoTableModel::rowCount(const QModelIndex& parent) const
+int32_t ServerFileInfoTableModel::rowCount(const QModelIndex& parent) const
 {
     if (parent.isValid())
     {
@@ -34,14 +34,14 @@ int ServerFileInfoTableModel::rowCount(const QModelIndex& parent) const
     }
     return m_file_info_list.size();
 }
-QVariant ServerFileInfoTableModel::data(const QModelIndex& index, int role) const
+QVariant ServerFileInfoTableModel::data(const QModelIndex& index, int32_t role) const
 {
     if (!index.isValid())
     {
         return QVariant();
     }
-    int row = index.row();
-    int column = index.column();
+    int32_t row = index.row();
+    int32_t column = index.column();
     if (role == Qt::DisplayRole)
     {
         switch (column)
@@ -63,7 +63,7 @@ QVariant ServerFileInfoTableModel::data(const QModelIndex& index, int role) cons
     return QVariant();
 }
 
-bool ServerFileInfoTableModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool ServerFileInfoTableModel::setData(const QModelIndex& index, const QVariant& value, int32_t role)
 {
     if (!index.isValid())
     {
@@ -71,8 +71,8 @@ bool ServerFileInfoTableModel::setData(const QModelIndex& index, const QVariant&
     }
     if (role == Qt::EditRole)
     {
-        int row = index.row();
-        int column = index.column();
+        int32_t row = index.row();
+        int32_t column = index.column();
         if (row < 0 || row >= m_file_info_list.size() || column < 0 || column >= 5)
         {
             return false;
@@ -103,7 +103,7 @@ bool ServerFileInfoTableModel::setData(const QModelIndex& index, const QVariant&
     return false;
 }
 
-QVariant ServerFileInfoTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant ServerFileInfoTableModel::headerData(int32_t section, Qt::Orientation orientation, int32_t role) const
 {
     /// @brief 判断是否为显示角色
     if (role == Qt::DisplayRole)
@@ -145,7 +145,7 @@ void ServerFileInfoTableModel::add(const ServerFileInfo& file_info)
 
 void ServerFileInfoTableModel::remove(const ServerFileInfo& file_info)
 {
-    int row = m_file_info_list.indexOf(file_info);
+    int32_t row = m_file_info_list.indexOf(file_info);
     if (row >= 0)
     {
         beginRemoveRows(QModelIndex(), row, row);

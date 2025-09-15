@@ -51,7 +51,7 @@ bool DatabaseSQLite::execute(const std::string& statement)
         }
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            int ret = m_database->exec(statement);
+            int32_t ret = m_database->exec(statement);
             DANEJOE_LOG_TRACE("default", "Database", "查询完毕 {}", statement);
         }
         return true;
@@ -86,7 +86,7 @@ std::vector<std::vector<std::string>> DatabaseSQLite::query(const std::string& s
             while (query.executeStep())
             {
                 std::vector<std::string> row;
-                for (int i = 0; i < query.getColumnCount(); i++)
+                for (int32_t i = 0; i < query.getColumnCount(); i++)
                 {
                     row.push_back(query.getColumn(i).getString());
                 }

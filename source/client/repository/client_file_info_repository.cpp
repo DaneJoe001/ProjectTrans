@@ -50,7 +50,7 @@ std::vector<ClientFileInfo> ClientFileInfoRepository::get_all()
         SELECT * FROM file_info;
     )");
     std::vector<ClientFileInfo> result(data.size());
-    for (int i = 0; i < data.size(); i++)
+    for (int32_t i = 0; i < data.size(); i++)
     {
         result[i].file_id = std::stoi(data[i][0]);
         result[i].saved_name = data[i][1];
@@ -84,7 +84,7 @@ bool ClientFileInfoRepository::add(const ClientFileInfo& file_info)
     )", file_info.saved_name, file_info.source_path, file_info.saved_path, file_info.file_size, static_cast<int>(file_info.operation), static_cast<int>(file_info.state), file_info.md5_code, std::chrono::duration_cast<std::chrono::seconds>(file_info.create_time.time_since_epoch()).count(), std::chrono::duration_cast<std::chrono::seconds>(file_info.finished_time.time_since_epoch()).count()
     ));
 }
-std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_id(int file_id)
+std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_id(int32_t file_id)
 {
     if (!m_database)
     {
@@ -153,7 +153,7 @@ bool ClientFileInfoRepository::update(const ClientFileInfo& file_info)
     )", file_info.saved_name, file_info.source_path, file_info.saved_path, file_info.file_size, static_cast<int>(file_info.operation), static_cast<int>(file_info.state), file_info.md5_code, std::chrono::duration_cast<std::chrono::seconds>(file_info.create_time.time_since_epoch()).count(), std::chrono::duration_cast<std::chrono::seconds>(file_info.finished_time.time_since_epoch()).count(), file_info.file_id
     ));
 }
-bool ClientFileInfoRepository::remove(int file_id)
+bool ClientFileInfoRepository::remove(int32_t file_id)
 {
     if (!m_database)
     {

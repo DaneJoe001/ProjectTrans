@@ -14,9 +14,9 @@ public:
     void init();
     std::vector<BlockRequestInfo> get_all();
     bool add(const BlockRequestInfo& block_info);
-    std::optional<BlockRequestInfo> get_by_id(int block_id);
+    std::optional<BlockRequestInfo> get_by_id(int32_t block_id);
     bool update(const BlockRequestInfo& block_info);
-    bool remove(int block_id);
+    bool remove(int32_t block_id);
 private:
     std::shared_ptr<IDatabase> m_database;
 };
