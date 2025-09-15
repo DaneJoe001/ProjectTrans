@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "common/network/i_client_socket.hpp"
 #include "common/network/posix_socket.hpp"
 
@@ -25,7 +27,7 @@ public:
      * @brief 构造函数
      * @param socket 套接字
      */
-    PosixClientSocket(int socket);
+    PosixClientSocket(int32_t socket);
     /**
      * @brief 构造函数
      * @param ip ip地址
@@ -52,7 +54,7 @@ public:
      * @param size 数据大小
      * @return 数据
      */
-    std::vector<uint8_t> receive(std::size_t size) override;
+    std::vector<uint8_t> receive(uint32_t size) override;
     /**
      * @brief 非阻塞发送所有数据
      * @param data 数据

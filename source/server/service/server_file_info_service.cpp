@@ -9,7 +9,7 @@ bool ServerFileInfoService::add(const ServerFileInfo& file_info)
 {
     return file_info_repository.add(file_info);
 }
-std::optional<ServerFileInfo> ServerFileInfoService::get_by_id(int file_id)
+std::optional<ServerFileInfo> ServerFileInfoService::get_by_id(int32_t file_id)
 {
     return file_info_repository.get_by_id(file_id);
 }
@@ -18,7 +18,7 @@ bool ServerFileInfoService::update(const ServerFileInfo& file_info)
     return file_info_repository.update(file_info);
 }
 
-bool ServerFileInfoService::remove(int file_id)
+bool ServerFileInfoService::remove(int32_t file_id)
 {
     return file_info_repository.remove(file_id);
 }
@@ -33,7 +33,7 @@ void ServerFileInfoService::init()
     file_info_repository.init();
 }
 
-int ServerFileInfoService::count()
+int32_t ServerFileInfoService::count()
 {
     return file_info_repository.count();
 }

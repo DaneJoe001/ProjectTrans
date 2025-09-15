@@ -33,7 +33,7 @@ public:
      * @param size 数据大小
      * @return 数据
      */
-    virtual std::vector<uint8_t> receive(std::size_t size) = 0;
+    virtual std::vector<uint8_t> receive(uint32_t size) = 0;
     /**
      * @brief 连接
      * @param ip ip地址

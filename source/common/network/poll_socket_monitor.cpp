@@ -6,7 +6,7 @@ extern "C"
 #include <sys/poll.h>
 }
 
-bool PollSocketMonitor::check_socket(const ISocket* socket, short event)
+bool PollSocketMonitor::check_socket(const ISocket* socket, int16_t  event)
 {
     if (!socket)
     {
@@ -14,7 +14,7 @@ bool PollSocketMonitor::check_socket(const ISocket* socket, short event)
     }
     auto fd = *reinterpret_cast<const int*>(dynamic_cast<const PosixSocket*>(socket)->get_raw_socket());
     pollfd pfd{ fd, POLLIN | POLLERR | POLLHUP | POLLRDHUP, 0 };
-    int ret = ::poll(&pfd, 1, 0);
+    int32_t ret = ::poll(&pfd, 1, 0);
     if (ret <= 0) return false;
     if (pfd.revents & (POLLERR | POLLHUP | POLLRDHUP)) return false;
     return (pfd.revents & event) != 0;

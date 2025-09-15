@@ -42,7 +42,7 @@ std::vector<uint8_t> ClientConnection::recieve()
     {
         return std::vector<uint8_t>();
     }
-    std::size_t size = 0;
+    uint32_t size = 0;
     std::memcpy(&size, length.data(), sizeof(size));
     DANEJOE_LOG_TRACE("default", "ClientConnection", "recieve size:{}", size);
     return m_socket.receive(size);

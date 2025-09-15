@@ -1,6 +1,8 @@
 #pragma once
 #include <memory>
+#include <cstdint>
 #include <functional>
+
 #include "mt_queue/mt_queue.hpp"
 
 /**

@@ -3,6 +3,7 @@
 #include <atomic>
 #include <memory>
 #include <list>
+#include <cstdint>
 #include <unordered_map>
 
 #include "common/network/i_client_socket.hpp"
@@ -73,7 +74,7 @@ public:
      * @brief 移除套接字
      * @param socket_id socket逻辑标识符
      */
-    virtual void remove_socket(int socket_id) = 0;
+    virtual void remove_socket(int32_t socket_id) = 0;
     /**
      * @brief 判断事件循环是否有效
      * @return 是否有效

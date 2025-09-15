@@ -2,13 +2,14 @@
 
 #include <string>
 #include <format>
+#include <cstdint>
 
 struct ServerFileInfo
 {
-    int file_id;
+    int32_t file_id;
     std::string file_name;
     std::string resource_path;
-    std::size_t file_size;
+    uint32_t file_size;
     std::string md5_code;
     std::string to_string() const
     {

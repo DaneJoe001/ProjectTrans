@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "common/network/posix_client_socket.hpp"
 
 class ClientConnection

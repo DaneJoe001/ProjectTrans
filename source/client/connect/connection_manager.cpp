@@ -149,19 +149,19 @@ void ConnectionManager::clear_unused_connections()
     }
 }
 
-void ConnectionManager::set_max_connection_count(int count)
+void ConnectionManager::set_max_connection_count(int32_t count)
 {
     std::lock_guard<std::mutex> lock(m_connection_mutex);
     m_max_connection_count = count;
 }
 
-int ConnectionManager::get_connection_count()const
+int32_t ConnectionManager::get_connection_count()const
 {
     std::lock_guard<std::mutex> lock(m_connection_mutex);
     return m_connection_count;
 }
 
-int ConnectionManager::get_connection_count(const std::string& ip, uint16_t port)const
+int32_t ConnectionManager::get_connection_count(const std::string& ip, uint16_t port)const
 {
     auto connection_id = std::make_pair(ip, port);
     return m_connection_info_map.count(connection_id);

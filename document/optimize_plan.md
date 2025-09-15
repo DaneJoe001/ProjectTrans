@@ -7,11 +7,11 @@
 class IFileID {
 public:
     virtual ~IFileID() = default;
-    virtual int get() const = 0;
+    virtual int32_t get() const = 0;
     virtual bool is_valid() const = 0;
     virtual void close() = 0;
     // 可以添加更多通用方法
-    virtual int dup() const = 0;  // 复制文件描述符
+    virtual int32_t dup() const = 0;  // 复制文件描述符
     virtual bool set_non_blocking(bool status) = 0;
 };
 ```
@@ -20,7 +20,7 @@ public:
 ```cpp
 class EpollFileID : public IFileID {
 private:
-    int m_fd = -1;
+    int32_t m_fd = -1;
 public:
     EpollFileID() : m_fd(epoll_create1(0)) {}
     ~EpollFileID() override { if (m_fd >= 0) ::close(m_fd); }
@@ -29,9 +29,9 @@ public:
 
 class SocketFileID : public IFileID {
 private:
-    int m_fd = -1;
+    int32_t m_fd = -1;
 public:
-    SocketFileID(int fd) : m_fd(fd) {}
+    SocketFileID(int32_t fd) : m_fd(fd) {}
     ~SocketFileID() override { if (m_fd >= 0) ::close(m_fd); }
     // 实现IFileID接口...
 };

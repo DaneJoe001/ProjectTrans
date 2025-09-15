@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "common/network/i_socket_context.hpp"
 
 class TransContext : public ISocketContext {

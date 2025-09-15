@@ -10,6 +10,6 @@ void clear_database();
 
 void run_server();
 
-void stop_server_handler(int signal);
+void stop_server_handler(int32_t signal);
 
-void open_window_handler(int signal);
+void open_window_handler(int32_t signal);

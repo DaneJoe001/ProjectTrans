@@ -13,7 +13,7 @@ bool BlockRequestInfoService::add(const BlockRequestInfo& block_info)
 {
     return block_request_info_repository.add(block_info);
 }
-std::optional<BlockRequestInfo> BlockRequestInfoService::get_by_id(int block_id)
+std::optional<BlockRequestInfo> BlockRequestInfoService::get_by_id(int32_t block_id)
 {
     return block_request_info_repository.get_by_id(block_id);
 }
@@ -22,7 +22,7 @@ bool BlockRequestInfoService::update(const BlockRequestInfo& block_info)
     return block_request_info_repository.update(block_info);
 }
 
-bool BlockRequestInfoService::remove(int block_id)
+bool BlockRequestInfoService::remove(int32_t block_id)
 {
     return block_request_info_repository.remove(block_id);
 }

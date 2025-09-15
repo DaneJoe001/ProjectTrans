@@ -2,7 +2,7 @@
 
 void ThreadPool::start()
 {
-    for (int i = 0;i < m_max_thread_count;i++)
+    for (int32_t i = 0;i < m_max_thread_count;i++)
     {
         m_threads.emplace_back(thread_handler);
     }

@@ -45,7 +45,7 @@ EpollEventLoop::EpollEventLoop(std::unique_ptr<PosixServerSocket> server_socket,
         event.events = EPOLLIN;
         event.data.fd = *reinterpret_cast<const int*>(m_server_socket->get_raw_socket());
         /// @brief 添加文件描述符
-        int ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, *reinterpret_cast<const int*>(m_server_socket->get_raw_socket()), &event);
+        int32_t ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, *reinterpret_cast<const int*>(m_server_socket->get_raw_socket()), &event);
         if (ret < 0)
         {
             DANEJOE_LOG_ERROR("default", "Epoll", "epoll_ctl failed");
@@ -79,9 +79,9 @@ bool EpollEventLoop::add_socket(std::unique_ptr<IClientSocket> socket, EventType
     /// @brief 转换Epoll事件类型至抽象事件类型
     ev.events = to_epoll_events(type);
     /// @brief 获取客户端套接字文件描述符
-    int socket_fd = *reinterpret_cast<const int*>(socket->get_raw_socket());
+    int32_t socket_fd = *reinterpret_cast<const int*>(socket->get_raw_socket());
     ev.data.fd = socket_fd;
-    int ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, socket_fd, &ev);
+    int32_t ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, socket_fd, &ev);
     if (ret < 0)
     {
         DANEJOE_LOG_ERROR("default", "Epoll", "add socket to epoll failed");
@@ -89,7 +89,7 @@ bool EpollEventLoop::add_socket(std::unique_ptr<IClientSocket> socket, EventType
         return false;
     }
     /// @brief 初始化对应的接收缓存
-    int socket_id = socket->get_id();
+    int32_t socket_id = socket->get_id();
     m_recv_buffers[socket_id] = std::make_shared<DaneJoe::MTQueue<uint8_t>>(4096);
     m_send_buffers[socket_id] = std::make_shared<DaneJoe::MTQueue<uint8_t>>(4096);
     m_sockets[socket_id] = std::move(socket);
@@ -97,7 +97,7 @@ bool EpollEventLoop::add_socket(std::unique_ptr<IClientSocket> socket, EventType
     m_contexts[socket_id] = m_context_creator->create();
     return true;
 }
-void EpollEventLoop::remove_socket(int socket_id)
+void EpollEventLoop::remove_socket(int32_t socket_id)
 {
     if (!is_valid())
     {
@@ -112,7 +112,7 @@ void EpollEventLoop::remove_socket(int socket_id)
     }
     auto client = std::move(socket_it->second);
     auto raw_socket = *reinterpret_cast<const int*>(client->get_raw_socket());
-    int ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, raw_socket, nullptr);
+    int32_t ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, raw_socket, nullptr);
     if (ret < 0)
     {
         DANEJOE_LOG_ERROR("default", "Epoll", "epoll_ctl error");
@@ -141,7 +141,7 @@ void EpollEventLoop::run()
         /// @brief 监听事件
         /// @brief 最大监听事件数量
         /// @brief 等待时间,-1 表示一直等待
-        int ret = ::epoll_wait(m_epoll_fd, events, m_max_event_account, 1000);
+        int32_t ret = ::epoll_wait(m_epoll_fd, events, m_max_event_account, 1000);
         if (ret < 0)
         {
             /// @brief 忽略 EINTR 错误
@@ -155,10 +155,10 @@ void EpollEventLoop::run()
                 break;
             }
         }
-        for (int i = 0;i < ret;i++)
+        for (int32_t i = 0;i < ret;i++)
         {
             /// @brief 获取文件描述符
-            int fd = events[i].data.fd;
+            int32_t fd = events[i].data.fd;
             /// @brief 获取对应文件描述符触发的事件
             uint32_t event = events[i].events;
             /// @brief 判断是否为服务器 socket
@@ -292,7 +292,7 @@ void EpollEventLoop::acceptable_event()
     }
 }
 
-void EpollEventLoop::readable_event(int fd)
+void EpollEventLoop::readable_event(int32_t fd)
 {
     /// @brief 当前posix实现下，socket_map的键就是(int)fd
     auto socket_iter = m_sockets.find(fd);
@@ -320,7 +320,7 @@ void EpollEventLoop::readable_event(int fd)
     }
 }
 
-void EpollEventLoop::writable_event(int fd)
+void EpollEventLoop::writable_event(int32_t fd)
 {
     /// @brief 当前posix实现下，socket_map的键就是(int)fd
     auto client_iter = m_sockets.find(fd);

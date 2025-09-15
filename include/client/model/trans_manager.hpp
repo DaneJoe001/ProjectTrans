@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <cstdint>
 
 #include "client/model/trans_info.hpp"
 #include "client/model/client_file_info.hpp"
@@ -24,6 +25,6 @@ private:
     TransManager();
     ~TransManager();
 private:
-    std::unordered_map<int, TransInfo> m_trans_map;
+    std::unordered_map<int32_t, TransInfo> m_trans_map;
     ConnectionManager& m_connection_manager;
 };

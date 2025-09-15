@@ -57,7 +57,7 @@ void clear_database()
 void run_server()
 {
     /// @brief 设置地址复用，后续再抽象拓展
-    int opt_val = 1;
+    int32_t opt_val = 1;
     ISocket::IOption option;
     option.level = 1;
     option.opt_name = 2;
@@ -71,7 +71,7 @@ void run_server()
     loop.run();
 }
 
-void stop_server_handler(int signal)
+void stop_server_handler(int32_t signal)
 {
     DANEJOE_LOG_TRACE("default", "server", "Server is stopping...");
     EpollEventLoop::end_loop();
@@ -79,7 +79,7 @@ void stop_server_handler(int signal)
     exit(0);
 }
 
-void open_window_handler(int signal)
+void open_window_handler(int32_t signal)
 {
     g_is_panel_running.store(true);
 }

@@ -43,7 +43,7 @@ bool EpollSocketMonitor::check_socket(const ISocket* socket, uint32_t event_type
     std::memset(&event, 0, sizeof(event));
     event.events = EPOLLIN | EPOLLOUT;
     std::lock_guard<std::mutex> lock(m_mutex);
-    int ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, fd, &event);
+    int32_t ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, fd, &event);
     if (ret < 0)
     {
         return false;

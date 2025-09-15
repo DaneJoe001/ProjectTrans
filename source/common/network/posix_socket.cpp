@@ -11,7 +11,7 @@ extern "C"
 #include "common/network/posix_socket.hpp"
 #include "common/network/poll_socket_monitor.hpp"
 
-int PosixSocket::get_id(int fd)
+int32_t PosixSocket::get_id(int32_t fd)
 {
     /// @brief 返回原始套接字描述符
     return fd;
@@ -55,7 +55,7 @@ bool PosixSocket::set_opt(const IOption& option)
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to set option: option value is null");
         return false;
     }
-    int ret = ::setsockopt(m_socket, option.level, option.opt_name, option.opt_val, option.opt_len);
+    int32_t ret = ::setsockopt(m_socket, option.level, option.opt_name, option.opt_val, option.opt_len);
     if (ret < 0)
     {
         DANEJOE_LOG_ERROR("default", "Socket", "Failed to set option");
@@ -78,7 +78,7 @@ bool PosixSocket::set_non_blocking(bool status)
         {
             return true;
         }
-        int flags = ::fcntl(m_socket, F_GETFL, 0);
+        int32_t flags = ::fcntl(m_socket, F_GETFL, 0);
         if (flags < 0)
         {
             DANEJOE_LOG_ERROR("default", "Socket", "Failed to get flags");
@@ -97,7 +97,7 @@ bool PosixSocket::set_non_blocking(bool status)
         {
             return true;
         }
-        int flags = ::fcntl(m_socket, F_GETFL, 0);
+        int32_t flags = ::fcntl(m_socket, F_GETFL, 0);
         if (flags < 0)
         {
             DANEJOE_LOG_ERROR("default", "Socket", "Failed to get flags");
@@ -114,7 +114,7 @@ bool PosixSocket::set_non_blocking(bool status)
     return true;
 }
 
-int PosixSocket::get_id()const
+int32_t PosixSocket::get_id()const
 {
     return m_socket;
 }
@@ -129,7 +129,7 @@ bool PosixSocket::operator==(const PosixSocket& rhs)const
     return m_socket == rhs.m_socket;
 }
 
-bool PosixSocket::operator==(int socket_fd)const
+bool PosixSocket::operator==(int32_t socket_fd)const
 {
     return m_socket == socket_fd;
 }

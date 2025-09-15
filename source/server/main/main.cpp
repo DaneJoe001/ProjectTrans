@@ -9,7 +9,7 @@
 #include "server/view/server_main_window.hpp"
 
 using namespace std::literals::chrono_literals;
-int main(int argc, char** argv)
+int32_t main(int32_t argc, char** argv)
 {
     QApplication app(argc, argv);
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <QAbstractTableModel>
 #include <QList>
 
@@ -10,11 +12,11 @@ class FileTransInfoTableModel : public QAbstractTableModel {
 public:
     static FileTransInfoTableModel* get_instance();
     void init();
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
-    bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole)override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    int32_t columnCount(const QModelIndex& parent = QModelIndex()) const override;
+    int32_t rowCount(const QModelIndex& parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex& index, int32_t role = Qt::DisplayRole) const override;
+    bool setData(const QModelIndex& index, const QVariant& value, int32_t role = Qt::EditRole)override;
+    QVariant headerData(int32_t section, Qt::Orientation orientation, int32_t role = Qt::DisplayRole) const override;
     void add(const TransInfo& trans_info);
     void remove(const TransInfo& trans_info);
 private:

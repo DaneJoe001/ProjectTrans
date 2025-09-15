@@ -17,13 +17,13 @@ public:
     struct IOption
     {
         /// @brief 选项级别
-        int level;
+        int32_t level;
         /// @brief 选项名称
-        int opt_name;
+        int32_t opt_name;
         /// @brief 选项值
         void* opt_val = nullptr;
         /// @brief 选项长度
-        int opt_len;
+        int32_t opt_len;
     };
 public:
     virtual ~ISocket() = default;
@@ -41,7 +41,7 @@ public:
      * @brief 获取逻辑标识符
      * @return 根据不同实现计算返回不同标识符
      */
-    virtual int get_id()const = 0;
+    virtual int32_t get_id()const = 0;
     /**
      * @brief 设置选项
      * @param option 选项

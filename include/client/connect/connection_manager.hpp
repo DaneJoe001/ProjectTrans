@@ -8,6 +8,7 @@
 #include <mutex>
 #include <map>
 #include <chrono>
+#include <cstdint>
 
 #include "client/connect/client_connection.hpp"
 
@@ -61,9 +62,9 @@ public:
      * @param connection 回收的连接
      */
     void recycle_connection(std::unique_ptr<ClientConnection> connection);
-    void set_max_connection_count(int count);
-    int get_connection_count()const;
-    int get_connection_count(const std::string& ip, uint16_t port)const;
+    void set_max_connection_count(int32_t count);
+    int32_t get_connection_count()const;
+    int32_t get_connection_count(const std::string& ip, uint16_t port)const;
     void clear_unused_connections();
 private:
     ConnectionManager();
@@ -72,7 +73,7 @@ private:
     /// @note 考虑使用std::unordered_multimap但不必须
     std::multimap<std::pair<std::string, uint16_t>, ConnectionInfo> m_connection_info_map;
     mutable std::mutex m_connection_mutex;
-    int m_connection_count = 0;
-    int m_max_connection_count = 10;
-    int m_max_same_ip_port_count = 10;
+    int32_t m_connection_count = 0;
+    int32_t m_max_connection_count = 10;
+    int32_t m_max_same_ip_port_count = 10;
 };
