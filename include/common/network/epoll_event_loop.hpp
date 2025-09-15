@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file epoll_event_loop.hpp
+ * @brief Epoll事件循环
+ * @author DaneJoe001
+ */
+
 #include <functional>
 
 #include "common/network/i_event_loop.hpp"
@@ -7,7 +13,7 @@
 #include "common/network/i_socket_context.hpp"
 
 /**
- * @class
+ * @class EpollEventLoop
  * @brief EpollEventLoop类实现了IEventLoop接口，使用epoll作为事件循环机制。
  * @note 该类当前并非线程安全。
  */
@@ -20,6 +26,9 @@ public:
      * @param context_creator 业务上下文创建器
      */
     EpollEventLoop(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator);
+    /**
+     * @brief 析构函数
+     */
     ~EpollEventLoop();
     /**
      * @brief 添加套接字
@@ -52,8 +61,19 @@ public:
      * @brief 接受事件
      */
     void acceptable_event();
+    /**
+     * @brief 可读事件
+     * @param fd 文件描述符
+     */
     void readable_event(int32_t fd);
+    /**
+     * @brief 可写事件
+     * @param fd 文件描述符
+     */
     void writable_event(int32_t fd);
+    /**
+     * @brief 停止事件循环
+     */
     void stop()override;
 private:
     /// @brief 最大事件数

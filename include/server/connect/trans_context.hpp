@@ -1,9 +1,19 @@
 #pragma once
 
+/**
+ * @file trans_context.hpp
+ * @brief 传输上下文
+ * @author DaneJoe001
+ */
+
 #include <cstdint>
 
 #include "common/network/i_socket_context.hpp"
 
+/**
+ * @class TransContext
+ * @brief 传输上下文
+ */
 class TransContext : public ISocketContext {
 public:
     /**
@@ -16,11 +26,24 @@ public:
      * @param buffer 发送的数据
      */
     void on_send(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)override;
+    /**
+     * @brief 解析请求
+     * @param data 请求数据
+     */
     void parse_request(const std::vector<uint8_t>& data);
 
 };
 
-class TransContextCreator : public ISocketContextCreator {
+/**
+ * @class TransContextCreator
+ * @brief 传输上下文创建者
+ */
+class TransContextCreator : public ISocketContextCreator 
+{
 public:
+    /**
+     * @brief 创建传输上下文
+     * @return 传输上下文
+     */
     std::shared_ptr<ISocketContext> create()override;
 };

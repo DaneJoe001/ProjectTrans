@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file i_event_loop.hpp
+ * @brief 事件循环接口
+ * @author DaneJoe001
+ */
+
 #include <atomic>
 #include <memory>
 #include <list>
@@ -80,8 +86,12 @@ public:
      * @return 是否有效
      */
     virtual bool is_valid() = 0;
+    /**
+     * @brief 停止事件循环
+     */
     virtual void stop() = 0;
 protected:
+    /// @brief 是否运行
     static std::atomic<bool> m_is_running;
 };
 

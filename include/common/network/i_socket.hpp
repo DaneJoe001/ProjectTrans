@@ -1,4 +1,11 @@
 #pragma once
+
+/**
+ * @file i_socket.hpp
+ * @brief 套接字接口
+ * @author DaneJoe001
+ */
+
 #include <cstdint>
 #include <vector>
 #include <memory>
@@ -58,7 +65,15 @@ public:
      * @brief 关闭套接字
      */
     virtual void close() = 0;
+    /**
+     * @brief 检查套接字是否可读
+     * @return 是否可读
+     */
     virtual bool is_readable()const = 0;
+    /**
+     * @brief 检查套接字是否可写
+     * @return 是否可写
+     */
     virtual bool is_writeable()const = 0;
 protected:
     /// @brief 是否为非阻塞模式

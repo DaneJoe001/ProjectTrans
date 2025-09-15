@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file i_database.hpp
+ * @brief 数据库接口
+ * @author DaneJoe001
+ */
+
 #include <string>
 #include <cstdint>
 #include <vector>
@@ -58,6 +64,9 @@ public:
         std::string user_password;
     };
 public:
+    /**
+     * @brief 构造函数
+     */
     IDatabase();
     /**
      * @brief 连接到数据库。
@@ -106,8 +115,8 @@ public:
      * @brief 设置数据库配置。
      */
     void set_config(const DatabaseConfig& config);
-
 protected:
+    /// @brief 数据库配置
     DatabaseConfig m_config;
     /// @brief 错误信息
     std::string m_error_message;
@@ -115,8 +124,16 @@ protected:
     std::string m_error_code;
 };
 
+/**
+ * @class IDatabaseCreator
+ * @brief 数据库创建器
+ */
 class IDatabaseCreator
 {
 public:
+    /**
+     * @brief 创建数据库
+     * @return 数据库
+     */
     virtual std::shared_ptr<IDatabase> create_database() = 0;
 };

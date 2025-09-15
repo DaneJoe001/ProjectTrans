@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file posix_server_socket.hpp
+ * @brief Posix服务器套接字
+ * @author DaneJoe001
+ */
+
 #include <cstdint>
 
 #include "common/network/i_server_socket.hpp"

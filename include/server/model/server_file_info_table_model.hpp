@@ -1,5 +1,11 @@
 #pragma once
 
+/**
+ * @file server_file_info_table_model.hpp
+ * @brief 服务器文件信息表模型
+ * @author DaneJoe001
+ */
+
 #include <QList>
 #include <QModelIndex>
 #include <QAbstractTableModel>
@@ -8,9 +14,21 @@
 #include "server/model/server_file_info.hpp"
 #include "server/service/server_file_info_service.hpp"
 
-class ServerFileInfoTableModel : public QAbstractTableModel {
+/**
+ * @class ServerFileInfoTableModel
+ * @brief 服务器文件信息表模型
+ */
+class ServerFileInfoTableModel : public QAbstractTableModel 
+{
 public:
+    /**
+     * @brief 获取实例
+     * @return 实例
+     */
     static ServerFileInfoTableModel* get_instance();
+    /**
+     * @brief 初始化
+     */
     void init();
     /**
      * @brief 返回模型中行的数量，用于确定视图中有多少行可以显示
@@ -44,12 +62,27 @@ public:
      * @param role 角色
      */
     QVariant headerData(int32_t section, Qt::Orientation orientation, int32_t role = Qt::DisplayRole) const override;
+    /**
+     * @brief 添加文件信息
+     * @param file_info 文件信息
+     */
     void add(const ServerFileInfo& file_info);
+    /**
+     * @brief 删除文件信息
+     * @param file_info 文件信息
+     */
     void remove(const ServerFileInfo& file_info);
 private:
+    /**
+     * @brief 构造函数
+     * @param parent 父对象
+     */
     explicit ServerFileInfoTableModel(QObject* parent = nullptr);
 private:
+    /// @brief 列数
     int32_t m_column_count = 5;
+    /// @brief 文件信息列表
     QList<ServerFileInfo> m_file_info_list;
+    /// @brief 文件信息服务
     ServerFileInfoService m_file_info_service;
 };

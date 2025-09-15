@@ -6,20 +6,24 @@
 
 UrlResolver::UrlInfo UrlResolver::parse(const std::string& url)
 {
+    /// @brief 构建并初始化Url信息
     UrlInfo info = { UrlProtocol::UNKNOWN, "", 0, "" };
-    /// @example http://www.example.com:8080/path/to/resource
+    /// @brief 查找协议分割
     auto pos = url.find("://");
+    /// @brief 找不到时返回空信息
     if (pos == std::string::npos)
     {
         DANEJOE_LOG_ERROR("default", "UrlResolver", "Invalid URL: {}", url);
         return info;
     }
-    /// @brief 解析协议
+    /// @brief 获取协议字符串
     std::string protocol_str = url.substr(0, pos);
     info.protocol = to_protocol(protocol_str);
-    /// @brief 解析ip地址
+    /// @brief 端口号标记位置
     auto port_sign_pos = url.find(":", pos + 3);
+    /// @brief 域名结束位置
     auto ip_end_pos = url.find("/", pos + 3);
+    /// @brief 当域名结束位置为空时，则将域名结束位置设置为URL长度
     if (ip_end_pos == std::string::npos)
     {
         ip_end_pos = url.size();
@@ -28,14 +32,17 @@ UrlResolver::UrlInfo UrlResolver::parse(const std::string& url)
     {
         /// @brief 当没有端口号时
         info.ip = to_ip(url.substr(pos + 3, ip_end_pos - 3));
+        /// @brief 获取默认端口号
         info.port = default_port(info.protocol);
     }
     else
     {
         /// @brief 当有端口号时
         info.ip = to_ip(url.substr(pos + 3, port_sign_pos - protocol_str.size() - 3));
+        /// @brief 获取端口
         info.port = std::stoi(url.substr(port_sign_pos + 1, ip_end_pos - port_sign_pos - 1));
     }
+    /// @brief 获取路径
     info.path = url.substr(ip_end_pos);
     return info;
 }
