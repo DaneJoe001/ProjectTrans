@@ -13,10 +13,10 @@
 
 #include "mt_queue/mt_queue.hpp"
 
-/**
- * @class ThreadPool
- * @brief 线程池
- */
+ /**
+  * @class ThreadPool
+  * @brief 线程池
+  */
 class ThreadPool
 {
 public:
@@ -26,6 +26,10 @@ public:
      * @param max_task_count 最大任务数
      */
     ThreadPool(int32_t max_thread_count, int32_t max_task_count);
+    /**
+     * @brief 启动线程池
+     */
+    void start();
     /**
      * @brief 停止线程池
      */

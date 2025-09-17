@@ -114,7 +114,7 @@ void ConnectionTestDialog::closeEvent(QCloseEvent* event)
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "closeEvent()");
     if (m_connection_thread)
     {
-        m_connection_thread->stop();
+        m_connection_thread->deinit();
     }
 }
 

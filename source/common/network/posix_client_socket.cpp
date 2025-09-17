@@ -14,153 +14,190 @@ extern "C"
 
 PosixClientSocket::PosixClientSocket(PosixClientSocket&& other)
 {
+    // 临时存储socket句柄
     int32_t socket_fd = other.m_socket;
-    other.m_socket = -1;
+    // 设置当前句柄
     m_socket = socket_fd;
+    // 转移完成后置空源对象句柄
+    other.m_socket = -1;
 }
 
 PosixClientSocket& PosixClientSocket::operator=(PosixClientSocket&& other)
 {
+    // 临时存储socket句柄
     int32_t socket_fd = other.m_socket;
-    other.m_socket = -1;
+    // 设置当前句柄
     m_socket = socket_fd;
+    // 转移完成后置空源对象句柄
+    other.m_socket = -1;
     return *this;
 }
 
 PosixClientSocket::PosixClientSocket(int32_t socket)
 {
+    // 检查socket是否有效，无效警告
     if (socket < 0)
     {
-        DANEJOE_LOG_WARN("default", "Socket", "Create socket with invalid fd");
+        DANEJOE_LOG_WARN("default", "PosixClientSocket", "Create socket with invalid fd");
     }
     m_socket = socket;
 }
 
 PosixClientSocket::PosixClientSocket(const std::string& ip, uint16_t port)
 {
+    // 默认创建IPv4的TCP套接字
     m_socket = ::socket(AF_INET, SOCK_STREAM, 0);
     if (m_socket < 0)
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to create socket");
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to create socket");
         return;
     }
+    // 连接服务器
     connect(ip, port);
 }
 
 bool PosixClientSocket::connect(const std::string& ip, uint16_t port)
 {
+    // 检查套接字是否有效
     if (!is_valid())
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to connect socket: socket is not valid");
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to connect socket: socket is not valid");
         return false;
     }
-    struct sockaddr_in server_address;
-    std::memset(&server_address, 0, sizeof(server_address));
+    // 创建服务器地址结构体
+    struct sockaddr_in server_address = {};
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(port);
     server_address.sin_addr.s_addr = inet_addr(ip.c_str());
+    // 连接服务器
     int32_t ret = ::connect(m_socket, (struct sockaddr*)&server_address, sizeof(server_address));
+    // 检查连接结果
     if (ret < 0)
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to connect socket");
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to connect socket");
         m_is_connected = false;
         return false;
     }
+    // 更新连接状态
     m_is_connected = true;
     return true;
 }
 PosixClientSocket::~PosixClientSocket()
 {
+    // 关闭套接字
     this->close();
 }
-std::vector<uint8_t> PosixClientSocket::receive(uint32_t size)
+std::vector<uint8_t> PosixClientSocket::read(uint32_t size)
 {
+    // 检查套接字是否有效
     if (!is_valid())
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to recieve: socket is not valid");
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to receive: socket is not valid");
+        return std::vector<uint8_t>();
     }
+    // 记录已经读取的字节数
     uint32_t has_read = 0;
+    // 创建数据接收容器
     std::vector<uint8_t> buffer(size);
-    /// @brief 循环接收数据
+    // 循环接收数据
     while (has_read < size)
     {
+        // 调用系统API接收数据
         int32_t ret = ::recv(m_socket, buffer.data() + has_read, size - has_read, 0);
         if (ret < 0)
         {
-            /// @param EINTR 函数被中断
+            // EINTR 函数被中断
             if (errno == EINTR)
             {
                 continue;
             }
-            /// @param EAGAIN 非阻塞模式下，没有数据可读或缓冲区没有空间可写
+            // EAGAIN 非阻塞模式下，没有数据可读或缓冲区没有空间可写
             else if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
-                return buffer;
+                break;
             }
+            // 其他错误，结束循环
             else
             {
-                DANEJOE_LOG_ERROR("default", "Socket", "Failed to recieve");
+                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to recieve");
+                break;
             }
         }
+        // 判断对端是否被关闭
         else if (ret == 0)
         {
-            DANEJOE_LOG_ERROR("default", "Socket", "Connection closed");
+            DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Connection closed");
             close();
-            return std::vector<uint8_t>();
+            break;
         }
+        // 成功接收
         else
         {
+            // 更新已读字节数
             has_read += ret;
         }
     }
     return buffer;
 }
 
-void PosixClientSocket::send_all(const std::vector<uint8_t>& data)
+void PosixClientSocket::write_all(const std::vector<uint8_t>& data)
 {
+    // 检查套接字是否有效
     if (!is_valid())
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: socket is not valid");
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: socket is not valid");
         return;
     }
+    // 记录已发送字节数
     uint32_t has_written = 0;
+    // 循环发送直至完成
     while (has_written < data.size())
     {
+        // 调用系统函数发送数据
         int32_t ret = ::send(m_socket, data.data() + has_written, data.size() - has_written, 0);
+        // 检查是否发送失败
         if (ret < 0)
         {
+            // 意外中断进入下一次循环发送
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
                 continue;
             }
+            // 检查是否写入溢出
             else if (errno == ENOMEM)
             {
-                DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: out of memory");
+                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: out of memory");
             }
-            else if (errno == ECONNRESET)
-            {
-                close();
-                DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: connection reset");
-                return;
-            }
+            // 检查是否被信号中断
             else if (errno == EINTR)
             {
                 continue;
             }
+            // 检查是否连接已重置
+            else if (errno == ECONNRESET)
+            {
+                close();
+                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: connection reset");
+                return;
+            }
             else
             {
-                DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: unknown error");
+                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: unknown error");
                 return;
             }
         }
+        // 检查对端是否关闭
         else if (ret == 0)
         {
+            // 关闭客户端
             close();
-            DANEJOE_LOG_TRACE("default", "Socket", "Failed to send: connection closed");
+            DANEJOE_LOG_TRACE("default", "PosixClientSocket", "Failed to send: connection closed");
             return;
         }
+        // 发送成功
         else
         {
+            // 更新已发送字节数
             has_written += ret;
         }
     }
@@ -168,74 +205,83 @@ void PosixClientSocket::send_all(const std::vector<uint8_t>& data)
 
 std::vector<uint8_t> PosixClientSocket::read_all()
 {
+    // 检查套接字是否有效
     if (!is_valid())
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to read_all: socket is not valid");
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to read_all: socket is not valid");
         return std::vector<uint8_t>();
     }
-    int32_t is_non_blocking = m_is_non_blocking;
-    set_non_blocking(true);
-    /// @brief 缓存区
+    // 缓存区
     std::vector<uint8_t> buffer;
+    // 分配缓冲区空间
     buffer.reserve(m_recv_buffer_size);
-    /// @brief 临时缓存区用于分段接收
+    // 临时缓存区用于分段接收
     std::vector<uint8_t> temp(m_recv_block_size);
     while (true)
     {
-        /// @todo 修复此处的异常
+        // 调用系统函数读取数据
         int32_t ret = ::read(m_socket, temp.data(), m_recv_block_size);
+        // 检查是否读取失败
         if (ret < 0)
         {
-
+            // 意外中断重新接收
             if (errno == EINTR)
             {
                 continue;
             }
-            /// @param EAGAIN 非阻塞模式下，没有数据可读或缓冲区没有空间可写
-            /// @param EWOULDBLOCK EWOULDBLOCK 是 EAGAIN 的一种实现上的替代
+            // 非阻塞模式下，没有数据可读或缓冲区没有空间可写
+            // EWOULDBLOCK EWOULDBLOCK 是 EAGAIN 的一种实现上的替代
             else if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
-                // DANEJOE_LOG_TRACE("default", "Socket", "No more data to read");
                 break;
             }
+            // 其他错误
             else
             {
-                DANEJOE_LOG_ERROR("default", "Socket", "Failed to recieve: {}", strerror(errno));
+                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to recieve: {}", strerror(errno));
                 close();
                 return buffer;
             }
         }
+        // 检查对端是否关闭
         else if (ret == 0)
         {
+            // 关闭套接字
             close();
-            DANEJOE_LOG_TRACE("default", "Socket", "Socket closed");
+            DANEJOE_LOG_TRACE("default", "PosixClientSocket", "Socket closed");
             break;
         }
+        // 接收成功
         else if (ret > 0)
         {
+            // 更新接收缓冲区迭代器
             auto end = temp.begin() + ret;
+            // 写入数据
             buffer.insert(buffer.end(), temp.begin(), end);
         }
-
     }
-    set_non_blocking(is_non_blocking);
     return buffer;
 }
 
-void PosixClientSocket::send(const std::vector<uint8_t>& data)
+void PosixClientSocket::write(const std::vector<uint8_t>& data)
 {
+    // 检查套接字是否有效
     if (!is_valid())
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: socket is not valid");
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: socket is not valid");
+        return;
     }
+    // 调用系统函数发送数据
     int32_t ret = ::send(m_socket, data.data(), data.size(), 0);
+    // 检查发送结果
     if (ret < 0)
     {
-        DANEJOE_LOG_ERROR("default", "Socket", "Failed to send: {}", strerror(errno));
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: {}", strerror(errno));
     }
 }
 
 bool PosixClientSocket::is_connected()
 {
+    // 返回是否连接
     return m_is_connected;
 }

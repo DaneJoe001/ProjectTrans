@@ -8,7 +8,7 @@
 
 ClientConnection::ClientConnection(const std::string& ip, uint16_t port) :m_ip(ip), m_port(port), m_socket(ip, port)
 {
-
+    m_socket.set_non_blocking(true);
 }
 ClientConnection::~ClientConnection()
 {
@@ -16,60 +16,90 @@ ClientConnection::~ClientConnection()
 }
 void ClientConnection::send(const std::vector<uint8_t>& data)
 {
+    // 判断socket是否有效
     if (!m_socket.is_valid())
     {
         return;
     }
 #ifdef ADD_LENGTH_INFO_TO_SEND
-    std::vector<uint8_t> length(sizeof(data.size()));
-    auto size = data.size();
+    // length数据存储长度信息
+    std::vector<uint8_t> length(sizeof(uint32_t));
+    // 获取数据长度
+    uint32_t size = data.size();
+    // 存储长度信息
     std::memcpy(length.data(), &size, sizeof(size));
+    // 发送长度信息
     m_socket.send_all(length);
 #endif
-    m_socket.send_all(data);
+    // 发送数据
+    m_socket.write_all(data);
 }
 
 std::vector<uint8_t> ClientConnection::recieve()
 {
+    // 判断socket是否有效
     if (!m_socket.is_valid())
     {
         return std::vector<uint8_t>();
     }
 #ifdef ADD_LENGTH_INFO_TO_RECV
-    /// @todo 分线程去接收
-    auto length = m_socket.receive(sizeof(std::size_t));
+    // 获取要接收的数据长度
+    auto length = m_socket.receive(sizeof(uint32_t));
+    // 检查是否接收到长度信息
     if (length.empty())
     {
+        //  没有接收到长度信息，返回空数据
         return std::vector<uint8_t>();
     }
+    // 创建size变量用于存储长度信息
     uint32_t size = 0;
+    // 将长度信息复制到size变量中
     std::memcpy(&size, length.data(), sizeof(size));
     DANEJOE_LOG_TRACE("default", "ClientConnection", "recieve size:{}", size);
+    // 读取指定长度数据
     return m_socket.receive(size);
 #else
+    // 读取所有数据
     return m_socket.read_all();
 #endif
 }
 
 bool ClientConnection::is_same(const std::string& ip, uint16_t port)
 {
+    // 判断ip和端口是否相同
     return m_ip == ip && m_port == port;
 }
 
 std::pair<std::string, uint16_t> ClientConnection::get_id()
 {
+    // 返回ip和端口作为ClientConnection的id
     return std::pair<std::string, uint16_t>(m_ip, m_port);
 }
 bool ClientConnection::is_connected()
 {
+    // 判断socket是否有效
+    if (!m_socket.is_valid())
+    {
+        return false;
+    }
     return m_socket.is_connected();
 }
 
 bool ClientConnection::is_readable()
 {
+    // 判断socket是否有效
+    if (!m_socket.is_valid())
+    {
+        return false;
+    }
     return m_socket.is_readable();
 }
 bool ClientConnection::is_writeable()
 {
+    // 判断socket是否有效
+    if (!m_socket.is_valid())
+    {
+        return false;
+    }
     return m_socket.is_writeable();
 }

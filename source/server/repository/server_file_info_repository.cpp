@@ -9,7 +9,7 @@ bool ServerFileInfoRepository::ensure_table_exists()
 {
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "Database not initialized");
         return false;
     }
     bool result = m_database->execute(R"(
@@ -28,7 +28,7 @@ void ServerFileInfoRepository::init()
 {
     if (m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database already initialized");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "Database already initialized");
         return;
     }
     m_database = DatabaseManager::get_instance().get_database("server_database");
@@ -38,7 +38,7 @@ std::vector<ServerFileInfo> ServerFileInfoRepository::get_all()
 {
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "Database not initialized");
         return std::vector<ServerFileInfo>();
     }
     auto data = m_database->query(R"(
@@ -59,13 +59,13 @@ bool ServerFileInfoRepository::add(const ServerFileInfo& file_info)
 {
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "Database not initialized");
         return false;
     }
     auto data = get_by_md5(file_info.md5_code);
     if (data != std::nullopt)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "File already exists");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "File already exists");
         return false;
     }
     return m_database->execute(std::format(R"(
@@ -77,7 +77,7 @@ std::optional<ServerFileInfo> ServerFileInfoRepository::get_by_id(int32_t file_i
 {
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "Database not initialized");
         return std::nullopt;
     }
     auto data = m_database->query(std::format(R"(
@@ -100,7 +100,7 @@ bool ServerFileInfoRepository::update(const ServerFileInfo& file_info)
 {
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "Database not initialized");
         return false;
     }
     return m_database->execute(std::format(R"(
@@ -111,7 +111,7 @@ bool ServerFileInfoRepository::remove(int32_t file_id)
 {
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "Database not initialized");
         return false;
     }
     return m_database->execute(std::format(R"(
@@ -123,7 +123,7 @@ std::optional<ServerFileInfo>  ServerFileInfoRepository::get_by_md5(const std::s
 {
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "Database not initialized");
         return std::nullopt;
     }
     auto data = m_database->query(std::format(R"(
@@ -146,7 +146,7 @@ int32_t ServerFileInfoRepository::count()
 {
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ServerFileInfoRepository", "Database not initialized");
         return -1;
     }
     auto data = m_database->query("SELECT COUNT(*) FROM file_info");

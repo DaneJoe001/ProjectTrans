@@ -15,11 +15,11 @@
 
 #include "client/connect/client_connection.hpp"
 
-/**
- * @class ConnectionThread
- * @brief 连接线程类
- * @note 继承自QThread，用于处理连接的读写
- */
+ /**
+  * @class ConnectionThread
+  * @brief 连接线程类
+  * @note 继承自QThread，用于处理连接的读写
+  */
 class ConnectionThread : public QThread
 {
     Q_OBJECT
@@ -47,9 +47,9 @@ public:
      */
     void run() override;
     /**
-     * @brief 停止
+     * @brief 反初始化,回收连接
      */
-    void stop();
+    void deinit();
     /**
      * @brief 析构函数
      */
@@ -65,6 +65,10 @@ signals:
      * @param data 数据
      */
 public slots:
+    /**
+     * @brief 数据发送槽
+     * @param data 数据
+     */
     void data_send_slot(const std::vector<uint8_t>& data);
 private:
     /// @brief 连接

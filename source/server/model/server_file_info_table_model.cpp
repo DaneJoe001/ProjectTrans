@@ -2,6 +2,7 @@
 
 ServerFileInfoTableModel* ServerFileInfoTableModel::get_instance()
 {
+    // 定义静态实例
     static ServerFileInfoTableModel instance;
     return &instance;
 }
@@ -12,8 +13,11 @@ ServerFileInfoTableModel::ServerFileInfoTableModel(QObject* parent)
 
 void ServerFileInfoTableModel::init()
 {
+    // 初始化服务
     m_file_info_service.init();
+    // 获取所有文件信息
     auto data = m_file_info_service.get_all();
+    // 转移数据至类内qt容器
     m_file_info_list = QList<ServerFileInfo>(data.begin(), data.end());
 }
 

@@ -2,6 +2,7 @@
 
 std::string ClientFileInfo::to_string() const
 {
+    // 返回客户端文件信息字符串
     return std::format("file_id: {}, saved_name: {}, source_path: {}, saved_path: {}, file_size: {}, operation: {}, state: {}, md5_code: {}, create_time: {}, finished_time: {}",
         file_id, saved_name, source_path, saved_path, file_size,
         static_cast<int>(operation),

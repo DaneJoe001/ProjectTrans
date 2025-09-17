@@ -43,7 +43,7 @@ void TransContext::on_recv(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)
 #endif
 
     std::string str(data.begin(), data.end());
-    DANEJOE_LOG_INFO("default", "TransRecv", "TransContext recieved: {}", str);
+    DANEJOE_LOG_INFO("default", "TransContext", "TransContext recieved: {}", str);
     for (auto ch : str)
     {
         temp.push((uint8_t)ch);
@@ -53,6 +53,7 @@ void TransContext::on_recv(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)
 
 void TransContext::on_send(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)
 {
+    DANEJOE_LOG_TRACE("default", "TransContext", "TransContext send");
 #ifdef ADD_LENGTH_INFO_TO_SEND
     uint32_t size = temp.size();
     std::vector<uint8_t> length_data(sizeof(std::size_t));

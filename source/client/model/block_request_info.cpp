@@ -2,6 +2,7 @@
 
 std::string BlockRequestInfo::to_string() const
 {
+    // 返回块请求信息字符串
     return std::format("block_id: {}, file_id: {}, offset: {}, block_size: {}, operation: {}, state: {}, start_time: {}, end_time: {}",
         block_id, file_id, offset, block_size,
         static_cast<int>(operation),
