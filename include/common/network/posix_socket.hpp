@@ -12,10 +12,10 @@
 
 #include "common/network/i_socket.hpp"
 
-/**
- * @class PosixSocket
- * @brief PosixSocket类实现了PosixSocket接口，用于表示POSIX套接字。
- */
+ /**
+  * @class PosixSocket
+  * @brief PosixSocket类实现了PosixSocket接口，用于表示POSIX套接字。
+  */
 class PosixSocket :virtual public ISocket {
 public:
     /**
@@ -98,7 +98,7 @@ public:
      * @brief 检查套接字是否可写
      * @return 是否可写
      */
-    bool is_writeable()const override;
+    bool is_writable()const override;
 protected:
     /// @brief 套接字句柄
     int32_t m_socket = -1;

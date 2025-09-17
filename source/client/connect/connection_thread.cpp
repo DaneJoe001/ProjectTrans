@@ -42,7 +42,7 @@ void ConnectionThread::run()
     while (m_is_running)
     {
         // 接收前先判断可用性
-        if (m_connection && m_connection->is_connected())
+        if (m_connection && m_connection->is_connected() && m_connection->is_readable())
         {
             // 当前为非阻塞实现
             auto data = m_connection->recieve();

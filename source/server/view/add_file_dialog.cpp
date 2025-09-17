@@ -75,7 +75,7 @@ void AddFileDialog::on_add_file_button_clicked()
         return;
     }
     QString md5 = hash.result().toHex();
-    ServerFileInfo file_info = ServerFileInfo(0, qfile_info.fileName().toStdString(), qfile_info.filePath().toStdString(), static_cast<std::size_t>(qfile_info.size()), md5.toStdString());
+    ServerFileInfo file_info = ServerFileInfo(0, qfile_info.fileName().toStdString(), qfile_info.filePath().toStdString(), static_cast<uint32_t>(qfile_info.size()), md5.toStdString());
 
     bool result = m_file_info_service.add(file_info);
     file_info.file_id = m_file_info_service.count() + 1;

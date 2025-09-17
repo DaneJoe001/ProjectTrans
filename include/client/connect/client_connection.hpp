@@ -10,10 +10,10 @@
 
 #include "common/network/posix_client_socket.hpp"
 
-/**
- * @class ClientConnection
- * @brief 客户端连接类,持有客户端Socket，并处理读写
- */
+ /**
+  * @class ClientConnection
+  * @brief 客户端连接类,持有客户端Socket，并处理读写
+  */
 class ClientConnection
 {
 public:
@@ -63,7 +63,7 @@ public:
      * @brief 判断是否可写
      * @return 是否可写
      */
-    bool is_writeable();
+    bool is_writable();
     /**
      * @brief 获取Socket
      * @return Socket

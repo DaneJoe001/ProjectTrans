@@ -12,11 +12,11 @@
 #include "common/network/posix_server_socket.hpp"
 #include "common/network/i_socket_context.hpp"
 
-/**
- * @class EpollEventLoop
- * @brief EpollEventLoop类实现了IEventLoop接口，使用epoll作为事件循环机制。
- * @note 该类当前并非线程安全。
- */
+ /**
+  * @class EpollEventLoop
+  * @brief EpollEventLoop类实现了IEventLoop接口，使用epoll作为事件循环机制。
+  * @note 该类当前并非线程安全。
+  */
 class EpollEventLoop : public IEventLoop
 {
 public:
@@ -64,11 +64,13 @@ public:
     /**
      * @brief 可读事件
      * @param fd 文件描述符
+     * @note 只处理数据的接收，缓存区会被共享到业务上下文
      */
     void readable_event(int32_t fd);
     /**
      * @brief 可写事件
      * @param fd 文件描述符
+     * @note 只处理数据的发送，缓存区会被共享到业务上下文
      */
     void writable_event(int32_t fd);
     /**
@@ -77,7 +79,7 @@ public:
     void stop()override;
 private:
     /// @brief 最大事件数
-    int32_t m_max_event_account = 1024;
+    int32_t m_max_event_count = 1024;
     /// @brief epoll文件描述符
     int32_t m_epoll_fd = -1;
     /// @brief 服务器套接字

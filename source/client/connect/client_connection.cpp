@@ -3,8 +3,8 @@
 #include "client/connect/client_connection.hpp"
 #include "log/manage_logger.hpp"
 
-// #define ADD_LENGTH_INFO_TO_SEND
-// #define ADD_LENGTH_INFO_TO_RECV
+#define ADD_LENGTH_INFO_TO_SEND
+#define ADD_LENGTH_INFO_TO_RECV
 
 ClientConnection::ClientConnection(const std::string& ip, uint16_t port) :m_ip(ip), m_port(port), m_socket(ip, port)
 {
@@ -29,7 +29,7 @@ void ClientConnection::send(const std::vector<uint8_t>& data)
     // 存储长度信息
     std::memcpy(length.data(), &size, sizeof(size));
     // 发送长度信息
-    m_socket.send_all(length);
+    m_socket.write_all(length);
 #endif
     // 发送数据
     m_socket.write_all(data);
@@ -44,7 +44,7 @@ std::vector<uint8_t> ClientConnection::recieve()
     }
 #ifdef ADD_LENGTH_INFO_TO_RECV
     // 获取要接收的数据长度
-    auto length = m_socket.receive(sizeof(uint32_t));
+    auto length = m_socket.read(sizeof(uint32_t));
     // 检查是否接收到长度信息
     if (length.empty())
     {
@@ -57,7 +57,7 @@ std::vector<uint8_t> ClientConnection::recieve()
     std::memcpy(&size, length.data(), sizeof(size));
     DANEJOE_LOG_TRACE("default", "ClientConnection", "recieve size:{}", size);
     // 读取指定长度数据
-    return m_socket.receive(size);
+    return m_socket.read(size);
 #else
     // 读取所有数据
     return m_socket.read_all();
@@ -94,12 +94,12 @@ bool ClientConnection::is_readable()
     }
     return m_socket.is_readable();
 }
-bool ClientConnection::is_writeable()
+bool ClientConnection::is_writable()
 {
     // 判断socket是否有效
     if (!m_socket.is_valid())
     {
         return false;
     }
-    return m_socket.is_writeable();
+    return m_socket.is_writable();
 }

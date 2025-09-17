@@ -10,13 +10,13 @@
 
 DaneJoe::MTQueue<uint8_t> temp(4096);
 
-// #define ADD_LENGTH_INFO_TO_RECV
-// #define ADD_LENGTH_INFO_TO_SEND
+#define ADD_LENGTH_INFO_TO_RECV
+#define ADD_LENGTH_INFO_TO_SEND
 
-void TransContext::on_recv(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)
+void TransContext::on_recv()
 {
 #ifdef ADD_LENGTH_INFO_TO_RECV
-    auto length_data_optional = buffer->pop(sizeof(std::size_t));
+    auto length_data_optional = m_recv_buffer->pop(sizeof(uint32_t));
     std::vector<uint8_t> length_data;
     if (length_data_optional.has_value())
     {
@@ -26,13 +26,13 @@ void TransContext::on_recv(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)
     {
         return;
     }
-    if (length_data.empty() || length_data.size() != sizeof(std::size_t))
+    if (length_data.empty() || length_data.size() != sizeof(uint32_t))
     {
         return;
     }
     uint32_t size = 0;
-    std::memcpy(&size, length_data.data(), sizeof(std::size_t));
-    auto data_optional = buffer->pop(size);
+    std::memcpy(&size, length_data.data(), sizeof(uint32_t));
+    auto data_optional = m_recv_buffer->pop(size);
     std::vector<uint8_t> data;
     if (data_optional.has_value())
     {
@@ -48,17 +48,16 @@ void TransContext::on_recv(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)
     {
         temp.push((uint8_t)ch);
     }
-
 }
 
-void TransContext::on_send(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)
+void TransContext::on_send()
 {
     DANEJOE_LOG_TRACE("default", "TransContext", "TransContext send");
 #ifdef ADD_LENGTH_INFO_TO_SEND
     uint32_t size = temp.size();
-    std::vector<uint8_t> length_data(sizeof(std::size_t));
-    std::memcpy(length_data.data(), &size, sizeof(std::size_t));
-    buffer->push(length_data.begin(), length_data.end());
+    std::vector<uint8_t> length_data(sizeof(uint32_t));
+    std::memcpy(length_data.data(), &size, sizeof(uint32_t));
+    m_send_buffer->push(length_data.begin(), length_data.end());
 
     auto data_optional = temp.pop(size);
     std::vector<uint8_t> data;
@@ -69,11 +68,19 @@ void TransContext::on_send(std::shared_ptr<DaneJoe::MTQueue<uint8_t>> buffer)
 #else
     auto data = temp.try_pop(1024);
 #endif
-    buffer->push(data.begin(), data.end());
+    m_send_buffer->push(data.begin(), data.end());
 }
-
-
 std::shared_ptr<ISocketContext> TransContextCreator::create()
 {
     return std::make_shared<TransContext>();
+}
+
+std::shared_ptr<ISocketContext> TransContextCreator::create(
+    std::shared_ptr<DaneJoe::MTQueue<uint8_t>> recv_buffer,
+    std::shared_ptr<DaneJoe::MTQueue<uint8_t>> send_buffer)
+{
+    auto context = std::make_shared<TransContext>();
+    context->set_recv_buffer(recv_buffer);
+    context->set_send_buffer(send_buffer);
+    return context;
 }

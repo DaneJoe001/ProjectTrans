@@ -28,7 +28,7 @@ public:
      * @param socket 套接字
      * @return 是否可写
      */
-    bool is_writeable(const ISocket* socket) override;
+    bool is_writable(const ISocket* socket) override;
     /**
      * @brief 获取实例
      * @return 实例
