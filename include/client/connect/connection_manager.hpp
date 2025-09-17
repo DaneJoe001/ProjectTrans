@@ -13,11 +13,11 @@
 
 #include "client/connect/client_connection.hpp"
 
-/**
- * @class ConnectionGuard
- * @brief RAII封装连接类
- * @note RAII管理连接的生命周期
- */
+ /**
+  * @class ConnectionGuard
+  * @brief RAII封装连接类
+  * @note RAII管理连接的生命周期
+  */
 class ConnectionGuard
 {
 public:
@@ -104,7 +104,7 @@ public:
         /// @brief 连接状态
         ConnectionStatus m_status;
         /// @brief 上次使用时间
-        std::chrono::time_point<std::chrono::steady_clock> m_last_used_time;
+        std::chrono::time_point<std::chrono::system_clock> m_last_used_time;
     };
 public:
     /**

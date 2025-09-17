@@ -10,33 +10,59 @@ namespace fs = std::filesystem;
 
 void init_database()
 {
+    // 创建数据库配置
     IDatabase::DatabaseConfig config;
+    // 设置数据库名称用于标识
     config.database_name = "client_database";
+    // 设置数据库路径
     config.path = "./database/client/client_database.db";
+    // 获取数据库管理器实例
     DatabaseManager& database_manager = DatabaseManager::get_instance();
+    // 添加Sqlite数据库
     database_manager.add_database("client_database", "sqlite");
+    // 获取对应数据库
     auto db = database_manager.get_database("client_database");
-    db->set_config(config);
-    db->connect();
-    ClientFileInfoRepository file_info_repository;
-    file_info_repository.init();
-    bool is_exist = file_info_repository.ensure_table_exists();
-    if (!is_exist)
+    if (!db)
     {
-        DANEJOE_LOG_ERROR("default", "client", "Failed to create table file_info");
+        DANEJOE_LOG_ERROR("default", "Client", "Failed to get database client_database");
+        return;
     }
-    BlockRequestInfoRepository block_request_info_repository;
-    block_request_info_repository.init();
-    is_exist = block_request_info_repository.ensure_table_exists();
+    // 设置数据库配置
+    db->set_config(config);
+    // 连接数据库
+    db->connect();
+    // 创建客户端文件信息仓库
+    ClientFileInfoRepository file_info_repository;
+    // 初始化文件信息仓库
+    file_info_repository.init();
+    // 确保数据表存在，不存在则创建
+    bool is_exist = file_info_repository.ensure_table_exists();
+    // 判断是否已准备好数据表
     if (!is_exist)
     {
-        DANEJOE_LOG_ERROR("default", "client", "Failed to create table block_request_info");
+        DANEJOE_LOG_ERROR("default", "Client", "Failed to create table file_info");
+        return;
+    }
+    // 创建块请求信息仓库
+    BlockRequestInfoRepository block_request_info_repository;
+    // 初始化仓库
+    block_request_info_repository.init();
+    // 确保数据表存在，不存在则创建
+    is_exist = block_request_info_repository.ensure_table_exists();
+    // 判断是否已准备好数据表
+    if (!is_exist)
+    {
+        DANEJOE_LOG_ERROR("default", "Client", "Failed to create table block_request_info");
+        return;
     }
 }
 
 void clear_database()
 {
+    // 获取客户端数据库路径
+    /// @todo 考虑实现配置系统
     fs::path path = "./database/client/client_database.db";
+    // 当路径存在时移除数据库
     if (fs::exists(path))
     {
         fs::remove(path);

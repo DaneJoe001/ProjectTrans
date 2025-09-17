@@ -14,7 +14,9 @@
 int32_t main(int32_t argc, char** argv)
 {
     DANEJOE_LOG_TRACE("default", "Client", "Hello,world!");
+    // 当需要时清理数据库
     // clear_database();
+    // 初始化数据库
     init_database();
     QApplication app(argc, argv);
     ClientMainWindow window;
@@ -27,6 +29,7 @@ int32_t main(int32_t argc, char** argv)
 int32_t main(int32_t argc, char** argv)
 {
     PosixClientSocket socket("127.0.0.1", 8080);
+    socket.set_non_blocking(true);
     while (true)
     {
         std::string data;

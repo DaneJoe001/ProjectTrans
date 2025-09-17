@@ -53,7 +53,17 @@ public:
      */
     bool remove(int32_t block_id);
     std::optional<BlockRequestInfo> get_by_id(int32_t block_id);
+    /**
+     * @brief 更新块请求信息
+     * @param block_info 块请求信息
+     * @return 是否成功
+     */
     bool update(const BlockRequestInfo& block_info);
+    /**
+     * @brief 是否初始化
+     * @return 是否初始化
+     */
+    bool is_init()const;
 private:
     /// @brief 数据库
     std::shared_ptr<IDatabase> m_database;

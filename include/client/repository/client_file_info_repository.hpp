@@ -13,10 +13,10 @@
 #include "client/model/client_file_info.hpp"
 #include "common/database/i_database.hpp"
 
-/**
- * @class ClientFileInfoRepository
- * @brief 客户端文件信息仓库
- */
+ /**
+  * @class ClientFileInfoRepository
+  * @brief 客户端文件信息仓库
+  */
 class ClientFileInfoRepository {
 public:
     /**
@@ -71,6 +71,11 @@ public:
      * @return 是否成功
      */
     bool remove(int32_t file_id);
+    /**
+     * @brief 是否初始化
+     * @return 是否初始化
+     */
+    bool is_init()const;
 private:
     /// @brief 数据库
     std::shared_ptr<IDatabase> m_database;

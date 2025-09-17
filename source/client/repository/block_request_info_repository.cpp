@@ -10,11 +10,13 @@ BlockRequestInfoRepository::~BlockRequestInfoRepository() {}
 
 bool BlockRequestInfoRepository::ensure_table_exists()
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
+    // 执行创建表
     bool result = m_database->execute(R"(
         CREATE TABLE IF NOT EXISTS block_request_info (
             block_id INTEGER PRIMARY KEY,
@@ -32,23 +34,29 @@ bool BlockRequestInfoRepository::ensure_table_exists()
 
 void BlockRequestInfoRepository::init()
 {
+    // 当内部数据库已经初始化时直接返回
     if (m_database)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database already initialized");
         return;
     }
+    // 未初始化时从管理器中获取数据库
     m_database = DatabaseManager::get_instance().get_database("client_database");
 }
 
 std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_all()
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return std::vector<BlockRequestInfo>();
     }
+    // 查询所有数据
     auto data = m_database->query("SELECT * FROM block_request_info;");
+    // 构建结果
     std::vector<BlockRequestInfo> result = std::vector<BlockRequestInfo>(data.size());
+    // 遍历填充结果
     for (int32_t i = 0;i < data.size();i++)
     {
         result[i] = BlockRequestInfo(
@@ -66,11 +74,13 @@ std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_all()
 }
 bool BlockRequestInfoRepository::add(const BlockRequestInfo& block_info)
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
+    // 执行插入数据并返回是否成功
     return m_database->execute(std::format(
         "INSERT INTO block_request_info (block_id, file_id, offset, block_size, operation, state, start_time, end_time) VALUES ({}, {}, {}, {}, {}, {}, {}, {});",
         block_info.block_id,
@@ -85,16 +95,20 @@ bool BlockRequestInfoRepository::add(const BlockRequestInfo& block_info)
 }
 std::optional<BlockRequestInfo> BlockRequestInfoRepository::get_by_id(int32_t block_id)
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return std::nullopt;
     }
+    // 查询对应ID的数据
     auto data = m_database->query(std::format("SELECT * FROM block_request_info WHERE block_id = {};", block_id));
+    // 找不到时返回空
     if (data.size() == 0)
     {
         return std::nullopt;
     }
+    // 返回查找到的结果
     return BlockRequestInfo(
         std::stoi(data[0][0]),
         std::stoi(data[0][1]),
@@ -109,11 +123,13 @@ std::optional<BlockRequestInfo> BlockRequestInfoRepository::get_by_id(int32_t bl
 
 bool BlockRequestInfoRepository::update(const BlockRequestInfo& block_info)
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
+    // 执行更新数据并返回是否成功
     return m_database->execute(std::format(
         "UPDATE block_request_info SET file_id = {}, offset = {}, block_size = {}, operation = {}, state = {}, start_time = {}, end_time = {} WHERE block_id = {};",
         block_info.file_id,
@@ -128,10 +144,18 @@ bool BlockRequestInfoRepository::update(const BlockRequestInfo& block_info)
 }
 bool BlockRequestInfoRepository::remove(int32_t block_id)
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
+    // 执行删除记录并返回是否成功
     return m_database->execute(std::format("DELETE FROM block_request_info WHERE block_id = {};", block_id));
+}
+
+bool BlockRequestInfoRepository::is_init()const
+{
+    // 判断数据库是否初始化
+    return m_database != nullptr;
 }

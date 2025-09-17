@@ -16,6 +16,7 @@ FileTransInfoTableModel::~FileTransInfoTableModel()
 
 void FileTransInfoTableModel::init()
 {
+    //初始化块请求信息服务
     m_block_request_info_service.init();
     // 构建测试数据
     for (int32_t i = 0; i < 5; ++i)
@@ -43,37 +44,46 @@ void FileTransInfoTableModel::init()
 
 FileTransInfoTableModel* FileTransInfoTableModel::get_instance()
 {
+    // 创建文件传输表格模型实例
     static FileTransInfoTableModel instance;
     return &instance;
 }
 int32_t FileTransInfoTableModel::columnCount(const QModelIndex& parent) const
 {
+    // 存在父对象时不处理
     if (parent.isValid())
     {
         return 0;
     }
+    // 返回固定列数
     return 10;
 }
 
 int32_t FileTransInfoTableModel::rowCount(const QModelIndex& parent) const
 {
+    // 存在父对象时不处理
     if (parent.isValid())
     {
         return 0;
     }
+    // 返回固定列数
     return m_trans_info_list.size();
 }
 
 QVariant FileTransInfoTableModel::data(const QModelIndex& index, int32_t role) const
 {
+    // 先判断索引是否有效
     if (!index.isValid())
     {
         return QVariant();
     }
+    // 判断是否是显示角色
     if (role == Qt::DisplayRole)
     {
+        // 获取行和列
         int32_t row = index.row();
         int32_t column = index.column();
+        // 根据列索引返回对应数据
         switch (column)
         {
         case 0:
@@ -83,9 +93,10 @@ QVariant FileTransInfoTableModel::data(const QModelIndex& index, int32_t role) c
         case 2:
             return QString::fromStdString(m_trans_info_list[row].file_info.source_path);
         case 3:
-            return (qint64)m_trans_info_list[row].file_info.file_size;
+            return (quint32)m_trans_info_list[row].file_info.file_size;
         case 4:
         {
+            // 将枚举转为字符串
             switch (m_trans_info_list[row].file_info.operation)
             {
             case Operation::Download:
@@ -98,6 +109,7 @@ QVariant FileTransInfoTableModel::data(const QModelIndex& index, int32_t role) c
         }
         case 5:
         {
+            // 将枚举转为字符串
             switch (m_trans_info_list[row].file_info.state)
             {
             case FileState::Waiting:
@@ -130,18 +142,23 @@ QVariant FileTransInfoTableModel::data(const QModelIndex& index, int32_t role) c
 
 bool FileTransInfoTableModel::setData(const QModelIndex& index, const QVariant& value, int32_t role)
 {
+    // 先判断索引是否有效
     if (!index.isValid())
     {
         return false;
     }
+    // 判断是否是可编辑角色
     if (role == Qt::EditRole)
     {
+        // 获取行和列
         int32_t row = index.row();
         int32_t column = index.column();
+        // 判断行和列索引是否合法
         if (row < 0 || row >= m_trans_info_list.size() || column < 0 || column >= 11)
         {
             return false;
         }
+        // 根据列索引返回对应数据
         switch (column)
         {
         case 0:
@@ -160,6 +177,7 @@ bool FileTransInfoTableModel::setData(const QModelIndex& index, const QVariant& 
             m_trans_info_list[row].file_info.file_size = value.toLongLong();
             break;
         case 5:
+            // 由字符串转为枚举
             if (value.toString() == "下载")
             {
                 m_trans_info_list[row].file_info.operation = Operation::Download;
@@ -176,6 +194,7 @@ bool FileTransInfoTableModel::setData(const QModelIndex& index, const QVariant& 
             }
             break;
         case 6:
+            // 由字符串转为枚举
             if (value.toString() == "Waiting")
             {
                 m_trans_info_list[row].file_info.state = FileState::Waiting;
@@ -207,6 +226,7 @@ bool FileTransInfoTableModel::setData(const QModelIndex& index, const QVariant& 
         default:
             return false;
         }
+        // 发送数据改变信号
         emit dataChanged(index, index, { role });
         return true;
     }
@@ -214,10 +234,10 @@ bool FileTransInfoTableModel::setData(const QModelIndex& index, const QVariant& 
 }
 QVariant FileTransInfoTableModel::headerData(int32_t section, Qt::Orientation orientation, int32_t role) const
 {
-    /// @brief 判断是否为显示角色
+    // 判断是否为显示角色
     if (role == Qt::DisplayRole)
     {
-        /// @brief 设置列标题
+        // 设置列标题
         if (orientation == Qt::Horizontal)
         {
             switch (section)
@@ -246,7 +266,7 @@ QVariant FileTransInfoTableModel::headerData(int32_t section, Qt::Orientation or
                 return QVariant();
             }
         }
-        /// @brief 设置行标题
+        // 设置行标题
         else if (orientation == Qt::Vertical)
         {
             return QString::number(section + 1);

@@ -11,10 +11,10 @@
 #include "common/network/i_client_socket.hpp"
 #include "common/network/posix_socket.hpp"
 
-/**
- * @class PosixClientSocket
- * @brief PosixClientSocket类实现了PosixClientSocket接口，用于表示客户端套接字。
- */
+ /**
+  * @class PosixClientSocket
+  * @brief PosixClientSocket类实现了PosixClientSocket接口，用于表示客户端套接字。
+  */
 class PosixClientSocket : public IClientSocket, public PosixSocket
 {
 public:
@@ -60,17 +60,17 @@ public:
      * @param size 数据大小
      * @return 数据
      */
-    std::vector<uint8_t> receive(uint32_t size) override;
+    std::vector<uint8_t> read(uint32_t size) override;
     /**
      * @brief 非阻塞发送所有数据
      * @param data 数据
      */
-    void send_all(const std::vector<uint8_t>& data) override;
+    void write_all(const std::vector<uint8_t>& data) override;
     /**
      * @brief 发送数据
      * @param data 数据
      */
-    void send(const std::vector<uint8_t>& data) override;
+    void write(const std::vector<uint8_t>& data) override;
     /**
      * @brief 是否已连接
      */

@@ -6,11 +6,13 @@ ClientFileInfoRepository::ClientFileInfoRepository() {}
 ClientFileInfoRepository::~ClientFileInfoRepository() {}
 bool ClientFileInfoRepository::ensure_table_exists()
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "Database not initialized");
         return false;
     }
+    // 执行创建表
     bool result = m_database->execute(R"(
         CREATE TABLE IF NOT EXISTS file_info (
             file_id INTEGER PRIMARY KEY,
@@ -31,25 +33,31 @@ bool ClientFileInfoRepository::ensure_table_exists()
 
 void ClientFileInfoRepository::init()
 {
+    // 当内部数据库已经初始化时直接返回
     if (m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database already initialized");
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "Database already initialized");
         return;
     }
+    // 未初始化时从管理器中获取数据库
     m_database = DatabaseManager::get_instance().get_database("client_database");
 }
 
 std::vector<ClientFileInfo> ClientFileInfoRepository::get_all()
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "Database not initialized");
         return std::vector<ClientFileInfo>();
     }
+    // 查询所有数据
     auto data = m_database->query(R"(
         SELECT * FROM file_info;
     )");
+    // 构建结果
     std::vector<ClientFileInfo> result(data.size());
+    // 遍历填充结果
     for (int32_t i = 0; i < data.size(); i++)
     {
         result[i].file_id = std::stoi(data[i][0]);
@@ -67,17 +75,21 @@ std::vector<ClientFileInfo> ClientFileInfoRepository::get_all()
 }
 bool ClientFileInfoRepository::add(const ClientFileInfo& file_info)
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "Database not initialized");
         return false;
     }
+    // 根据md5_code判断库中是否已存在
     auto data = get_by_md5(file_info.md5_code);
+    // 如果已存在则直接返回
     if (data != std::nullopt)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "File already exists");
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "File already exists");
         return true;
     }
+    // 执行插入数据并返回是否成功
     return m_database->execute(std::format(R"(
         INSERT INTO file_info (saved_name, source_path, saved_path, file_size, operation, state, md5_code, create_time, finished_time)
         VALUES ('{}', '{}', '{}', {}, {}, {}, '{}', {}, {});
@@ -86,18 +98,22 @@ bool ClientFileInfoRepository::add(const ClientFileInfo& file_info)
 }
 std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_id(int32_t file_id)
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "Database not initialized");
         return std::nullopt;
     }
+    // 查询对应ID的数据
     auto data = m_database->query(std::format(R"(
         SELECT * FROM file_info WHERE file_id = {};
     )", file_id));
+    // 找不到时返回空
     if (data.size() == 0)
     {
         return std::nullopt;
     }
+    // 返回查找到的结果
     return ClientFileInfo{
         file_id,
         data[0][1],
@@ -114,18 +130,22 @@ std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_id(int32_t file_i
 
 std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_md5(const std::string& md5_code)
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "Database not initialized");
         return std::nullopt;
     }
+    // 根据md5码查询数据库
     auto data = m_database->query(std::format(R"(
         SELECT * FROM file_info WHERE md5_code = '{}';
     )", md5_code));
+    // 找不到时返回空
     if (data.size() == 0)
     {
         return std::nullopt;
     }
+    // 返回查找到的结果
     return ClientFileInfo{
         std::stoi(data[0][0]),
         data[0][1],
@@ -142,11 +162,13 @@ std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_md5(const std::st
 
 bool ClientFileInfoRepository::update(const ClientFileInfo& file_info)
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "Database not initialized");
         return false;
     }
+    // 执行更新数据并返回是否成功
     return m_database->execute(std::format(R"(
         UPDATE file_info SET saved_name = '{}', source_path = '{}', saved_path = '{}', file_size = {}, operation = {}, state = {}, md5_code = '{}', create_time = {}, finished_time = {}
         WHERE file_id = {};
@@ -155,12 +177,20 @@ bool ClientFileInfoRepository::update(const ClientFileInfo& file_info)
 }
 bool ClientFileInfoRepository::remove(int32_t file_id)
 {
+    // 判断数据库是否初始化
     if (!m_database)
     {
-        DANEJOE_LOG_TRACE("default", "FileInfoRepository", "Database not initialized");
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "Database not initialized");
         return false;
     }
+    // 执行删除记录并返回是否成功
     return m_database->execute(std::format(R"(
         DELETE FROM file_info WHERE file_id = {};
     )", file_id));
+}
+
+bool ClientFileInfoRepository::is_init()const
+{
+    // 判断数据库是否初始化
+    return m_database != nullptr;
 }

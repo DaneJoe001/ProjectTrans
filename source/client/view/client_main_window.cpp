@@ -17,51 +17,79 @@ ClientMainWindow::ClientMainWindow(QWidget* parent) :QMainWindow(parent) {}
 
 void ClientMainWindow::init()
 {
+    // 设置客户端窗口标题
     setWindowTitle(m_window_title);
+    // 设置客户端窗口尺寸位置
     setGeometry(400, 200, 800, 600);
-    /// @brief 菜单栏
+    // 初始化菜单栏
     m_menubar = new QMenuBar(this);
+    // 设置当前菜单栏
     setMenuBar(m_menubar);
-    /// @brief 任务菜单
+    // 初始化任务菜单
     m_task_menu = new QMenu(this);
+    // 设置任务菜单标题
     m_task_menu->setTitle("Task");
+    // 添加任务菜单
     m_menubar->addMenu(m_task_menu);
 
+    // 初始化开始任务行为
     m_start_task_action = new QAction(this);
+    // 设置开始任务行为标题
     m_start_task_action->setText("Start Task");
+    // 添加开始任务行为
     m_task_menu->addAction(m_start_task_action);
+    // 初始化停止任务行为
     m_stop_task_action = new QAction(this);
+    // 设置停止任务行为标题
     m_stop_task_action->setText("Stop Task");
+    // 添加停止任务行为
     m_task_menu->addAction(m_stop_task_action);
+    // 初始化设置行为
     m_setting_action = new QAction(this);
+    // 设置设置行为标题
     m_setting_action->setText("Setting");
+    // 添加设置行为
     m_task_menu->addAction(m_setting_action);
+    // 添加连接测试行为
     m_connection_test_action = new QAction(this);
+    // 设置连接测试行为标题
     m_connection_test_action->setText("Connection Test");
+    // 添加连接测试行为
     m_task_menu->addAction(m_connection_test_action);
 
-
-    /// @brief 下载菜单
+    // 初始化下载菜单
     m_download_menu = new QMenu(this);
+    // 设置下载菜单标题
     m_download_menu->setTitle("Download");
+    // 添加下载菜单
     m_menubar->addMenu(m_download_menu);
 
+    // 添加新建下载行为
     m_new_download_action = new QAction(this);
+    // 设置下载行为标题
     m_new_download_action->setText("New Download");
+    // 添加新建下载行为
     m_download_menu->addAction(m_new_download_action);
 
-    /// @brief 上传菜单
+    // 初始化上传菜单
     m_upload_menu = new QMenu(this);
+    // 设置上传菜单标题
     m_upload_menu->setTitle("Upload");
+    // 添加新建上传菜单
     m_menubar->addMenu(m_upload_menu);
 
+    // 初始化新建上传行为
     m_new_upload_action = new QAction(this);
+    // 设置新建上传行为标题
     m_new_upload_action->setText("New Upload");
+    // 添加新建上传行为
     m_upload_menu->addAction(m_new_upload_action);
 
-    /// @brief 视图菜单
+    // 视图菜单
     m_view_menu = new QMenu(this);
+    // 设置视图菜单标题
     m_view_menu->setTitle("View");
+    // 添加视图菜单
     m_menubar->addMenu(m_view_menu);
 
     m_sort_action = new QAction(this);
@@ -88,10 +116,10 @@ void ClientMainWindow::init()
     m_stack_widget->addWidget(m_file_trans_info_widget);
     m_stack_widget->setCurrentIndex(0);
 
+    //连接测试行为
     connect(m_connection_test_action, &QAction::triggered, this, &ClientMainWindow::on_connection_test_action_triggered);
     connect(m_new_download_action, &QAction::triggered, this, &ClientMainWindow::on_new_download_action_triggered);
     connect(m_new_upload_action, &QAction::triggered, this, &ClientMainWindow::on_new_upload_action_triggered);
-
     connect(m_connection_test_dialog, &QDialog::finished, this, &ClientMainWindow::on_connection_test_dialog_closed);
 
     startTimer(1000);

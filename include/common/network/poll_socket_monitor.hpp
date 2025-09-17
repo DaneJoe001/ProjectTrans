@@ -4,16 +4,17 @@
  * @file poll_socket_monitor.hpp
  * @brief Poll套接字监控器
  * @author DaneJoe001
+ * @todo 修改事件检查参数为抽线事件类型
  */
 
 #include <cstdint>
 
 #include "common/network/i_socket_monitor.hpp"
 
-/**
- * @class PollSocketMonitor
- * @brief Poll套接字监控器
- */
+ /**
+  * @class PollSocketMonitor
+  * @brief Poll套接字监控器
+  */
 class PollSocketMonitor : public ISocketMonitor {
 public:
     /**
