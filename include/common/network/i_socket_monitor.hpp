@@ -22,5 +22,5 @@ public:
      * @param socket 套接字
      * @return 是否可写
      */
-    virtual bool is_writeable(const ISocket* socket) = 0;
+    virtual bool is_writable(const ISocket* socket) = 0;
 };

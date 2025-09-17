@@ -9,7 +9,7 @@ extern "C"
 
 bool PollSocketMonitor::check_socket(const ISocket* socket, int16_t  event)
 {
-    if (!socket || socket->is_valid())
+    if (!socket || !socket->is_valid())
     {
         DANEJOE_LOG_ERROR("default", "PollSocketMonitor", "socket is invalid");
         return false;
@@ -34,7 +34,7 @@ bool PollSocketMonitor::is_readable(const ISocket* socket)
     return check_socket(socket, POLLIN);
 }
 
-bool PollSocketMonitor::is_writeable(const ISocket* socket)
+bool PollSocketMonitor::is_writable(const ISocket* socket)
 {
     // 检查对应套接字的描述符是否可写
     return check_socket(socket, POLLOUT);

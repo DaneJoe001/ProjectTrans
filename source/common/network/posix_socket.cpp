@@ -142,9 +142,9 @@ bool PosixSocket::operator==(int32_t socket_fd)const
 
 bool PosixSocket::is_readable()const
 {
-    return PollSocketMonitor::get_instance()->is_writeable(this);
+    return PollSocketMonitor::get_instance()->is_readable(this);
 }
-bool PosixSocket::is_writeable()const
+bool PosixSocket::is_writable()const
 {
-    return PollSocketMonitor::get_instance()->is_writeable(this);
+    return PollSocketMonitor::get_instance()->is_writable(this);
 }

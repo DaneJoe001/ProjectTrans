@@ -109,7 +109,7 @@ bool EpollEventLoop::add_socket(std::unique_ptr<IClientSocket> socket, EventType
     m_send_buffers[socket_id] = std::make_shared<DaneJoe::MTQueue<uint8_t>>(4096);
     m_sockets[socket_id] = std::move(socket);
     m_socket_events[socket_id] = type;
-    m_contexts[socket_id] = m_context_creator->create();
+    m_contexts[socket_id] = m_context_creator->create(m_recv_buffers[socket_id], m_send_buffers[socket_id]);
     return true;
 }
 void EpollEventLoop::remove_socket(int32_t socket_id)
@@ -158,11 +158,11 @@ void EpollEventLoop::run()
     // 更新运行标志
     m_is_running.store(true);
     // 创建事件容器
-    struct epoll_event events[m_max_event_account];
+    struct epoll_event events[m_max_event_count];
     while (m_is_running.load())
     {
         // 等待事件发生
-        int32_t ret = ::epoll_wait(m_epoll_fd, events, m_max_event_account, 1000);
+        int32_t ret = ::epoll_wait(m_epoll_fd, events, m_max_event_count, 1000);
         if (ret < 0)
         {
             // 忽略 EINTR 错误
@@ -373,15 +373,9 @@ void EpollEventLoop::readable_event(int32_t fd)
         buffer->push(data.begin() + pushed_count, data.begin() + push_count + pushed_count);
         pushed_count += push_count;
     }
-    /// @todo 这个地方只需要进行循环接收，上下文应该在添加套接字时进行绑定
-    /// @todo 对应的事件上下文中需要循环处理接收缓冲区中的数据
-    /// @todo 上下文中需要提供发送接收缓冲区设置接口
-    /// @note 当前暂不做调整，主动调用只为测试用
-    // 获取业务上下文处理接收事件
-    m_contexts.at(PosixClientSocket::get_id(fd))->on_recv(buffer);
     // 构建事件结构体
     struct epoll_event ev = {};
-    /// @brief 监听可写事件
+    // 监听可写事件
     ev.events = EPOLLOUT;
     ev.data.fd = fd;
     // 检查是否修改成功
@@ -410,11 +404,6 @@ void EpollEventLoop::writable_event(int32_t fd)
     // 获取发送缓存
     auto buffer = m_send_buffers.at(PosixClientSocket::get_id(fd));
 
-    // 调用业务上下文的发送回调写入缓冲区
-    /// @todo 当前由服务器主动调用业务上下文的发送回调
-    /// @todo 应该修改为业务上下文循环处理发送数据
-    m_contexts.at(PosixClientSocket::get_id(fd))->on_send(buffer);
-
     // 检查发送缓冲区数据的长度
     uint32_t data_length = buffer->size();
     auto data_optional = buffer->pop(data_length);
@@ -428,8 +417,7 @@ void EpollEventLoop::writable_event(int32_t fd)
     }
 
     // 写完后修改监听事件
-    struct epoll_event ev;
-    memset(&ev, 0, sizeof(ev));
+    struct epoll_event ev = {};
     // 监听可读事件
     ev.events = EPOLLIN;
     ev.data.fd = fd;

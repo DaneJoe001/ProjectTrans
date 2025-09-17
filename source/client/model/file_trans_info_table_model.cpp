@@ -26,7 +26,7 @@ void FileTransInfoTableModel::init()
         file_info.saved_name = "file_" + std::to_string(i + 1) + ".txt";
         file_info.source_path = "/source/path/file_" + std::to_string(i + 1) + ".txt";
         file_info.saved_path = "/saved/path/file_" + std::to_string(i + 1) + ".txt";
-        file_info.file_size = static_cast<std::size_t>(std::rand() % 10000 + 1); // 随机文件大小 1-10000 字节
+        file_info.file_size = static_cast<uint32_t>(std::rand() % 10000 + 1); // 随机文件大小 1-10000 字节
         file_info.operation = (i % 2 == 0) ? Operation::Upload : Operation::Download;
         file_info.state = (i % 5 == 0) ? FileState::Waiting : (i % 5 == 1) ? FileState::InTransfer : (i % 5 == 2) ? FileState::Completed : FileState::Failed;
         file_info.md5_code = "md5_" + std::to_string(i + 1);
@@ -35,7 +35,7 @@ void FileTransInfoTableModel::init()
 
         TransInfo trans_info;
         trans_info.file_info = file_info;
-        trans_info.current_count = static_cast<std::size_t>(std::rand() % 10);
+        trans_info.current_count = static_cast<uint32_t>(std::rand() % 10);
         trans_info.total_count = 10; // 假设总计 10
 
         m_trans_info_list.append(trans_info);

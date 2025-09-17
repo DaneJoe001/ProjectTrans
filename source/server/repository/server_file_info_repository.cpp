@@ -45,7 +45,7 @@ std::vector<ServerFileInfo> ServerFileInfoRepository::get_all()
         SELECT * FROM file_info;
     )");
     std::vector<ServerFileInfo> result(data.size());
-    for (std::size_t i = 0; i < data.size(); ++i)
+    for (uint32_t i = 0; i < data.size(); ++i)
     {
         result[i].file_id = std::stoi(data[i][0]);
         result[i].file_name = data[i][1];

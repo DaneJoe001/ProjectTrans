@@ -10,10 +10,10 @@
 #include <vector>
 #include <memory>
 
-/**
- * @class ISocket
- * @brief ISocket类实现了ISocket接口，用于表示套接字。
- */
+ /**
+  * @class ISocket
+  * @brief ISocket类实现了ISocket接口，用于表示套接字。
+  */
 class ISocket
 {
 public:
@@ -74,7 +74,7 @@ public:
      * @brief 检查套接字是否可写
      * @return 是否可写
      */
-    virtual bool is_writeable()const = 0;
+    virtual bool is_writable()const = 0;
 protected:
     /// @brief 是否为非阻塞模式
     bool m_is_non_blocking = false;
