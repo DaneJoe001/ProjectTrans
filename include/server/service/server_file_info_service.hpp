@@ -11,10 +11,10 @@
 
 #include "server/repository/server_file_info_repository.hpp"
 
-/**
- * @class ServerFileInfoService
- * @brief 服务器端文件信息服务
- */
+ /**
+  * @class ServerFileInfoService
+  * @brief 服务器端文件信息服务
+  */
 class ServerFileInfoService
 {
 public:
@@ -65,4 +65,6 @@ public:
 private:
     /// @brief 文件信息仓库
     ServerFileInfoRepository file_info_repository;
+    /// @brief 判断是否已初始化
+    bool is_init = false;
 };

@@ -16,6 +16,8 @@ class QProgressBar;
 class QHBoxLayout;
 class QVBoxLayout;
 class TransManager;
+class ConnectionThread;
+class FileInfoDialog;
 
 /**
  * @class NewDownloadDialog
@@ -39,6 +41,7 @@ public slots:
      * @brief 下载按钮点击
      */
     void on_download_push_button_clicked();
+    void ok_to_add_file_info(std::string raw_file_info);
 private:
     /// @brief 主布局
     QVBoxLayout* m_main_layout = nullptr;
@@ -70,5 +73,10 @@ private:
     QTextBrowser* m_download_info_browser = nullptr;
     /// @brief 传输管理器
     TransManager* m_trans_manager = nullptr;
-
+    /// @brief 连接线程
+    ConnectionThread* m_connection_thread = nullptr;
+    /// @brief 文件信息对话框
+    FileInfoDialog* m_file_info_dialog = nullptr;
+    /// @brief 是否已初始化
+    bool m_is_init = false;
 };

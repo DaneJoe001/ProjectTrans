@@ -8,10 +8,10 @@
 
 #include <QDialog>
 
-/**
- * @class TransDialog
- * @brief 传输对话框
- */
+ /**
+  * @class TransDialog
+  * @brief 传输对话框
+  */
 class TransDialog :public QDialog
 {
     Q_OBJECT
@@ -25,4 +25,7 @@ public:
      * @brief 初始化
      */
     void init();
+private:
+    /// @brief 是否已初始化
+    bool m_is_init = false;
 };

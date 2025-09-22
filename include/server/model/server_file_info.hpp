@@ -10,14 +10,14 @@
 #include <format>
 #include <cstdint>
 
-/**
- * @class ServerFileInfo
- * @brief 服务器文件信息
- */
+ /**
+  * @class ServerFileInfo
+  * @brief 服务器文件信息
+  */
 struct ServerFileInfo
 {
     /// @brief 文件ID
-    int32_t file_id;
+    int32_t file_id = -1;
     /// @brief 文件名称
     std::string file_name;
     /// @brief 资源路径

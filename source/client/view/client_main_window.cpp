@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QStackedWidget>
 #include <QString>
+#include <QScreen>
 
 #include "client/view/client_main_window.hpp"
 #include "log/manage_logger.hpp"
@@ -12,15 +13,24 @@
 #include "client/view/new_upload_dialog.hpp"
 #include "client/view/trans_dialog.hpp"
 #include "client/view/file_trans_info_widget.hpp"
+#include "common/util/screen_util.hpp"
 
 ClientMainWindow::ClientMainWindow(QWidget* parent) :QMainWindow(parent) {}
 
 void ClientMainWindow::init()
 {
+    if (m_is_init)
+    {
+        DANEJOE_LOG_WARN("default", "MainWindow", "init", "client main window has been initialized");
+        return;
+    }
     // 设置客户端窗口标题
     setWindowTitle(m_window_title);
     // 设置客户端窗口尺寸位置
-    setGeometry(400, 200, 800, 600);
+    auto screen_rect = ScreenUtil::get_screen_rect(1);
+    ScreenUtil::RectInfo window_rect = { -1, -1, 800, 600 };
+    auto point = ScreenUtil::get_destination_point(screen_rect, window_rect, ScreenUtil::RealativePosition::Center);
+    setGeometry(point.x, point.y, 800, 600);
     // 初始化菜单栏
     m_menubar = new QMenuBar(this);
     // 设置当前菜单栏
@@ -123,6 +133,7 @@ void ClientMainWindow::init()
     connect(m_connection_test_dialog, &QDialog::finished, this, &ClientMainWindow::on_connection_test_dialog_closed);
 
     startTimer(1000);
+    m_is_init = true;
 }
 
 void ClientMainWindow::timerEvent(QTimerEvent* event)
@@ -137,6 +148,11 @@ ClientMainWindow::~ClientMainWindow()
 
 void ClientMainWindow::on_connection_test_action_triggered()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_connection_test_action_triggered");
     m_connection_test_dialog->show();
     m_is_on_connection_test = true;
@@ -144,18 +160,33 @@ void ClientMainWindow::on_connection_test_action_triggered()
 
 void ClientMainWindow::on_connection_test_dialog_closed()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_connection_test_dialog_closed");
     m_is_on_connection_test = false;
 }
 
 void ClientMainWindow::on_new_upload_action_triggered()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_new_upload_action_triggered");
     m_new_upload_dialog->show();
 }
 
 void ClientMainWindow::on_new_download_action_triggered()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_new_download_action_triggered");
     m_new_download_dialog->show();
 }

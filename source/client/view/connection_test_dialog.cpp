@@ -13,6 +13,7 @@
 #include "log/manage_logger.hpp"
 #include "client/connect/connection_manager.hpp"
 #include "client/connect/connection_thread.hpp"
+#include "common/util/screen_util.hpp"
 
 ConnectionTestDialog::ConnectionTestDialog(QWidget* parent)
     : QDialog(parent) {
@@ -20,6 +21,11 @@ ConnectionTestDialog::ConnectionTestDialog(QWidget* parent)
 
 void ConnectionTestDialog::init()
 {
+    if (m_is_init)
+    {
+        DANEJOE_LOG_WARN("default", "ConnectionTestDialog", "ConnectionTestDialog has been initialized");
+        return;
+    }
     m_main_layout = new QVBoxLayout(this);
 
     m_recv_label = new QLabel("Received TextBrowser", this);
@@ -52,8 +58,17 @@ void ConnectionTestDialog::init()
     m_main_layout->addWidget(m_send_label);
     m_main_layout->addWidget(m_send_text_edit);
 
-    this->setGeometry(450, 250, 500, 400);
-
+    ScreenUtil::RectInfo screen_rect = { 450, 250, 500, 400 };
+    auto parent_window = this->parentWidget();
+    if (parent_window)
+    {
+        auto relative_point = ScreenUtil::get_destination_point(parent_window->geometry(), screen_rect, ScreenUtil::RealativePosition::Center);
+        QPoint parent_pos = parent_window->pos();
+        screen_rect.pos.x = relative_point.x + parent_pos.x();
+        screen_rect.pos.y = relative_point.y + parent_pos.y();
+    }
+    this->setGeometry(screen_rect.pos.x, screen_rect.pos.y, screen_rect.size.x, screen_rect.size.y);
+    DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "Window rect: {}", screen_rect.to_string());
     m_connection_thread = new ConnectionThread(this);
 
     /// @note 自定义服务端测试链接
@@ -65,10 +80,16 @@ void ConnectionTestDialog::init()
     connect(m_connect_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_connect_push_button_clicked);
 
     startTimer(1000);
+    m_is_init = true;
 }
 
 void ConnectionTestDialog::on_send_push_button_clicked()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "ConnectionTestDialog", "ConnectionTestDialog has not been initialized");
+        return;
+    }
     QString text = m_send_text_edit->toPlainText();
     m_send_text_edit->clear();
     auto data = text.toUtf8();
@@ -85,6 +106,11 @@ void ConnectionTestDialog::on_send_push_button_clicked()
 
 void ConnectionTestDialog::on_connect_push_button_clicked()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "ConnectionTestDialog", "ConnectionTestDialog has not been initialized");
+        return;
+    }
     QString url = m_url_line_edit->text();
     UrlResolver::UrlInfo info = UrlResolver::parse(url.toStdString());
 
@@ -104,6 +130,11 @@ void ConnectionTestDialog::on_connect_push_button_clicked()
 
 void ConnectionTestDialog::on_message_received(const std::vector<uint8_t>& data)
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "ConnectionTestDialog", "ConnectionTestDialog has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_message_received()");
     QString text = QString::fromUtf8(QByteArray(reinterpret_cast<const char*>(data.data()), data.size()));
     m_recv_text_browser->append(text);
@@ -111,6 +142,11 @@ void ConnectionTestDialog::on_message_received(const std::vector<uint8_t>& data)
 
 void ConnectionTestDialog::closeEvent(QCloseEvent* event)
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "ConnectionTestDialog", "ConnectionTestDialog has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "closeEvent()");
     if (m_connection_thread)
     {

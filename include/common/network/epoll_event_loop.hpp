@@ -66,13 +66,13 @@ public:
      * @param fd 文件描述符
      * @note 只处理数据的接收，缓存区会被共享到业务上下文
      */
-    void readable_event(int32_t fd);
+    void readable_event(int32_t socket_id);
     /**
      * @brief 可写事件
      * @param fd 文件描述符
      * @note 只处理数据的发送，缓存区会被共享到业务上下文
      */
-    void writable_event(int32_t fd);
+    void writable_event(int32_t socket_id);
     /**
      * @brief 停止事件循环
      */

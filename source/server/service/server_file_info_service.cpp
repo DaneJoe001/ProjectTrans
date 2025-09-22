@@ -30,7 +30,12 @@ std::optional<ServerFileInfo> ServerFileInfoService::get_by_md5(const std::strin
 
 void ServerFileInfoService::init()
 {
+    if (is_init)
+    {
+        return;
+    }
     file_info_repository.init();
+    is_init = true;
 }
 
 int32_t ServerFileInfoService::count()

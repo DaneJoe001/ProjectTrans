@@ -81,4 +81,6 @@ private:
     QProgressBar* m_upload_progress_bar = nullptr;
     /// @brief 上传信息浏览器
     QTextBrowser* m_upload_info_browser = nullptr;
+    /// @brief 是否已初始化
+    bool m_is_init = false;
 };

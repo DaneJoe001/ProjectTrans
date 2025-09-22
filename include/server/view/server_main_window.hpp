@@ -84,4 +84,6 @@ private:
     ResourceInfoWidget* m_resource_info_widget = nullptr;
     /// @brief 连接信息小部件
     ConnectionInfoWidget* m_connection_info_widget = nullptr;
+    /// @brief 是否已初始化
+    bool m_is_init = false;
 };

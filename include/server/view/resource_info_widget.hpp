@@ -38,4 +38,6 @@ private:
     QTableView* m_table_view = nullptr;
     /// @brief 布局
     QVBoxLayout* m_layout = nullptr;
+    /// @brief 是否已初始化
+    bool m_is_init = false;
 };

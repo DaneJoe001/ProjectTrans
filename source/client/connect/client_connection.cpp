@@ -3,8 +3,9 @@
 #include "client/connect/client_connection.hpp"
 #include "log/manage_logger.hpp"
 
-#define ADD_LENGTH_INFO_TO_SEND
-#define ADD_LENGTH_INFO_TO_RECV
+/// @todo 修复添加长度后的接收问题
+// #define ADD_LENGTH_INFO_TO_SEND
+// #define ADD_LENGTH_INFO_TO_RECV
 
 ClientConnection::ClientConnection(const std::string& ip, uint16_t port) :m_ip(ip), m_port(port), m_socket(ip, port)
 {
@@ -28,11 +29,20 @@ void ClientConnection::send(const std::vector<uint8_t>& data)
     uint32_t size = data.size();
     // 存储长度信息
     std::memcpy(length.data(), &size, sizeof(size));
+    // 当长度为0时不进行发送
+    if (size == 0)
+    {
+        return;
+    }
+    DANEJOE_LOG_TRACE("default", "ClientConnection", "To socket: {} ,send data: {}, data size: {}", m_socket.get_id(), std::string(data.begin(), data.end()), size);
     // 发送长度信息
     m_socket.write_all(length);
-#endif
     // 发送数据
     m_socket.write_all(data);
+#else
+    // 发送数据
+    m_socket.write_all(data);
+#endif
 }
 
 std::vector<uint8_t> ClientConnection::recieve()
@@ -55,7 +65,13 @@ std::vector<uint8_t> ClientConnection::recieve()
     uint32_t size = 0;
     // 将长度信息复制到size变量中
     std::memcpy(&size, length.data(), sizeof(size));
-    DANEJOE_LOG_TRACE("default", "ClientConnection", "recieve size:{}", size);
+    // 当content长度为0时，返回空数据
+    if (size == 0)
+    {
+        return std::vector<uint8_t>();
+    }
+    DANEJOE_LOG_TRACE("default", "ClientConnection", "Recieve size:{}", size);
+
     // 读取指定长度数据
     return m_socket.read(size);
 #else

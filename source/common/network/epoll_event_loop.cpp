@@ -1,6 +1,7 @@
 #include <cstring>
 #include <cerrno>
 #include <memory>
+#include <cerrno>
 
 extern "C"
 {
@@ -14,6 +15,8 @@ extern "C"
 
 /// @todo 将读写引入线程中，避免顺序执行导致缓冲区满阻塞
 
+#define USE_SERVER_TRANS
+#define MODIFY_SOCKET_EVENT
 EpollEventLoop::EpollEventLoop(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator)
 {
     // 先检查服务器套接字是否不为空且有效
@@ -56,7 +59,7 @@ EpollEventLoop::EpollEventLoop(std::unique_ptr<PosixServerSocket> server_socket,
     // 注册失败则停止并退出
     if (ret < 0)
     {
-        DANEJOE_LOG_ERROR("default", "EpollEventLoop", "epoll_ctl failed");
+        DANEJOE_LOG_ERROR("default", "EpollEventLoop", "Failed to add server socket to epoll: {}", std::strerror(errno));
         stop();
         return;
     }
@@ -99,7 +102,7 @@ bool EpollEventLoop::add_socket(std::unique_ptr<IClientSocket> socket, EventType
     // 添加失败则关闭套接字并返回失败
     if (ret < 0)
     {
-        DANEJOE_LOG_ERROR("default", "EpollEventLoop", "add socket to epoll failed");
+        DANEJOE_LOG_ERROR("default", "EpollEventLoop", "Failed to add socket to epoll: {}", std::strerror(errno));
         socket->close();
         return false;
     }
@@ -137,8 +140,9 @@ void EpollEventLoop::remove_socket(int32_t socket_id)
     // 检查移除是否成功
     if (ret < 0)
     {
-        DANEJOE_LOG_ERROR("default", "EpollEventLoop", "epoll_ctl error");
+        DANEJOE_LOG_ERROR("default", "EpollEventLoop", "Failed to remove socket from epoll: {}", std::strerror(errno));
     }
+    m_context_creator->destroy(m_contexts[socket_id]);
     // 清理与套接字配对的资源
     client->close();
     m_recv_buffers.erase(socket_id);
@@ -189,6 +193,7 @@ void EpollEventLoop::run()
             {
                 // 处理服务端接收事件
                 acceptable_event();
+                continue;
             }
             // 错误或对端关闭：及时回收 fd，避免无意义的后续处理
             // EPOLLHUP hand up 挂起即连接被关闭
@@ -201,12 +206,12 @@ void EpollEventLoop::run()
             // 客户端读事件
             if (event & EPOLLIN)
             {
-                readable_event(fd);
+                readable_event(PosixClientSocket::get_id(fd));
             }
             // 客户端写事件
             if (event & EPOLLOUT)
             {
-                writable_event(fd);
+                writable_event(PosixClientSocket::get_id(fd));
             }
         }
     }
@@ -294,7 +299,7 @@ uint32_t EpollEventLoop::to_epoll_events(EventType type)
 void EpollEventLoop::acceptable_event()
 {
     // 先检查服务器套接字是否不为空且有效
-    if (!m_server_socket && m_server_socket->is_valid())
+    if (!m_server_socket || !m_server_socket->is_valid())
     {
         DANEJOE_LOG_ERROR("default", "EpollEventLoop", "Server socket is null");
         return;
@@ -311,7 +316,7 @@ void EpollEventLoop::acceptable_event()
             {
                 break;
             }
-            DANEJOE_LOG_ERROR("default", "EpollEventLoop", "accept failed: {}", strerror(errno));
+            DANEJOE_LOG_ERROR("default", "EpollEventLoop", "accept failed: {}", std::strerror(errno));
             break;
         }
         // 确保设置客户端套接字非阻塞
@@ -323,7 +328,7 @@ void EpollEventLoop::acceptable_event()
             continue;
         }
         // 确保在处理新连接时仅关注可读事件，而不是可写事件。
-        if (!add_socket(std::move(client), EventType::Readable | EventType::EdgeTriggered | EventType::PeerClosed))
+        if (!add_socket(std::move(client), EventType::Readable | EventType::Writable | EventType::EdgeTriggered | EventType::PeerClosed))
         {
             DANEJOE_LOG_ERROR("default", "EpollEventLoop", "add socket failed");
             continue;
@@ -333,10 +338,10 @@ void EpollEventLoop::acceptable_event()
     }
 }
 
-void EpollEventLoop::readable_event(int32_t fd)
+void EpollEventLoop::readable_event(int32_t socket_id)
 {
     // 检查当前的映射表中是否存在该socket
-    auto socket_iter = m_sockets.find(fd);
+    auto socket_iter = m_sockets.find(socket_id);
     if (socket_iter == m_sockets.end())
     {
         DANEJOE_LOG_ERROR("default", "EpollEventLoop", "socket not found");
@@ -346,13 +351,17 @@ void EpollEventLoop::readable_event(int32_t fd)
     if (socket_iter->second == nullptr)
     {
         DANEJOE_LOG_ERROR("default", "EpollEventLoop", "socket is null");
-        remove_socket(PosixClientSocket::get_id(fd));
+        remove_socket(PosixClientSocket::get_id(socket_id));
         return;
     }
     // 获取接收缓冲区
-    auto buffer = m_recv_buffers.at(PosixClientSocket::get_id(fd));
+    auto buffer = m_recv_buffers.at(socket_id);
     // 从套接字中读取当前所有数据
-    std::vector<uint8_t> data = m_sockets.at(fd)->read_all();
+    std::vector<uint8_t> data = m_sockets.at(socket_id)->read_all();
+    if (!data.empty())
+    {
+        DANEJOE_LOG_TRACE("default", "EpollEventLoop", "From socket: {}, read data: {}, data size: {}", socket_id, std::string(data.begin(), data.end()), data.size());
+    }
     // 检查读取的长度
     uint32_t data_length = data.size();
     // 记录完成入队的数据
@@ -373,22 +382,29 @@ void EpollEventLoop::readable_event(int32_t fd)
         buffer->push(data.begin() + pushed_count, data.begin() + push_count + pushed_count);
         pushed_count += push_count;
     }
+#ifndef USE_SERVER_TRANS
+    m_contexts.at(PosixClientSocket::get_id(socket_id))->on_recv();
+#endif
+
+#ifdef MODIFY_SOCKET_EVENT
     // 构建事件结构体
     struct epoll_event ev = {};
     // 监听可写事件
-    ev.events = EPOLLOUT;
-    ev.data.fd = fd;
+    ev.events = EPOLLOUT | EPOLLIN;
+    ev.data.fd = socket_id;
     // 检查是否修改成功
-    if (epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
+    int ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, socket_id, &ev);
+    if (ret < 0)
     {
-        DANEJOE_LOG_ERROR("default", "EpollEventLoop", "epoll_ctl failed!");
+        DANEJOE_LOG_ERROR("default", "EpollEventLoop", "Failed to epoll_ctl: {}", std::strerror(errno));
     }
+#endif
 }
 
-void EpollEventLoop::writable_event(int32_t fd)
+void EpollEventLoop::writable_event(int32_t socket_id)
 {
     /// @brief 当前posix实现下，socket_map的键就是(int)fd
-    auto client_iter = m_sockets.find(fd);
+    auto client_iter = m_sockets.find(socket_id);
     // 检查当前映射表中是否存在记录
     if (client_iter == m_sockets.end())
     {
@@ -398,11 +414,17 @@ void EpollEventLoop::writable_event(int32_t fd)
     // 检查当前映射表中的socket对象是否有效
     if (!client_iter->second || !client_iter->second->is_valid())
     {
-        remove_socket(PosixClientSocket::get_id(fd));
+        remove_socket(socket_id);
         return;
     }
+#ifndef USE_SERVER_TRANS
+    // 暂时主动调用回调
+    m_contexts.at(socket_id)->on_send();
+#endif
+
+
     // 获取发送缓存
-    auto buffer = m_send_buffers.at(PosixClientSocket::get_id(fd));
+    auto buffer = m_send_buffers.at(socket_id);
 
     // 检查发送缓冲区数据的长度
     uint32_t data_length = buffer->size();
@@ -411,18 +433,22 @@ void EpollEventLoop::writable_event(int32_t fd)
     if (data_optional.has_value())
     {
         std::string send_data = std::string(data_optional.value().begin(), data_optional.value().end());
-        DANEJOE_LOG_TRACE("default", "EpollEventLoop", "send data: {}", send_data);
+        if (!send_data.empty() && send_data.length() != 4)
+        {
+            DANEJOE_LOG_TRACE("default", "EpollEventLoop", "To socket: {} ,send data: {}, data size: {}", socket_id, send_data, send_data.size());
+        }
         // 发送数据
-        m_sockets.at(fd)->write_all(data_optional.value());
+        m_sockets.at(socket_id)->write_all(data_optional.value());
     }
-
+#ifdef MODIFY_SOCKET_EVENT
     // 写完后修改监听事件
     struct epoll_event ev = {};
     // 监听可读事件
-    ev.events = EPOLLIN;
-    ev.data.fd = fd;
-    if (epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
+    ev.events = EPOLLIN | EPOLLOUT;
+    ev.data.fd = socket_id;
+    if (epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, socket_id, &ev) == -1)
     {
         DANEJOE_LOG_ERROR("default", "EpollEventLoop", "epoll_ctl failed!");
     }
+#endif
 }
