@@ -20,7 +20,7 @@
 - `source/client/`：客户端入口与基础交互
 
 ### 构建
-依赖：CMake 3.20+、C++20、Qt 6（Core/Gui/Widgets）、OpenSSL、SQLiteCpp。
+依赖：CMake 3.20+(开发环境版本4.0.1)、C++20、Qt 6（Core/Gui/Widgets）、OpenSSL、SQLiteCpp。
 ```bash
 cmake -Bbuild --preset gcc-debug
 cmake --build build

@@ -14,6 +14,7 @@
 #include <QTimer>
 
 #include "client/connect/client_connection.hpp"
+#include "client/connect/message_handler.hpp"
 
  /**
   * @class ConnectionThread
@@ -77,4 +78,6 @@ private:
     bool m_is_running = false;
     /// @brief 定时器
     QTimer m_timer;
+    /// @brief 消息处理器
+    MessageHandler m_message_handler;
 };

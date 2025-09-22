@@ -95,6 +95,12 @@ std::vector<uint8_t> PosixClientSocket::read(uint32_t size)
         DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to receive: socket is not valid");
         return std::vector<uint8_t>();
     }
+    // 检查连接状态
+    if (!m_is_connected)
+    {
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to receive: socket is not connected");
+        return std::vector<uint8_t>();
+    }
     // 记录已经读取的字节数
     uint32_t has_read = 0;
     // 创建数据接收容器
@@ -146,6 +152,12 @@ void PosixClientSocket::write_all(const std::vector<uint8_t>& data)
     if (!is_valid())
     {
         DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: socket is not valid");
+        return;
+    }
+    // 检查连接状态
+    if (!m_is_connected)
+    {
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to receive: socket is not connected");
         return;
     }
     // 记录已发送字节数
@@ -211,6 +223,12 @@ std::vector<uint8_t> PosixClientSocket::read_all()
         DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to read_all: socket is not valid");
         return std::vector<uint8_t>();
     }
+    // 检查连接状态
+    if (!m_is_connected)
+    {
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to receive: socket is not connected");
+        return std::vector<uint8_t>();
+    }
     // 缓存区
     std::vector<uint8_t> buffer;
     // 分配缓冲区空间
@@ -238,7 +256,7 @@ std::vector<uint8_t> PosixClientSocket::read_all()
             // 其他错误
             else
             {
-                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to recieve: {}", strerror(errno));
+                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to recieve: {}", std::strerror(errno));
                 close();
                 return buffer;
             }
@@ -271,12 +289,18 @@ void PosixClientSocket::write(const std::vector<uint8_t>& data)
         DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: socket is not valid");
         return;
     }
+    // 检查连接状态
+    if (!m_is_connected)
+    {
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to receive: socket is not connected");
+        return;
+    }
     // 调用系统函数发送数据
     int32_t ret = ::send(m_socket, data.data(), data.size(), 0);
     // 检查发送结果
     if (ret < 0)
     {
-        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: {}", strerror(errno));
+        DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to send: {}", std::strerror(errno));
     }
 }
 

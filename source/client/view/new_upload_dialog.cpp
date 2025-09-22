@@ -8,6 +8,8 @@
 #include <QFileDialog>
 
 #include "client/view/new_upload_dialog.hpp"
+#include "log/manage_logger.hpp"
+#include "common/util/screen_util.hpp"
 
 NewUploadDialog::NewUploadDialog(QWidget* parent) :QDialog(parent)
 {
@@ -16,8 +18,23 @@ NewUploadDialog::NewUploadDialog(QWidget* parent) :QDialog(parent)
 
 void NewUploadDialog::init()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_WARN("default", "NewUploadDialog", "NewUploadDialog is already initialized");
+        return;
+    }
     this->setWindowTitle("New Upload");
-    this->setGeometry(450, 250, 400, 400);
+    ScreenUtil::RectInfo screen_rect = { 450,250,400,400 };
+    auto parent_window = this->parentWidget();
+    if (parent_window)
+    {
+        auto relative_point = ScreenUtil::get_destination_point(parent_window->geometry(), screen_rect, ScreenUtil::RealativePosition::Center);
+        QPoint parent_pos = parent_window->pos();
+        screen_rect.pos.x = relative_point.x + parent_pos.x();
+        screen_rect.pos.y = relative_point.y + parent_pos.y();
+    }
+    this->setGeometry(screen_rect.pos.x, screen_rect.pos.y, screen_rect.size.x, screen_rect.size.y);
+    DANEJOE_LOG_TRACE("default", "NewUploadDialog", "Window rect: {}", screen_rect.to_string());
     m_main_layout = new QVBoxLayout(this);
 
     m_file_dialog = new QFileDialog(this);
@@ -81,4 +98,5 @@ void NewUploadDialog::init()
     m_main_layout->setStretch(2, 1);
     m_main_layout->setStretch(3, 1);
     m_main_layout->setStretch(4, 7);
+    m_is_init = true;
 }

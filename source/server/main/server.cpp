@@ -14,6 +14,9 @@
 #include "common/network/epoll_event_loop.hpp"
 #include "server/connect/trans_context.hpp"
 #include "server/view/server_main_window.hpp"
+#include "server/connect/server_trans.hpp"
+
+#define USE_SERVER_TRANS
 
 namespace fs = std::filesystem;
 
@@ -79,6 +82,9 @@ void run_server()
     std::unique_ptr<ISocketContextCreator> context_creator = std::make_unique<TransContextCreator>();
     // 创建事件循环
     EpollEventLoop loop(std::move(server), std::move(context_creator));
+#ifdef USE_SERVER_TRANS
+    ServerTrans::get_instance().start_loop();
+#endif
     // 启动循环
     loop.run();
 }
@@ -86,7 +92,10 @@ void run_server()
 void stop_server_handler(int32_t signal)
 {
     DANEJOE_LOG_TRACE("default", "server", "Server is stopping...");
+#ifdef USE_SERVER_TRANS
     EpollEventLoop::end_loop();
+#endif
+    ServerTrans::get_instance().stop_loop();
     /// @todo 后续再考虑安全改进
     exit(0);
 }

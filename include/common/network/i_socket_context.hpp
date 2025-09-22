@@ -64,4 +64,9 @@ public:
     virtual std::shared_ptr<ISocketContext> create(
         std::shared_ptr<DaneJoe::MTQueue<uint8_t>> recv_buffer,
         std::shared_ptr<DaneJoe::MTQueue<uint8_t>> send_buffer) = 0;
+    /**
+     * @brief 解注册套接字上下文
+     * @param context 套接字上下文
+     */
+    virtual void destroy(std::shared_ptr<ISocketContext> context) = 0;
 };

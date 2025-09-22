@@ -36,4 +36,6 @@ private:
     QTableView* m_table_view;
     /// @brief 模型
     FileTransInfoTableModel* m_model;
+    /// @brief 是否已初始化
+    bool m_is_init = false;
 };

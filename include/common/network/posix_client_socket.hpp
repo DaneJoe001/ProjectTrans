@@ -87,5 +87,6 @@ private:
      */
     PosixClientSocket& operator=(const PosixClientSocket& other) = delete;
     /// @brief 是否连接
-    bool m_is_connected = false;
+    /// @todo 由于server在accept时没有调用connect，所以此处的m_is_connected在server端是错误的,需要考虑优化
+    bool m_is_connected = true;
 };

@@ -14,13 +14,22 @@
 #include "server/view/connection_info_widget.hpp"
 #include "server/view/resource_info_widget.hpp"
 #include "log/manage_logger.hpp"
+#include "common/util/screen_util.hpp"
 
 extern std::atomic<bool> g_is_panel_running;
 
 ServerMainWindow::ServerMainWindow(QWidget* parent) :QMainWindow(parent) {}
 void ServerMainWindow::init()
 {
-    this->setGeometry(200, 200, 800, 600);
+    if (m_is_init)
+    {
+        DANEJOE_LOG_WARN("default", "ServerMainWindow", "ServerMainWindow has been initialized");
+        return;
+    }
+    auto screen_rect = ScreenUtil::get_screen_rect(1);
+    ScreenUtil::RectInfo window_rect = { -1, -1, 800, 600 };
+    auto point = ScreenUtil::get_destination_point(screen_rect, window_rect, ScreenUtil::RealativePosition::Center);
+    setGeometry(point.x, point.y, 800, 600);
     this->setWindowTitle("Server Panel");
     m_stacked_widget = new QStackedWidget(this);
 
@@ -60,6 +69,7 @@ void ServerMainWindow::init()
     connect(m_connection_info_view_action, &QAction::triggered, this, &ServerMainWindow::on_connection_info_view_action_triggered);
 
     startTimer(500);
+    m_is_init = true;
 }
 
 void ServerMainWindow::closeEvent(QCloseEvent* event)
@@ -79,21 +89,41 @@ void ServerMainWindow::timerEvent(QTimerEvent* event)
 
 void ServerMainWindow::on_add_file_action_triggered()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "ServerMainWindow", "ServerMainWindow has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "ServerMainWindow", "on_add_file_action_triggered");
     m_add_file_dialog->show();
 }
 
 void ServerMainWindow::on_remove_file_action_triggered()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "ServerMainWindow", "ServerMainWindow has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "ServerMainWindow", "on_remove_file_action_triggered");
 }
 void ServerMainWindow::on_resource_info_view_action_triggered()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "ServerMainWindow", "ServerMainWindow has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "ServerMainWindow", "on_resource_info_view_action_triggered");
     m_stacked_widget->setCurrentIndex(0);
 }
 void ServerMainWindow::on_connection_info_view_action_triggered()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "ServerMainWindow", "ServerMainWindow has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "ServerMainWindow", "on_connection_info_view_action_triggered");
     m_stacked_widget->setCurrentIndex(1);
 }

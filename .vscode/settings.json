@@ -97,7 +97,9 @@
         "qabstracttablemodel": "cpp",
         "qstring": "cpp",
         "qstackedwidget": "cpp",
-        "qthread": "cpp"
+        "qthread": "cpp",
+        "unordered_set": "cpp",
+        "csignal": "cpp"
     },
     "commentTranslate.browse.mode": "contrast"
 }

@@ -13,6 +13,7 @@
 #include "server/model/server_file_info.hpp"
 #include "common/database/database_manager.hpp"
 #include "server/model/server_file_info_table_model.hpp"
+#include "common/util/screen_util.hpp"
 
 AddFileDialog::AddFileDialog(QWidget* parent) :QDialog(parent)
 {
@@ -20,8 +21,23 @@ AddFileDialog::AddFileDialog(QWidget* parent) :QDialog(parent)
 }
 void AddFileDialog::init()
 {
+    if (m_is_init)
+    {
+        DANEJOE_LOG_WARN("default", "AddFileDialog", "AddFileDialog has already been initialized");
+        return;
+    }
     this->setWindowTitle("Add File");
-    this->setGeometry(300, 300, 400, 100);
+    ScreenUtil::RectInfo screen_rect = { 450, 250, 400, 100 };
+    auto parent_window = this->parentWidget();
+    if (parent_window)
+    {
+        auto relative_point = ScreenUtil::get_destination_point(parent_window->geometry(), screen_rect, ScreenUtil::RealativePosition::Center);
+        QPoint parent_pos = parent_window->pos();
+        screen_rect.pos.x = relative_point.x + parent_pos.x();
+        screen_rect.pos.y = relative_point.y + parent_pos.y();
+    }
+    this->setGeometry(screen_rect.pos.x, screen_rect.pos.y, screen_rect.size.x, screen_rect.size.y);
+    DANEJOE_LOG_TRACE("default", "AddFileDialog", "Window rect: {}", screen_rect.to_string());
     m_file_dialog = new QFileDialog(this);
     m_file_path_layout = new QHBoxLayout(this);
 
@@ -43,10 +59,16 @@ void AddFileDialog::init()
 
     connect(m_file_path_button, &QPushButton::clicked, this, &AddFileDialog::on_file_path_button_clicked);
     connect(m_add_file_button, &QPushButton::clicked, this, &AddFileDialog::on_add_file_button_clicked);
+    m_is_init = true;
 }
 
 void AddFileDialog::on_file_path_button_clicked()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "AddFileDialog", "AddFileDialog has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "AddFileDialog", "on_file_path_button_clicked");
     QString file_path = m_file_dialog->getOpenFileName();
     m_file_path_line_edit->setText(file_path);
@@ -54,6 +76,11 @@ void AddFileDialog::on_file_path_button_clicked()
 
 void AddFileDialog::on_add_file_button_clicked()
 {
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "AddFileDialog", "AddFileDialog has not been initialized");
+        return;
+    }
     DANEJOE_LOG_TRACE("default", "AddFileDialog", "on_add_file_button_clicked");
     QString file_path = m_file_path_line_edit->text();
     if (!QFile::exists(file_path))

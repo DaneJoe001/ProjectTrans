@@ -58,4 +58,6 @@ private:
     QHBoxLayout* m_file_path_layout;
     /// @brief 文件信息服务
     ServerFileInfoService m_file_info_service;
+    /// @brief 是否已初始化
+    bool m_is_init = false;
 };

@@ -112,4 +112,6 @@ private:
     QStackedWidget* m_stack_widget = nullptr;
     /// @brief 文件传输信息窗口
     FileTransInfoWidget* m_file_trans_info_widget = nullptr;
+    /// @brief 是否已初始化
+    bool m_is_init = false;
 };

@@ -93,4 +93,6 @@ private:
     QVBoxLayout* m_main_layout = nullptr;
     /// @brief 连接线程
     ConnectionThread* m_connection_thread = nullptr;
+    /// @brief 是否已初始化
+    bool m_is_init = false;
 };
