@@ -8,7 +8,6 @@
 #include<QTextEdit>
 #include<QMessageBox>
 
-#include "common/network/url_resolver.hpp"
 #include "client/view/connection_test_dialog.hpp"
 #include "log/manage_logger.hpp"
 #include "client/connect/connection_manager.hpp"
@@ -90,7 +89,12 @@ void ConnectionTestDialog::on_send_push_button_clicked()
         DANEJOE_LOG_ERROR("default", "ConnectionTestDialog", "ConnectionTestDialog has not been initialized");
         return;
     }
-    QString text = m_send_text_edit->toPlainText();
+    QString text;
+    if (m_url_info.protocol == UrlResolver::UrlProtocol::DANEJOE)
+    {
+        text.append("test?content=");
+    }
+    text.append(m_send_text_edit->toPlainText());
     m_send_text_edit->clear();
     auto data = text.toUtf8();
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_send_push_button_clicked():{}", text.toStdString());
@@ -112,11 +116,11 @@ void ConnectionTestDialog::on_connect_push_button_clicked()
         return;
     }
     QString url = m_url_line_edit->text();
-    UrlResolver::UrlInfo info = UrlResolver::parse(url.toStdString());
+    m_url_info = UrlResolver::parse(url.toStdString());
 
-    DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "URL Parsed:{}:{}:{}", UrlResolver::to_string(info.protocol), info.ip, info.port);
+    DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "URL Parsed:{}:{}:{}", UrlResolver::to_string(m_url_info.protocol), m_url_info.ip, m_url_info.port);
 
-    bool is_connect = m_connection_thread->init(info.ip, info.port);
+    bool is_connect = m_connection_thread->init(m_url_info.ip, m_url_info.port);
     if (is_connect)
     {
         m_connection_thread->start();

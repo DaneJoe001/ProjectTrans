@@ -11,6 +11,7 @@
 using namespace std::literals::chrono_literals;
 int32_t main(int32_t argc, char** argv)
 {
+    set_logger();
     QApplication app(argc, argv);
 
     DANEJOE_LOG_TRACE("default", "Server", "Hello,world!");

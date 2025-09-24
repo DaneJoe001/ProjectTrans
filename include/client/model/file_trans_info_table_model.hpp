@@ -86,7 +86,7 @@ public:
      * @param file_info 文件信息
      */
     void remove(const ClientFileInfo& file_info);
-
+    ClientFileInfo get_file_info(int32_t index);
 private:
     /**
      * @brief 构造函数

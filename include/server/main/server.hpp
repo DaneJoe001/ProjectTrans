@@ -6,10 +6,12 @@
  * @author DaneJoe001
  */
 
-/**
- * @brief 清除日志
- */
+ /**
+  * @brief 清除日志
+  */
 void clear_log();
+
+void set_logger();
 
 /**
  * @brief 初始化数据库

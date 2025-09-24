@@ -29,5 +29,18 @@ void FileTransInfoWidget::init()
 
     m_layout->addWidget(m_table_view);
     m_layout->setStretch(0, 1);
+
+    connect(m_table_view, &QTableView::clicked, this, &FileTransInfoWidget::on_cell_clicked);
+
     m_is_init = true;
+}
+
+void FileTransInfoWidget::on_cell_clicked(const QModelIndex& index)
+{
+    if (!index.isValid())
+    {
+        return;
+    }
+    DANEJOE_LOG_TRACE("default", "FileTransInfoWidget", "on_cell_clicked: row {}, column {}", index.row(), index.column());
+    emit row_clicked(index.row());
 }

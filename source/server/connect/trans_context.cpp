@@ -138,6 +138,12 @@ void TransContext::on_send()
     case RequestType::Download:
         handle_download_request(request_info);
         break;
+    case RequestType::Upload:
+        handle_upload_request(request_info);
+        break;
+    case RequestType::Test:
+        handle_test_request(request_info);
+        break;
     default:
         break;
     }
@@ -173,6 +179,36 @@ void TransContext::handle_download_request(const RequestInfo& request_info)
     m_send_buffer->push(file_info_vector.begin(), file_info_vector.end());
 }
 
+void TransContext::handle_upload_request(const RequestInfo& request_info)
+{
+    if (request_info.type != RequestType::Upload)
+    {
+        DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle download request: request type is not download");
+        return;
+    }
+    std::string response = "Recieved upload request";
+    std::vector<uint8_t> response_vector = std::vector<uint8_t>(response.begin(), response.end());
+    m_send_buffer->push(response_vector.begin(), response_vector.end());
+}
+
+void TransContext::handle_test_request(const RequestInfo& request_info)
+{
+    if (request_info.type != RequestType::Test)
+    {
+        DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle download request: request type is not download");
+        return;
+    }
+    auto content_it = request_info.info.find("content");
+    std::string content;
+    if (content_it != request_info.info.end())
+    {
+        content = content_it->second;
+    }
+    std::string response = "Recieved test content: " + content;
+    std::vector<uint8_t> response_vector = std::vector<uint8_t>(response.begin(), response.end());
+    m_send_buffer->push(response_vector.begin(), response_vector.end());
+}
+
 std::shared_ptr<ISocketContext> TransContextCreator::create()
 {
     return std::make_shared<TransContext>();
@@ -203,8 +239,8 @@ TransContext::RequestInfo TransContext::parse_request(const std::vector<uint8_t>
     std::string url(data.begin(), data.end());
     DANEJOE_LOG_TRACE("default", "TransContext", "Parse_request received: {}", url);
     // 解析下载请求
-    auto pos = url.find("download");
-    if (pos != std::string::npos)
+    auto download_pos = url.find("download");
+    if (download_pos != std::string::npos)
     {
         result.type = RequestType::Download;
         auto question_pos = url.find("?");
@@ -223,6 +259,30 @@ TransContext::RequestInfo TransContext::parse_request(const std::vector<uint8_t>
         std::string key = url.substr(question_pos + 1, key_length);
         std::string value = url.substr(equal_pos + 1, end_pos - equal_pos - 1);
         result.info[key] = value;
+        return result;
+    }
+    auto test_pos = url.find("test");
+    if (test_pos != std::string::npos)
+    {
+        //example: /test?content=file.txt
+        result.type = RequestType::Test;
+        auto question_pos = url.find("?");
+        auto equal_pos = url.find("=");
+        if (question_pos == std::string::npos || equal_pos == std::string::npos)
+        {
+            DANEJOE_LOG_ERROR("default", "TransContext", "Parse_request failed: {}", url);
+            return result;
+        }
+        auto end_pos = url.find("&");
+        if (end_pos == std::string::npos)
+        {
+            end_pos = url.size();
+        }
+        uint32_t key_length = equal_pos - question_pos - 1;
+        std::string key = url.substr(question_pos + 1, key_length);
+        std::string value = url.substr(equal_pos + 1, end_pos - equal_pos - 1);
+        result.info[key] = value;
+        return result;
     }
     return result;
 }

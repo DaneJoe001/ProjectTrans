@@ -11,6 +11,7 @@ namespace fs = std::filesystem;
 void set_logger()
 {
     DaneJoe::ILogger::LoggerConfig logger_config;
+    logger_config.log_path = "./log/client.log";
     DaneJoe::ILogger::LogOutputSetting output_setting;
     output_setting.enable_function_name = true;
     output_setting.enable_line_num = true;
@@ -75,6 +76,17 @@ void clear_database()
     /// @todo 考虑实现配置系统
     fs::path path = "./database/client/client_database.db";
     // 当路径存在时移除数据库
+    if (fs::exists(path))
+    {
+        fs::remove(path);
+    }
+}
+
+void clear_log()
+{
+    // 打开并清理文件
+    fs::path path = "./log/client.log";
+    // 当路径存在时移除日志
     if (fs::exists(path))
     {
         fs::remove(path);

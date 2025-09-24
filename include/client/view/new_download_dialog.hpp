@@ -5,12 +5,16 @@
  * @brief 新下载对话框
  * @author DaneJoe001
  */
+#include <thread>
+#include <functional>
+#include <atomic>
 
 #include <QDialog>
 
 #include "client/model/client_file_info.hpp"
 #include "client/service/client_file_info_service.hpp"
 #include "client/service/block_request_info_service.hpp"
+#include "mt_queue/mt_queue.hpp"
 
 class QPushButton;
 class QLineEdit;
@@ -22,6 +26,16 @@ class QVBoxLayout;
 class TransManager;
 class ConnectionThread;
 class FileInfoDialog;
+
+/**
+ * @struct TransFileInfo
+ * @brief 文件传输信息，包括文件信息，传输配置
+ */
+struct TransFileInfo
+{
+    ClientFileInfo file_info;
+    BlockParamConfig block_param_config;
+};
 
 /**
  * @class NewDownloadDialog
@@ -36,6 +50,7 @@ public:
      * @param parent 父窗口
      */
     NewDownloadDialog(QWidget* parent = nullptr);
+    ~NewDownloadDialog();
     /**
      * @brief 初始化
      */
@@ -54,7 +69,7 @@ private:
     /// @brief URL输入框
     QLineEdit* m_url_line_edit = nullptr;
     /// @brief 下载按钮
-    QPushButton* m_download_push_button = nullptr;
+    QPushButton* m_add_download_push_button = nullptr;
     /// @brief URL布局
     QHBoxLayout* m_url_layout = nullptr;
     /// @brief URL窗口
@@ -85,4 +100,8 @@ private:
     bool m_is_init = false;
     ClientFileInfoService m_file_info_service;
     BlockRequestInfoService m_block_request_info_service;
+    /// @brief 文件传输信息处理线程
+    std::thread m_handle_trans_file_info_thread;
+    std::atomic<bool> m_is_handle_trans_file_info_thread_running = false;
+    DaneJoe::MTQueue<TransFileInfo> m_handle_trans_file_info_queue;
 };

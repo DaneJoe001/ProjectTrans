@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "client/connect/client_connection.hpp"
+#include "common/network/url_resolver.hpp"
 
 class QLineEdit;
 class QPushButton;
@@ -95,4 +96,5 @@ private:
     ConnectionThread* m_connection_thread = nullptr;
     /// @brief 是否已初始化
     bool m_is_init = false;
+    UrlResolver::UrlInfo m_url_info;
 };

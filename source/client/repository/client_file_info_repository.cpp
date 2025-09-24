@@ -83,7 +83,7 @@ std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_saved_name_and_pa
         return std::nullopt;
     }
     auto statement = m_database->get_statement(std::format(R"(
-        SELECT * FROM file_info WHERE saved_name = '?' AND saved_path = '?';
+        SELECT * FROM file_info WHERE saved_name = ? AND saved_path = ?;
     )"));
     auto data = statement->arg(saved_name).arg(path).query();
     if (data.size() == 0 || data[0].size() == 0)
@@ -91,16 +91,16 @@ std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_saved_name_and_pa
         return std::nullopt;
     }
     ClientFileInfo result;
-    result.file_id = std::get<int>(data[0][0]);
+    result.file_id = std::get<int64_t>(data[0][0]);
     result.saved_name = std::get<std::string>(data[0][1]);
     result.source_path = std::get<std::string>(data[0][2]);
     result.saved_path = std::get<std::string>(data[0][3]);
-    result.file_size = (uint32_t)std::get<int>(data[0][4]);
-    result.operation = static_cast<Operation>(std::get<int>(data[0][5]));
-    result.state = static_cast<FileState>(std::get<int>(data[0][6]));
+    result.file_size = (uint32_t)std::get<int64_t>(data[0][4]);
+    result.operation = static_cast<Operation>(std::get<int64_t>(data[0][5]));
+    result.state = static_cast<FileState>(std::get<int64_t>(data[0][6]));
     result.md5_code = std::get<std::string>(data[0][7]);
-    result.create_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::get<int>(data[0][8])));
-    result.finished_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::get<int>(data[0][9])));
+    result.create_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::get<int64_t>(data[0][8])));
+    result.finished_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::get<int64_t>(data[0][9])));
     return result;
 }
 

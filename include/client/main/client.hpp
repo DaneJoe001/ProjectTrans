@@ -16,3 +16,5 @@ void init_database();
 void clear_database();
 
 void set_logger();
+
+void clear_log();

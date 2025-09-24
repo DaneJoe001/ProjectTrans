@@ -29,6 +29,10 @@ public:
      * @brief 初始化
      */
     void init();
+signals:
+    void row_clicked(int32_t row);
+public slots:
+    void on_cell_clicked(const QModelIndex& index);
 private:
     /// @brief 布局
     QVBoxLayout* m_layout;

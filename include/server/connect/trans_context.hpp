@@ -54,6 +54,8 @@ public:
      */
     void destroy(std::shared_ptr<ISocketContext> context);
     void handle_download_request(const RequestInfo& request_info);
+    void handle_upload_request(const RequestInfo& request_info);
+    void handle_test_request(const RequestInfo& request_info);
 private:
     /// @brief 用于回显测试用
     DaneJoe::MTQueue<uint8_t> m_queue = DaneJoe::MTQueue<uint8_t>(4096);
