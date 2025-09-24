@@ -23,6 +23,7 @@ class TransDialog;
 class NewDownloadDialog;
 class NewUploadDialog;
 class FileTransInfoWidget;
+class TransManager;
 
 /**
  * @class ClientMainWindow
@@ -118,4 +119,5 @@ private:
     /// @brief 是否已初始化
     bool m_is_init = false;
     int32_t m_selected_task_index = -1;
+    TransManager* m_trans_manager = nullptr;
 };

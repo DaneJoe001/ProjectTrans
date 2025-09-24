@@ -144,6 +144,9 @@ void TransContext::on_send()
     case RequestType::Test:
         handle_test_request(request_info);
         break;
+    case RequestType::Block:
+        handle_block_request(request_info);
+        break;
     default:
         break;
     }
@@ -209,6 +212,21 @@ void TransContext::handle_test_request(const RequestInfo& request_info)
     m_send_buffer->push(response_vector.begin(), response_vector.end());
 }
 
+void TransContext::handle_block_request(const RequestInfo& request_info)
+{
+    if (request_info.type != RequestType::Test)
+    {
+        DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle download request: request type is not download");
+        return;
+    }
+    auto value_it = request_info.info.find("value");
+    if (value_it == request_info.info.end())
+    {
+        return;
+    }
+    DANEJOE_LOG_TRACE("default", "TransContext", "Received block request: {}", value_it->second);
+}
+
 std::shared_ptr<ISocketContext> TransContextCreator::create()
 {
     return std::make_shared<TransContext>();
@@ -266,6 +284,28 @@ TransContext::RequestInfo TransContext::parse_request(const std::vector<uint8_t>
     {
         //example: /test?content=file.txt
         result.type = RequestType::Test;
+        auto question_pos = url.find("?");
+        auto equal_pos = url.find("=");
+        if (question_pos == std::string::npos || equal_pos == std::string::npos)
+        {
+            DANEJOE_LOG_ERROR("default", "TransContext", "Parse_request failed: {}", url);
+            return result;
+        }
+        auto end_pos = url.find("&");
+        if (end_pos == std::string::npos)
+        {
+            end_pos = url.size();
+        }
+        uint32_t key_length = equal_pos - question_pos - 1;
+        std::string key = url.substr(question_pos + 1, key_length);
+        std::string value = url.substr(equal_pos + 1, end_pos - equal_pos - 1);
+        result.info[key] = value;
+        return result;
+    }
+    auto block_pos = url.find("block");
+    if (block_pos != std::string::npos)
+    {
+        result.type = RequestType::Block;
         auto question_pos = url.find("?");
         auto equal_pos = url.find("=");
         if (question_pos == std::string::npos || equal_pos == std::string::npos)

@@ -23,7 +23,6 @@ class QTextBrowser;
 class QProgressBar;
 class QHBoxLayout;
 class QVBoxLayout;
-class TransManager;
 class ConnectionThread;
 class FileInfoDialog;
 
@@ -90,8 +89,6 @@ private:
     QProgressBar* m_download_progress_bar = nullptr;
     /// @brief 下载信息浏览器
     QTextBrowser* m_download_info_browser = nullptr;
-    /// @brief 传输管理器
-    TransManager* m_trans_manager = nullptr;
     /// @brief 连接线程
     ConnectionThread* m_connection_thread = nullptr;
     /// @brief 文件信息对话框

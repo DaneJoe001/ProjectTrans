@@ -60,3 +60,9 @@ std::list<BlockRequestInfo> MessageHandler::calculate_block_info(const ClientFil
     }
     return result_info;
 }
+
+std::string build_block_request(const BlockRequestInfo& block_request_info)
+{
+    std::string request = "/block?value=" + block_request_info.to_string();
+    return request;
+}

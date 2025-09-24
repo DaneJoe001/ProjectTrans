@@ -16,6 +16,7 @@
 #include "client/view/file_trans_info_widget.hpp"
 #include "common/util/screen_util.hpp"
 #include "client/model/file_trans_info_table_model.hpp"
+#include "client/connect/trans_manager.hpp"
 
 ClientMainWindow::ClientMainWindow(QWidget* parent) :QMainWindow(parent) {}
 
@@ -127,6 +128,8 @@ void ClientMainWindow::init()
     m_file_trans_info_widget->init();
     m_stack_widget->addWidget(m_file_trans_info_widget);
     m_stack_widget->setCurrentIndex(0);
+    m_trans_manager = new TransManager(this);
+    m_trans_manager->init();
 
     //连接测试行为
     connect(m_connection_test_action, &QAction::triggered, this, &ClientMainWindow::on_connection_test_action_triggered);
@@ -229,6 +232,7 @@ void ClientMainWindow::on_start_task_action_triggered()
         QMessageBox::warning(this, "Warning", "Invalid task selected.");
         return;
     }
+    m_trans_manager->add_trans(file_info);
     DANEJOE_LOG_TRACE("default", "MainWindow", "Task file info: {}", file_info.to_string());
     QMessageBox::information(this, "info", "Task will start soon.");
 }
