@@ -45,11 +45,11 @@ void ConnectionThread::run()
         if (m_connection && m_connection->is_connected() && m_connection->is_readable())
         {
             // 当前为非阻塞实现
-            auto data = m_connection->recieve();
+            auto data = m_connection->receive();
             // 当接收到的数据不为空时发送接收到数据的信号
             if (!data.empty())
             {
-                emit data_recieved_signal(data);
+                emit data_received_signal(data);
             }
         }
         // 延时等待，避免忙等待

@@ -15,6 +15,7 @@
 #include "client/connect/message_handler.hpp"
 #include "client/view/file_info_dialog.hpp"
 #include "common/util/screen_util.hpp"
+#include "client/model/file_trans_info_table_model.hpp"
 
 NewDownloadDialog::NewDownloadDialog(QWidget* parent) :QDialog(parent) {}
 
@@ -90,12 +91,16 @@ void NewDownloadDialog::init()
 
     m_file_info_dialog = new FileInfoDialog(this);
     m_file_info_dialog->init();
+    m_file_info_dialog->set_operation(Operation::Download);
 
     m_trans_manager = TransManager::get_instance();
 
+    m_file_info_service.init();
+    m_block_request_info_service.init();
+
     connect(m_download_push_button, &QPushButton::clicked, this, &NewDownloadDialog::on_download_push_button_clicked);
     // 连接文件信息对话框的文件信息设置和线程接收
-    connect(m_connection_thread, &ConnectionThread::data_recieved_signal, m_file_info_dialog, &FileInfoDialog::on_received_raw_file_info);
+    connect(m_connection_thread, &ConnectionThread::data_received_signal, m_file_info_dialog, &FileInfoDialog::on_received_raw_file_info);
     connect(m_file_info_dialog, &FileInfoDialog::info_ok_button_clicked, this, &NewDownloadDialog::ok_to_add_file_info);
     m_is_init = true;
 }
@@ -141,12 +146,43 @@ void NewDownloadDialog::on_download_push_button_clicked()
     m_file_info_dialog->show();
 }
 
-void NewDownloadDialog::ok_to_add_file_info(std::string raw_file_info)
+void NewDownloadDialog::ok_to_add_file_info(std::string raw_file_info, ClientFileInfo file_info)
 {
     if (!m_is_init)
     {
         DANEJOE_LOG_ERROR("default", "NewDownloadDialog", "NewDownloadDialog has not been initialized");
         return;
     }
-    m_download_info_browser->setText(QString::fromStdString(raw_file_info));
+    ClientFileInfo info = MessageHandler::parse_raw_file_info(raw_file_info, Operation::Download);
+    info.saved_name = file_info.saved_name;
+    info.saved_path = file_info.saved_path;
+    info.source_path = m_url_line_edit->text().toStdString();
+
+    /// @todo 使用其他方式持久化配置
+    BlockParamConfig config;
+    config.min_block_size = 102400;
+
+    // 当路径相同时且保存文件名相同时不执行添加
+    auto data = m_file_info_service.get_by_saved_name_and_path(info.saved_name, info.saved_path);
+    if (data.has_value())
+    {
+        QMessageBox::warning(this, "Error", "You can't add task with same saved name and path.");
+        return;
+    }
+    bool is_added_info = m_file_info_service.add(info);
+    if (!is_added_info)
+    {
+        QMessageBox::warning(this, "Error", "Cannot add file info.");
+        return;
+    }
+
+    /// @todo 开线程处理
+    std::list<BlockRequestInfo> block_list = MessageHandler::calculate_block_info(info, config);
+
+    for (auto& block_info : block_list)
+    {
+        m_block_request_info_service.add(block_info);
+    }
+    FileTransInfoTableModel::get_instance()->add(info);
+    m_download_info_browser->setText(QString::fromStdString(info.to_string()));
 }

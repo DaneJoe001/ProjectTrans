@@ -13,9 +13,10 @@
 #ifndef CONSOLE_CLIENT
 int32_t main(int32_t argc, char** argv)
 {
+    set_logger();
     DANEJOE_LOG_TRACE("default", "Client", "Hello,world!");
     // 当需要时清理数据库
-    // clear_database();
+    clear_database();
     // 初始化数据库
     init_database();
     QApplication app(argc, argv);

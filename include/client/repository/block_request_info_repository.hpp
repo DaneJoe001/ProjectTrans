@@ -40,6 +40,9 @@ public:
      * @return 块请求信息列表
      */
     std::vector<BlockRequestInfo> get_all();
+    std::vector<BlockRequestInfo> get_by_file_id(int32_t file_id);
+    std::vector<BlockRequestInfo> get_by_file_id_and_state(int32_t file_id, FileState state);
+    int64_t get_count_by_file_id_and_state(int32_t file_id, FileState state);
     /**
      * @brief 添加块请求信息
      * @param block_info 块请求信息

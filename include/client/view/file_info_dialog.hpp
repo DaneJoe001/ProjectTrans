@@ -12,12 +12,16 @@
 
 #include <QDialog>
 
+#include "client/model/client_file_info.hpp"
+
 class QPushButton;
 class QTextBrowser;
 class QStackedWidget;
 class QVBoxLayout;
 class QHBoxLayout;
 class QLabel;
+class QLineEdit;
+class QFileDialog;
 
 /**
  * @class FileInfoDialog
@@ -37,8 +41,9 @@ public:
      * @brief 初始化
      */
     void init();
+    void set_operation(Operation operation);
 signals:
-    void info_ok_button_clicked(std::string raw_file_info);
+    void info_ok_button_clicked(std::string raw_file_info, ClientFileInfo file_info);
 public slots:
     void on_received_raw_file_info(std::vector<uint8_t> info);
     void on_waiting_cancel_button_clicked();
@@ -47,6 +52,7 @@ public slots:
      */
     void on_info_ok_button_clicked();
     void on_info_cancel_button_clicked();
+    void on_info_saved_path_button_clicked();
 private:
     std::string m_raw_file_info;
 
@@ -61,6 +67,12 @@ private:
     QWidget* m_info_button_widget = nullptr;
     QHBoxLayout* m_info_button_layout = nullptr;
 
+    QLabel* m_info_saved_path_label = nullptr;
+    QLineEdit* m_info_saved_path_line_edit = nullptr;
+    QPushButton* m_info_saved_path_button = nullptr;
+    QWidget* m_info_saved_path_widget = nullptr;
+    QHBoxLayout* m_info_saved_path_layout = nullptr;
+
     QWidget* m_waiting_widget = nullptr;
     QVBoxLayout* m_waiting_layout = nullptr;
     QLabel* m_waiting_text_label = nullptr;
@@ -71,6 +83,6 @@ private:
     QVBoxLayout* m_error_layout = nullptr;
     /// @brief 是否已初始化
     bool m_is_init = false;
-    
 
+    Operation m_operation = Operation::Unknown;
 };

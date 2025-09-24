@@ -8,26 +8,49 @@
 
 #include <memory>
 #include <mutex>
+#include <string>
 
 #include <SQLiteCpp/SQLiteCpp.h>
 
 #include "common/database/i_database.hpp"
 
+class SQLiteDatabase;
+
+class SQLiteStatement :public IStatement
+{
+public:
+    struct ColumnData
+    {
+        SQLite::Column m_column;
+        ColumnData(SQLite::Column column) :m_column(column)
+        {
+        }
+    };
+public:
+    SQLiteStatement(SQLiteDatabase* database, const std::string& statement);
+    void bind(const DataType& value)override;
+    bool execute()override;
+    std::vector<std::vector<DataType>> query()override;
+private:
+    uint32_t m_param_index = 1;
+    std::unique_ptr<SQLite::Statement> m_statement = nullptr;
+};
+
 /**
  * @class DatabaseSQLite
  * @brief SQLite数据库
  */
-class DatabaseSQLite : public IDatabase
+class SQLiteDatabase : public IDatabase
 {
 public:
     /**
      * @brief 构造函数
      */
-    DatabaseSQLite() = default;
+    SQLiteDatabase() = default;
     /**
      * @brief 析构函数
      */
-    ~DatabaseSQLite();
+    ~SQLiteDatabase();
     /**
      * @brief 连接数据库
      */
@@ -48,6 +71,8 @@ public:
      * @brief 获取错误码
      */
     virtual std::string error_code() override;
+    SQLite::Database* get_raw_database();
+    std::unique_ptr<IStatement> get_statement(const std::string statement)override;
 private:
     /// @brief 数据库连接
     std::unique_ptr<SQLite::Database> m_database;

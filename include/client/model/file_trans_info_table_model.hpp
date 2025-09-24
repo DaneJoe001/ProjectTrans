@@ -13,12 +13,13 @@
 
 #include "client/model/trans_info.hpp"
 #include "client/service/block_request_info_service.hpp"
+#include "client/service/client_file_info_service.hpp"
 
-/**
- * @class FileTransInfoTableModel
- * @brief 文件传输信息TableModel
- * @note 单例模式,继承自QAbstractTableModel
- */
+ /**
+  * @class FileTransInfoTableModel
+  * @brief 文件传输信息TableModel
+  * @note 单例模式,继承自QAbstractTableModel
+  */
 class FileTransInfoTableModel : public QAbstractTableModel {
 public:
     /**
@@ -71,10 +72,21 @@ public:
      */
     void add(const TransInfo& trans_info);
     /**
+     * @brief 添加
+     * @param file_info 文件信息
+     */
+    void add(const ClientFileInfo& file_info);
+    /**
      * @brief 删除
      * @param trans_info 传输信息
      */
     void remove(const TransInfo& trans_info);
+    /**
+     * @brief 删除
+     * @param file_info 文件信息
+     */
+    void remove(const ClientFileInfo& file_info);
+
 private:
     /**
      * @brief 构造函数
@@ -90,4 +102,6 @@ private:
     QList<TransInfo> m_trans_info_list;
     /// @brief 块请求信息服务
     BlockRequestInfoService m_block_request_info_service;
+    /// @brief 文件信息服务
+    ClientFileInfoService m_client_file_info_service;
 };

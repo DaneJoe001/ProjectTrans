@@ -13,10 +13,12 @@
 
 #include "client/model/common.hpp"
 
-/**
- * @class ClientFileInfo
- * @brief 客户端文件信息
- */
+ /// @todo 考虑添加临时文件名(用于下载缓存，下载完后重命名)
+
+ /**
+  * @class ClientFileInfo
+  * @brief 客户端文件信息
+  */
 struct ClientFileInfo
 {
     /// @brief 文件ID

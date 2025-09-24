@@ -54,7 +54,7 @@ add_subdirectory(/home/danejoe001/personal_code/code_cpp_library/library_danejoe
 ```
   - 建议：使用 `FetchContent`/`CPM.cmake`/`find_package` + `CMAKE_PREFIX_PATH`，或将第三方以 git submodule 管理，不在工程中硬编码本机路径。
 - **选项命名与拼写/一致性**
-  - `set(BUILD_CLENT on)` 拼写错误，且不是 `option()`，无法从命令行切换；同时 `CMakePresets.json` 使用的是 `BUILD_CLIENT/BUILD_SERVER`，与 CMake 变量名不一致，会导致不可预期行为。
+  - `set(BUILD_CLIENT on)` 拼写错误，且不是 `option()`，无法从命令行切换；同时 `CMakePresets.json` 使用的是 `BUILD_CLIENT/BUILD_SERVER`，与 CMake 变量名不一致，会导致不可预期行为。
 - **Qt 构建宏重复**
   - 已 `CMAKE_AUTOMOC ON` 但仍调用 `qt6_wrap_cpp`，通常二选一，重复会引入维护成本与潜在不一致。
 - **file(GLOB …) 风险**

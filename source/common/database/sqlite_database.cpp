@@ -1,4 +1,6 @@
 #include <filesystem>
+#include <string>
+#include <cstring>
 
 #include "common/database/sqlite_database.hpp"
 #include "log/manage_logger.hpp"
@@ -7,11 +9,145 @@
 
 namespace fs = std::filesystem;
 
-DatabaseSQLite::~DatabaseSQLite()
+SQLiteStatement::SQLiteStatement(SQLiteDatabase* database, const std::string& statement)
+{
+    auto database_ptr = database->get_raw_database();
+    if (!database_ptr)
+    {
+        return;
+    }
+    m_statement = std::make_unique<SQLite::Statement>(*database_ptr, statement);
+}
+
+bool SQLiteStatement::execute()
+{
+    if (!m_statement)
+    {
+        return false;
+    }
+    try
+    {
+        m_statement->exec();
+    }
+    catch (const SQLite::Exception& e)
+    {
+        DANEJOE_LOG_ERROR("default", "DatabaseSQLite", "Failed to execute: {}", e.what());
+        return false;
+    }
+    return true;
+}
+
+std::vector<std::vector<SQLiteStatement::DataType>> SQLiteStatement::query()
+{
+    if (!m_statement)
+    {
+        return std::vector<std::vector<DataType>>();
+    }
+    std::vector<std::vector<DataType>> result;
+    try
+    {
+        while (m_statement->executeStep())
+        {
+            int column_count = m_statement->getColumnCount();
+            std::vector<DataType> row;
+            row.reserve(column_count);
+            for (int i = 0; i < column_count; i++)
+            {
+                auto data = m_statement->getColumn(i);
+                auto type = data.getType();
+                /// @todo 由于暂时未找到对应枚举，暂时以int代替枚举
+                switch (type)
+                {
+                case 0:
+                    row.emplace_back(nullptr);
+                    break;
+                case 1:
+                    row.emplace_back(data.getInt64());
+                    break;
+                case 2:
+                    row.emplace_back(data.getDouble());
+                    break;
+                case 3:
+                    row.emplace_back(data.getText());
+                    break;
+                case 4:
+                {
+                    const void* blob = data.getBlob();
+                    size_t blob_size = data.getBytes();
+                    std::vector<uint8_t> blob_data(blob_size);
+                    std::memcpy(blob_data.data(), blob, blob_size);
+                    row.emplace_back(blob_data);
+                }
+                break;
+                default:
+                    // 处理未知类型
+                    break;
+                }
+            }
+            result.push_back(row);
+        }
+    }
+    catch (const SQLite::Exception& e)
+    {
+        DANEJOE_LOG_ERROR("default", "DatabaseSQLite", "Failed to query: {}", e.what());
+        return std::vector<std::vector<DataType>>();
+    }
+    return result;
+}
+
+void SQLiteStatement::bind(const DataType& value)
+{
+    if (!m_statement)
+    {
+        return;
+    }
+    try
+    {
+        std::visit([this](auto&& arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::nullptr_t>)
+            {
+                m_statement->bind(static_cast<int>(m_param_index));
+            }
+            else if constexpr (std::is_same_v<T, int64_t>)
+            {
+                m_statement->bind(static_cast<int>(m_param_index), arg);
+            }
+            else if constexpr (std::is_same_v<T, double>)
+            {
+                m_statement->bind(static_cast<int>(m_param_index), arg);
+            }
+            else if constexpr (std::is_same_v<T, std::string>)
+            {
+                m_statement->bind(static_cast<int>(m_param_index), arg);
+            }
+            else if constexpr (std::is_same_v<T, std::vector<uint8_t>>)
+            {
+                m_statement->bind(static_cast<int>(m_param_index), arg.data(), static_cast<int>(arg.size()));
+            }
+            }, value);
+        m_param_index++;
+    }
+    catch (const SQLite::Exception& e)
+    {
+        DANEJOE_LOG_ERROR("default", "DatabaseSQLite", "Failed to bind parameter: {}", e.what());
+    }
+}
+
+SQLiteDatabase::~SQLiteDatabase()
 {
 }
 
-bool DatabaseSQLite::connect()
+SQLite::Database* SQLiteDatabase::get_raw_database()
+{
+    return m_database.get();
+}
+
+std::unique_ptr<IStatement> SQLiteDatabase::get_statement(const std::string statement)
+{
+    return std::make_unique<SQLiteStatement>(this, statement);
+}
+bool SQLiteDatabase::connect()
 {
     try
     {
@@ -35,12 +171,11 @@ bool DatabaseSQLite::connect()
         DANEJOE_LOG_ERROR("default", "DatabaseSQLite", "Failed to connect to SQLite database: {}", e.what());
         m_error_message = e.what();
         m_error_code = std::to_string(e.getErrorCode());
-        throw;
     }
     return false;
 }
 
-bool DatabaseSQLite::execute(const std::string& statement)
+bool SQLiteDatabase::execute(const std::string& statement)
 {
     try
     {
@@ -62,13 +197,14 @@ bool DatabaseSQLite::execute(const std::string& statement)
     {
         m_error_message = e.what();
         m_error_code = std::to_string(e.getErrorCode());
-        DANEJOE_LOG_ERROR("default", "DatabaseSQLite", "error message: {}", m_error_message);
+        DANEJOE_LOG_ERROR("default", "DatabaseSQLite", "error message: {},statement: {}", m_error_message, statement);
+        return false;
     }
     DANEJOE_LOG_TRACE("default", "DatabaseSQLite", "查询完毕 {}", statement);
     return true;
 }
 
-std::vector<std::vector<std::string>> DatabaseSQLite::query(const std::string& statement)
+std::vector<std::vector<std::string>> SQLiteDatabase::query(const std::string& statement)
 {
     // 构建查询结果
     std::vector<std::vector<std::string>> result;
@@ -108,13 +244,13 @@ std::vector<std::vector<std::string>> DatabaseSQLite::query(const std::string& s
     return result;
 }
 
-std::string DatabaseSQLite::error_message()
+std::string SQLiteDatabase::error_message()
 {
     // 返回错误消息
     return m_error_message;
 }
 
-std::string DatabaseSQLite::error_code()
+std::string SQLiteDatabase::error_code()
 {
     // 返回错误码
     return m_error_code;
@@ -123,5 +259,5 @@ std::string DatabaseSQLite::error_code()
 std::shared_ptr<IDatabase> SQliteDatabaseCreator::create_database()
 {
     // 创建SQlite数据库对象
-    return std::make_shared<DatabaseSQLite>();
+    return std::make_shared<SQLiteDatabase>();
 }

@@ -125,7 +125,7 @@ std::vector<uint8_t> PosixClientSocket::read(uint32_t size)
             // 其他错误，结束循环
             else
             {
-                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to recieve");
+                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to receive");
                 break;
             }
         }
@@ -256,7 +256,7 @@ std::vector<uint8_t> PosixClientSocket::read_all()
             // 其他错误
             else
             {
-                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to recieve: {}", std::strerror(errno));
+                DANEJOE_LOG_ERROR("default", "PosixClientSocket", "Failed to receive: {}", std::strerror(errno));
                 close();
                 return buffer;
             }

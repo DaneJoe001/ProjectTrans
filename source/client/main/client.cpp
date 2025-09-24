@@ -8,6 +8,18 @@
 
 namespace fs = std::filesystem;
 
+void set_logger()
+{
+    DaneJoe::ILogger::LoggerConfig logger_config;
+    DaneJoe::ILogger::LogOutputSetting output_setting;
+    output_setting.enable_function_name = true;
+    output_setting.enable_line_num = true;
+    output_setting.enable_file_name = true;
+    auto logger = DaneJoe::ManageLogger::get_instance().get_logger("default");
+    logger->set_config(logger_config);
+    logger->set_output_settings(output_setting);
+}
+
 void init_database()
 {
     // 创建数据库配置

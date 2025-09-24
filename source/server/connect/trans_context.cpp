@@ -77,7 +77,7 @@ void TransContext::on_recv()
     std::string str(data.begin(), data.end());
     if (!str.empty())
     {
-        DANEJOE_LOG_INFO("default", "TransContext", "TransContext recieved: {}", str);
+        DANEJOE_LOG_INFO("default", "TransContext", "TransContext received: {}", str);
     }
     for (auto ch : str)
     {
@@ -201,7 +201,7 @@ TransContext::RequestInfo TransContext::parse_request(const std::vector<uint8_t>
     /// @todo 完善多个键值对的处理
     //example: /download?file=file.txt
     std::string url(data.begin(), data.end());
-    DANEJOE_LOG_TRACE("default", "TransContext", "Parse_request recieved: {}", url);
+    DANEJOE_LOG_TRACE("default", "TransContext", "Parse_request received: {}", url);
     // 解析下载请求
     auto pos = url.find("download");
     if (pos != std::string::npos)

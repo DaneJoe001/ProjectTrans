@@ -45,7 +45,7 @@ void ClientConnection::send(const std::vector<uint8_t>& data)
 #endif
 }
 
-std::vector<uint8_t> ClientConnection::recieve()
+std::vector<uint8_t> ClientConnection::receive()
 {
     // 判断socket是否有效
     if (!m_socket.is_valid())

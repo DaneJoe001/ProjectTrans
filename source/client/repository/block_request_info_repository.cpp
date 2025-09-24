@@ -1,4 +1,6 @@
 #include <format>
+#include <variant>
+
 
 #include "client/repository/block_request_info_repository.hpp"
 #include "common/database/database_manager.hpp"
@@ -72,6 +74,81 @@ std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_all()
     }
     return result;
 }
+
+std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_by_file_id(int32_t file_id)
+{
+    // 判断数据库是否初始化
+    if (!m_database)
+    {
+        DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
+        return std::vector<BlockRequestInfo>();
+    }
+    // 查询所有数据
+    auto data = m_database->query(std::format(R"(SELECT * FROM block_request_info where file_id = {};)", file_id));
+    // 构建结果
+    std::vector<BlockRequestInfo> result = std::vector<BlockRequestInfo>(data.size());
+    // 遍历填充结果
+    for (int32_t i = 0;i < data.size();i++)
+    {
+        result[i] = BlockRequestInfo(
+            std::stoi(data[i][0]),
+            std::stoi(data[i][1]),
+            std::stoi(data[i][2]),
+            std::stoi(data[i][3]),
+            static_cast<Operation>(std::stoi(data[i][4])),
+            static_cast<FileState>(std::stoi(data[i][5])),
+            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][6]))),
+            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][7])))
+        );
+    }
+    return result;
+}
+
+int64_t BlockRequestInfoRepository::get_count_by_file_id_and_state(int32_t file_id, FileState state)
+{
+    if (!m_database)
+    {
+        DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
+        return 0;
+    }
+    auto statement = m_database->get_statement(std::format(R"(
+        SELECT COUNT(*) FROM block_request_info where file_id = ? and state = ?;)"));
+    auto result = statement->arg(file_id).arg(static_cast<int>(state)).query();
+    if (result.size() > 0 && result[0].size() > 0)
+    {
+        return std::get<int64_t>(result[0][0]);
+    }
+    return 0;
+}
+
+std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_by_file_id_and_state(int32_t file_id, FileState state)
+{
+    if (!m_database)
+    {
+        DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
+        return std::vector<BlockRequestInfo>();
+    }
+    // 查询所有数据
+    auto data = m_database->query(std::format(R"(SELECT * FROM block_request_info where file_id = {} and state = {};)", file_id, static_cast<int>(state)));
+    // 构建结果
+    std::vector<BlockRequestInfo> result = std::vector<BlockRequestInfo>(data.size());
+    // 遍历填充结果
+    for (int32_t i = 0;i < data.size();i++)
+    {
+        result[i] = BlockRequestInfo(
+            std::stoi(data[i][0]),
+            std::stoi(data[i][1]),
+            std::stoi(data[i][2]),
+            std::stoi(data[i][3]),
+            static_cast<Operation>(std::stoi(data[i][4])),
+            static_cast<FileState>(std::stoi(data[i][5])),
+            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][6]))),
+            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][7])))
+        );
+    }
+    return result;
+}
+
 bool BlockRequestInfoRepository::add(const BlockRequestInfo& block_info)
 {
     // 判断数据库是否初始化
@@ -80,8 +157,14 @@ bool BlockRequestInfoRepository::add(const BlockRequestInfo& block_info)
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
+    // 这个地方不能添加block_id，由数据库自动递增
+    auto statement = m_database->get_statement(R"(
+        INSERT INTO block_request_info (file_id, offset, block_size, operation, state, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?, ?);)"
+    );
+    bool result = statement->arg(block_info.file_id).arg(block_info.offset).arg(block_info.block_size).arg(static_cast<int>(block_info.operation)).arg(static_cast<int>(block_info.state)).arg(std::chrono::duration_cast<std::chrono::seconds>(block_info.start_time.time_since_epoch()).count()).arg(std::chrono::duration_cast<std::chrono::seconds>(block_info.end_time.time_since_epoch()).count()).execute();
+
     // 执行插入数据并返回是否成功
-    return m_database->execute(std::format(
+    std::string sql = std::format(
         "INSERT INTO block_request_info (block_id, file_id, offset, block_size, operation, state, start_time, end_time) VALUES ({}, {}, {}, {}, {}, {}, {}, {});",
         block_info.block_id,
         block_info.file_id,
@@ -91,7 +174,9 @@ bool BlockRequestInfoRepository::add(const BlockRequestInfo& block_info)
         static_cast<int>(block_info.state),
         std::chrono::duration_cast<std::chrono::seconds>(block_info.start_time.time_since_epoch()).count(),
         std::chrono::duration_cast<std::chrono::seconds>(block_info.end_time.time_since_epoch()).count()
-    ));
+    );
+    // DANEJOE_LOG_DEBUG("default", "BlockRequestInfoRepository", "Statement: {}", sql);
+    return result;
 }
 std::optional<BlockRequestInfo> BlockRequestInfoRepository::get_by_id(int32_t block_id)
 {
