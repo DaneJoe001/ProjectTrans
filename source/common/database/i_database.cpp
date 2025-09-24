@@ -2,17 +2,6 @@
 #include "log/manage_logger.hpp"
 
 
-template<class T>
-IStatement& IStatement::arg(const T& value)
-{
-    /// @todo 使用INT等替代?进行严格的类型审查
-    size_t pos = this->find("?");
-    if (pos != std::string::npos)
-    {
-        this->replace(pos, 1, std::to_string(value));
-    }
-    return *this;
-}
 
 IDatabase::IDatabase() {}
 

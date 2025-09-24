@@ -74,7 +74,7 @@ void ConnectionTestDialog::init()
     /// @note 自定义服务端测试链接
     m_url_line_edit->setText(QString::fromStdString("danejoe://127.0.0.1:8080"));
 
-    connect(m_connection_thread, &ConnectionThread::data_recieved_signal, this, &ConnectionTestDialog::on_message_received);
+    connect(m_connection_thread, &ConnectionThread::data_received_signal, this, &ConnectionTestDialog::on_message_received);
     connect(this, &ConnectionTestDialog::send_data_signal, m_connection_thread, &ConnectionThread::data_send_slot);
     connect(m_send_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_send_push_button_clicked);
     connect(m_connect_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_connect_push_button_clicked);

@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
+#include <variant>
 
  /// @todo 使用format
  /// @todo 考虑是否添加文件名后缀
@@ -27,21 +28,31 @@
   * @note 该类是一个抽象基类，必须实现 replace 方法来替换占位符。
   * @todo 后面再考虑完善实现以适应不同的数据库
   */
-class IStatement :public std::string
+class IStatement
 {
 public:
-    /**
-     * @brief 添加参数到查询语句中。
-     * @param value 参数值。
-     */
+    using DataType = std::variant<std::nullptr_t, int32_t, int64_t, double, std::string, std::vector<uint8_t>>;
+public:
     template<class T>
-    IStatement& arg(const T& value);
-    /**
-     * @brief 替换占位符。
-     * @param placeholder 占位符。
-     * @param value 替换的值。
-     */
-    virtual void replace(const std::string& placeholder, const std::string& value) = 0;
+    IStatement& arg(T value)
+    {
+        bind(to_data_type(value));
+        return *this;
+    }
+    static DataType to_data_type(const std::nullptr_t&) { return nullptr; }
+    static DataType to_data_type(const char* s) { return std::string{ s ? s : "" }; }
+    static DataType to_data_type(const std::string& s) { return s; }
+    static DataType to_data_type(std::string_view s) { return std::string{ s }; }
+    template <class I, std::enable_if_t<std::is_integral_v<I> && !std::is_same_v<I, bool>, int> = 0>
+    static DataType to_data_type(I v) { return static_cast<int64_t>(v); }
+
+    template <class F, std::enable_if_t<std::is_floating_point_v<F>, int> = 0>
+    static DataType to_data_type(F v) { return static_cast<double>(v); }
+    static DataType to_data_type(const std::vector<uint8_t>& b) { return b; }
+    virtual void bind(const DataType& value) = 0;
+    virtual ~IStatement() = default;
+    virtual bool execute() = 0;
+    virtual std::vector<std::vector<DataType>> query() = 0;
 };
 
 /**
@@ -77,12 +88,12 @@ public:
     virtual bool connect() = 0;
     /**
      * @brief 执行操作。
-     * @param statement 查询语句。
+     * @DataType statement 查询语句。
      */
     virtual bool execute(const std::string& statement) = 0;
     /**
      * @brief 查询操作。
-     * @param statement 查询语句。
+     * @DataType statement 查询语句。
      */
     virtual std::vector<std::vector<std::string>> query(const std::string& statement) = 0;
     /**
@@ -95,28 +106,29 @@ public:
     virtual std::string error_code() = 0;
     /**
      * @brief 设置数据库路径。
-     * @param path 数据库路径。
+     * @DataType path 数据库路径。
      */
     void set_path(const std::string& path);
     /**
      * @brief 设置用户名。
-     * @param user_name 用户名。
+     * @DataType user_name 用户名。
      */
     void set_user_name(const std::string& user_name);
     /**
      * @brief 设置密码。
-     * @param user_password 密码。
+     * @DataType user_password 密码。
      */
     void set_user_password(const std::string& user_password);
     /**
      * @brief 设置数据库名称。
-     * @param database_name 数据库名称。
+     * @DataType database_name 数据库名称。
      */
     void set_database_name(const std::string& database_name);
     /**
      * @brief 设置数据库配置。
      */
     void set_config(const DatabaseConfig& config);
+    virtual std::unique_ptr<IStatement> get_statement(const std::string statement) = 0;
 protected:
     /// @brief 数据库配置
     DatabaseConfig m_config;

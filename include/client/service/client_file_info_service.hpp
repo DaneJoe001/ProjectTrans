@@ -10,10 +10,10 @@
 
 #include "client/repository/client_file_info_repository.hpp"
 
-/**
- * @class FileInfoService
- * @brief 客户端文件信息服务
- */
+ /**
+  * @class FileInfoService
+  * @brief 客户端文件信息服务
+  */
 class ClientFileInfoService
 {
 public:
@@ -22,6 +22,7 @@ public:
      * @return 客户端文件信息列表
      */
     std::vector<ClientFileInfo> get_all();
+    std::optional<ClientFileInfo> get_by_saved_name_and_path(const std::string& saved_name, const std::string& path);
     /**
      * @brief 添加客户端文件信息
      * @param file_info 客户端文件信息
@@ -52,7 +53,8 @@ public:
      * @return 是否成功
      */
     bool remove(int32_t file_id);
+    void init();
 private:
     /// @brief 客户端文件信息仓库
-    ClientFileInfoRepository file_info_repository;
+    ClientFileInfoRepository m_file_info_repository;
 };

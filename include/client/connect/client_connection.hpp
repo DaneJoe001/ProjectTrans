@@ -36,7 +36,7 @@ public:
      * @brief 接收数据
      * @return 接收的数据
      */
-    std::vector<uint8_t> recieve();
+    std::vector<uint8_t> receive();
     /**
      * @brief 判断是否是同一个服务器
      * @param ip 服务器IP地址

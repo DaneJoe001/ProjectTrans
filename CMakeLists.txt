@@ -39,7 +39,7 @@ file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
     "source/common/util/*.cpp"
 )
 
-set(BUILD_CLENT on)
+set(BUILD_CLIENT on)
 set(BUILD_SERVER on)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
@@ -53,7 +53,7 @@ add_subdirectory(/home/danejoe001/personal_code/code_cpp_library/library_danejoe
 add_subdirectory(/home/danejoe001/personal_code/code_cpp_library/library_danejoe_mt_queue ${CMAKE_BINARY_DIR}/external/danejoe_mt_queue)
 
 
-if(BUILD_CLENT)
+if(BUILD_CLIENT)
     add_executable(client ${CLIENT_SOURCES})
     target_link_libraries(client PRIVATE 
         Qt6::Core 

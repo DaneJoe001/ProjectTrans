@@ -60,7 +60,7 @@ signals:
      * @brief 数据接收信号
      * @param data 数据
      */
-    void data_recieved_signal(const std::vector<uint8_t>& data);
+    void data_received_signal(const std::vector<uint8_t>& data);
     /**
      * @brief 数据发送槽
      * @param data 数据

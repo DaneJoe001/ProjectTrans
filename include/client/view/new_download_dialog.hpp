@@ -8,6 +8,10 @@
 
 #include <QDialog>
 
+#include "client/model/client_file_info.hpp"
+#include "client/service/client_file_info_service.hpp"
+#include "client/service/block_request_info_service.hpp"
+
 class QPushButton;
 class QLineEdit;
 class QLabel;
@@ -41,7 +45,7 @@ public slots:
      * @brief 下载按钮点击
      */
     void on_download_push_button_clicked();
-    void ok_to_add_file_info(std::string raw_file_info);
+    void ok_to_add_file_info(std::string raw_file_info, ClientFileInfo file_info);
 private:
     /// @brief 主布局
     QVBoxLayout* m_main_layout = nullptr;
@@ -79,4 +83,6 @@ private:
     FileInfoDialog* m_file_info_dialog = nullptr;
     /// @brief 是否已初始化
     bool m_is_init = false;
+    ClientFileInfoService m_file_info_service;
+    BlockRequestInfoService m_block_request_info_service;
 };

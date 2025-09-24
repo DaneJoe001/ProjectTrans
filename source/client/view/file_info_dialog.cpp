@@ -4,6 +4,10 @@
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QLineEdit>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QFileInfo>
 
 #include "client/view/file_info_dialog.hpp"
 #include "log/manage_logger.hpp"
@@ -65,10 +69,25 @@ void FileInfoDialog::init()
     m_info_button_layout->setStretch(0, 1);
     m_info_button_layout->setStretch(1, 1);
 
+    m_info_saved_path_widget = new QWidget(m_info_widget);
+    m_info_saved_path_layout = new QHBoxLayout(m_info_saved_path_widget);
+    m_info_saved_path_label = new QLabel("Saved Path:", m_info_saved_path_widget);
+    m_info_saved_path_line_edit = new QLineEdit(m_info_saved_path_widget);
+    m_info_saved_path_line_edit->setText("/home/danejoe001/personal_code/code_cpp_project/cpp_project_trans/resource/client/download/default.test");
+    m_info_saved_path_button = new QPushButton("...", m_info_saved_path_widget);
+    m_info_saved_path_layout->addWidget(m_info_saved_path_label);
+    m_info_saved_path_layout->addWidget(m_info_saved_path_line_edit);
+    m_info_saved_path_layout->addWidget(m_info_saved_path_button);
+    m_info_saved_path_layout->setStretch(0, 1);
+    m_info_saved_path_layout->setStretch(1, 6);
+    m_info_saved_path_layout->setStretch(2, 1);
+
     m_info_layout->addWidget(m_info_text_browser);
+    m_info_layout->addWidget(m_info_saved_path_widget);
     m_info_layout->addWidget(m_info_button_widget);
     m_info_layout->setStretch(0, 8);
     m_info_layout->setStretch(1, 2);
+    m_info_layout->setStretch(2, 2);
 
     m_error_widget = new QWidget(this);
     m_stack_widget->addWidget(m_error_widget);
@@ -79,6 +98,7 @@ void FileInfoDialog::init()
     connect(m_waiting_cancel_button, &QPushButton::clicked, this, &FileInfoDialog::on_waiting_cancel_button_clicked);
     m_is_init = true;
     connect(m_info_cancel_button, &QPushButton::clicked, this, &FileInfoDialog::on_info_cancel_button_clicked);
+    connect(m_info_saved_path_button, &QPushButton::clicked, this, &FileInfoDialog::on_info_saved_path_button_clicked);
 }
 
 void FileInfoDialog::on_received_raw_file_info(std::vector<uint8_t> info)
@@ -101,6 +121,11 @@ void FileInfoDialog::on_waiting_cancel_button_clicked()
     this->hide();
 }
 
+void FileInfoDialog::set_operation(Operation operation)
+{
+    m_operation = operation;
+}
+
 void FileInfoDialog::on_info_ok_button_clicked()
 {
     if (!m_is_init)
@@ -108,9 +133,24 @@ void FileInfoDialog::on_info_ok_button_clicked()
         DANEJOE_LOG_ERROR("default", "FileInfoDialog", "FileInfoDialog has not been initialized");
         return;
     }
-    emit info_ok_button_clicked(m_raw_file_info);
-    m_raw_file_info.clear();
+    /// @todo 修改数据传入方式，添加ClientFileInfo参数
+    QString saved_full_path = m_info_saved_path_line_edit->text();
+    if (saved_full_path.isEmpty())
+    {
+        QMessageBox::warning(this, "Warning", "Saved path cannot be empty");
+        return;
+    }
+    QFileInfo saved_full_path_info(saved_full_path);
+    QString saved_path = saved_full_path_info.absoluteFilePath();
+    QString saved_name = saved_full_path_info.fileName();
+    ClientFileInfo info;
+    info.saved_name = saved_name.toStdString();
+    info.saved_path = saved_path.toStdString();
+    info.operation = m_operation;
     this->hide();
+    emit info_ok_button_clicked(m_raw_file_info, info);
+    m_raw_file_info.clear();
+
 }
 
 void FileInfoDialog::on_info_cancel_button_clicked()
@@ -122,4 +162,10 @@ void FileInfoDialog::on_info_cancel_button_clicked()
     }
     m_raw_file_info.clear();
     this->hide();
+}
+
+void FileInfoDialog::on_info_saved_path_button_clicked()
+{
+    QString saved_path = QFileDialog::getSaveFileName(this, "Save File", "/home/danejoe001/personal_code/code_cpp_project/cpp_project_trans/resource/client/download", "All Files (*)");
+    m_info_saved_path_line_edit->setText(saved_path);
 }

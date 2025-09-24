@@ -18,27 +18,19 @@ void FileTransInfoTableModel::init()
 {
     //初始化块请求信息服务
     m_block_request_info_service.init();
-    // 构建测试数据
-    for (int32_t i = 0; i < 5; ++i)
+    m_client_file_info_service.init();
+    /// @todo 获取文件列表，根据文件id计算块
+    /// 有个地方需要持有块列表，用来分配块请求任务
+    auto file_list = m_client_file_info_service.get_all();
+    for (auto& file_info : file_list)
     {
-        ClientFileInfo file_info;
-        file_info.file_id = i + 1;
-        file_info.saved_name = "file_" + std::to_string(i + 1) + ".txt";
-        file_info.source_path = "/source/path/file_" + std::to_string(i + 1) + ".txt";
-        file_info.saved_path = "/saved/path/file_" + std::to_string(i + 1) + ".txt";
-        file_info.file_size = static_cast<uint32_t>(std::rand() % 10000 + 1); // 随机文件大小 1-10000 字节
-        file_info.operation = (i % 2 == 0) ? Operation::Upload : Operation::Download;
-        file_info.state = (i % 5 == 0) ? FileState::Waiting : (i % 5 == 1) ? FileState::InTransfer : (i % 5 == 2) ? FileState::Completed : FileState::Failed;
-        file_info.md5_code = "md5_" + std::to_string(i + 1);
-        file_info.create_time = std::chrono::system_clock::now() - std::chrono::seconds(std::rand() % 1000);
-        file_info.finished_time = file_info.create_time + std::chrono::seconds(std::rand() % 500); // 随机完成时间
-
         TransInfo trans_info;
         trans_info.file_info = file_info;
-        trans_info.current_count = static_cast<uint32_t>(std::rand() % 10);
-        trans_info.total_count = 10; // 假设总计 10
-
-        m_trans_info_list.append(trans_info);
+        int64_t block_request_info_waiting_count = m_block_request_info_service.get_count_by_file_id_and_state(file_info.file_id, FileState::Waiting);
+        int64_t block_request_info_completed_count = m_block_request_info_service.get_count_by_file_id_and_state(file_info.file_id, FileState::Completed);
+        trans_info.current_count = block_request_info_completed_count;
+        trans_info.total_count = block_request_info_completed_count + block_request_info_waiting_count;
+        m_trans_info_list.push_back(trans_info);
     }
 }
 
@@ -93,7 +85,7 @@ QVariant FileTransInfoTableModel::data(const QModelIndex& index, int32_t role) c
         case 2:
             return QString::fromStdString(m_trans_info_list[row].file_info.source_path);
         case 3:
-            return (quint32)m_trans_info_list[row].file_info.file_size;
+            return QString::fromStdString(m_trans_info_list[row].file_info.saved_path);
         case 4:
         {
             // 将枚举转为字符串
@@ -103,6 +95,8 @@ QVariant FileTransInfoTableModel::data(const QModelIndex& index, int32_t role) c
                 return "Download";
             case Operation::Upload:
                 return "Upload";
+            case Operation::Unknown:
+                return "Unknown";
             default:
                 return QVariant();
             }
@@ -126,10 +120,11 @@ QVariant FileTransInfoTableModel::data(const QModelIndex& index, int32_t role) c
         }
 
         case 6:
-            return QString::fromStdString(m_trans_info_list[row].file_info.source_path);
+            return QString::fromStdString(m_trans_info_list[row].file_info.md5_code);
         case 7:
             return QDateTime::fromSecsSinceEpoch(std::chrono::system_clock::to_time_t(m_trans_info_list[row].file_info.create_time));
         case 8:
+            /// @todo 当完成时间<=创建时间，返回0
             return QDateTime::fromSecsSinceEpoch(std::chrono::system_clock::to_time_t(m_trans_info_list[row].file_info.finished_time));
         case 9:
             return QString("%1%").arg(m_trans_info_list[row].current_count * 100 / m_trans_info_list[row].total_count);
@@ -276,9 +271,30 @@ QVariant FileTransInfoTableModel::headerData(int32_t section, Qt::Orientation or
 }
 void FileTransInfoTableModel::add(const TransInfo& trans_info)
 {
-
+    auto row_count = m_trans_info_list.size();
+    m_trans_info_list.push_back(trans_info);
+    endInsertRows();
 }
 void FileTransInfoTableModel::remove(const TransInfo& trans_info)
+{
+
+}
+
+void FileTransInfoTableModel::add(const ClientFileInfo& file_info)
+{
+    auto row_count = m_trans_info_list.size();
+    beginInsertRows(QModelIndex(), row_count, row_count);
+    TransInfo trans_info;
+    trans_info.file_info = file_info;
+    int64_t block_request_info_waiting_count = m_block_request_info_service.get_count_by_file_id_and_state(file_info.file_id, FileState::Waiting);
+    int64_t block_request_info_completed_count = m_block_request_info_service.get_count_by_file_id_and_state(file_info.file_id, FileState::Completed);
+    trans_info.current_count = block_request_info_completed_count;
+    trans_info.total_count = block_request_info_completed_count + block_request_info_waiting_count;
+    m_trans_info_list.push_back(trans_info);
+    endInsertRows();
+}
+
+void FileTransInfoTableModel::remove(const ClientFileInfo& file_info)
 {
 
 }

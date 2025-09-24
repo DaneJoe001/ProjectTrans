@@ -73,6 +73,37 @@ std::vector<ClientFileInfo> ClientFileInfoRepository::get_all()
     }
     return result;
 }
+
+std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_saved_name_and_path(const std::string& saved_name, const std::string& path)
+{
+    // 判断数据库是否初始化
+    if (!m_database)
+    {
+        DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "Database not initialized");
+        return std::nullopt;
+    }
+    auto statement = m_database->get_statement(std::format(R"(
+        SELECT * FROM file_info WHERE saved_name = '?' AND saved_path = '?';
+    )"));
+    auto data = statement->arg(saved_name).arg(path).query();
+    if (data.size() == 0 || data[0].size() == 0)
+    {
+        return std::nullopt;
+    }
+    ClientFileInfo result;
+    result.file_id = std::get<int>(data[0][0]);
+    result.saved_name = std::get<std::string>(data[0][1]);
+    result.source_path = std::get<std::string>(data[0][2]);
+    result.saved_path = std::get<std::string>(data[0][3]);
+    result.file_size = (uint32_t)std::get<int>(data[0][4]);
+    result.operation = static_cast<Operation>(std::get<int>(data[0][5]));
+    result.state = static_cast<FileState>(std::get<int>(data[0][6]));
+    result.md5_code = std::get<std::string>(data[0][7]);
+    result.create_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::get<int>(data[0][8])));
+    result.finished_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::seconds(std::get<int>(data[0][9])));
+    return result;
+}
+
 bool ClientFileInfoRepository::add(const ClientFileInfo& file_info)
 {
     // 判断数据库是否初始化
@@ -89,12 +120,22 @@ bool ClientFileInfoRepository::add(const ClientFileInfo& file_info)
         DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "File already exists");
         return true;
     }
-    // 执行插入数据并返回是否成功
-    return m_database->execute(std::format(R"(
+    std::unique_ptr<IStatement> statement = m_database->get_statement(R"(
         INSERT INTO file_info (saved_name, source_path, saved_path, file_size, operation, state, md5_code, create_time, finished_time)
-        VALUES ('{}', '{}', '{}', {}, {}, {}, '{}', {}, {});
-    )", file_info.saved_name, file_info.source_path, file_info.saved_path, file_info.file_size, static_cast<int>(file_info.operation), static_cast<int>(file_info.state), file_info.md5_code, std::chrono::duration_cast<std::chrono::seconds>(file_info.create_time.time_since_epoch()).count(), std::chrono::duration_cast<std::chrono::seconds>(file_info.finished_time.time_since_epoch()).count()
-    ));
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    )");
+    DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "File info: {}", file_info.to_string());
+
+    bool result = statement->arg(file_info.saved_name).arg(file_info.source_path).arg(file_info.saved_path).arg(file_info.file_size).arg(static_cast<int>(file_info.operation)).arg(static_cast<int>(file_info.state)).arg(file_info.md5_code).arg(std::chrono::duration_cast<std::chrono::seconds>(file_info.create_time.time_since_epoch()).count()).arg(std::chrono::duration_cast<std::chrono::seconds>(file_info.finished_time.time_since_epoch()).count()).execute();
+
+    // std::string state_ment = std::format(R"(
+    //     INSERT INTO file_info (saved_name, source_path, saved_path, file_size, operation, state, md5_code, create_time, finished_time)
+    //     VALUES ('{}', '{}', '{}', {}, {}, {}, '{}', {}, {});
+    // )", file_info.saved_name, file_info.source_path, file_info.saved_path, file_info.file_size, static_cast<int>(file_info.operation), static_cast<int>(file_info.state), file_info.md5_code, std::chrono::duration_cast<std::chrono::seconds>(file_info.create_time.time_since_epoch()).count(), std::chrono::duration_cast<std::chrono::seconds>(file_info.finished_time.time_since_epoch()).count()
+    // );
+    // // 执行插入数据并返回是否成功
+    // return m_database->execute(state_ment);
+    return result;
 }
 std::optional<ClientFileInfo> ClientFileInfoRepository::get_by_id(int32_t file_id)
 {
