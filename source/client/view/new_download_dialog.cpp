@@ -93,8 +93,6 @@ void NewDownloadDialog::init()
     m_file_info_dialog->init();
     m_file_info_dialog->set_operation(Operation::Download);
 
-    m_trans_manager = TransManager::get_instance();
-
     m_file_info_service.init();
     m_block_request_info_service.init();
 

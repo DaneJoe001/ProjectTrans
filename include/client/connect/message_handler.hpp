@@ -19,4 +19,5 @@ public:
     static UrlResolver::UrlInfo add_account_info(const UrlResolver::UrlInfo& raw_info, const std::string& account, const std::string& password);
     static ClientFileInfo parse_raw_file_info(const std::string& raw_data, Operation operation);
     static std::list<BlockRequestInfo> calculate_block_info(const ClientFileInfo& file_info, const BlockParamConfig& config);
+    static std::string build_block_request(const BlockRequestInfo& block_request_info);
 };
