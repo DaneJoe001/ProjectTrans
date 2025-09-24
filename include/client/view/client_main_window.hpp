@@ -71,6 +71,9 @@ public slots:
      * @brief 新下载动作触发
      */
     void on_new_download_action_triggered();
+    void on_file_trans_selected(int32_t row);
+    void on_start_task_action_triggered();
+    void on_stop_task_action_triggered();
 private:
     /// @brief 是否在连接测试
     bool m_is_on_connection_test = false;
@@ -114,4 +117,5 @@ private:
     FileTransInfoWidget* m_file_trans_info_widget = nullptr;
     /// @brief 是否已初始化
     bool m_is_init = false;
+    int32_t m_selected_task_index = -1;
 };

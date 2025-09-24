@@ -125,8 +125,19 @@ QVariant FileTransInfoTableModel::data(const QModelIndex& index, int32_t role) c
             return QDateTime::fromSecsSinceEpoch(std::chrono::system_clock::to_time_t(m_trans_info_list[row].file_info.create_time));
         case 8:
             /// @todo 当完成时间<=创建时间，返回0
-            return QDateTime::fromSecsSinceEpoch(std::chrono::system_clock::to_time_t(m_trans_info_list[row].file_info.finished_time));
+            if (m_trans_info_list[row].file_info.finished_time <= m_trans_info_list[row].file_info.create_time)
+            {
+                return "-";
+            }
+            else
+            {
+                return QDateTime::fromSecsSinceEpoch(std::chrono::system_clock::to_time_t(m_trans_info_list[row].file_info.finished_time));
+            }
         case 9:
+            if (m_trans_info_list[row].total_count == 0)
+            {
+                return "-";
+            }
             return QString("%1%").arg(m_trans_info_list[row].current_count * 100 / m_trans_info_list[row].total_count);
         default:
             return QVariant();
@@ -297,4 +308,13 @@ void FileTransInfoTableModel::add(const ClientFileInfo& file_info)
 void FileTransInfoTableModel::remove(const ClientFileInfo& file_info)
 {
 
+}
+
+ClientFileInfo FileTransInfoTableModel::get_file_info(int32_t index)
+{
+    if (index >= 0 && index < m_trans_info_list.size())
+    {
+        return m_trans_info_list[index].file_info;
+    }
+    return ClientFileInfo();
 }

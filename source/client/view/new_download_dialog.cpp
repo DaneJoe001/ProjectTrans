@@ -47,11 +47,11 @@ void NewDownloadDialog::init()
     m_url_line_edit = new QLineEdit(this);
     /// @note 自定义服务端测试链接
     m_url_line_edit->setText("danejoe://127.0.0.1:8080/download?file_id=1");
-    m_download_push_button = new QPushButton("Download", this);
+    m_add_download_push_button = new QPushButton("Add download", this);
 
     m_url_layout->addWidget(m_url_label);
     m_url_layout->addWidget(m_url_line_edit);
-    m_url_layout->addWidget(m_download_push_button);
+    m_url_layout->addWidget(m_add_download_push_button);
     m_url_layout->setStretch(0, 1);
     m_url_layout->setStretch(1, 8);
     m_url_layout->setStretch(2, 1);
@@ -98,13 +98,40 @@ void NewDownloadDialog::init()
     m_file_info_service.init();
     m_block_request_info_service.init();
 
-    connect(m_download_push_button, &QPushButton::clicked, this, &NewDownloadDialog::on_download_push_button_clicked);
+    m_is_handle_trans_file_info_thread_running = true;
+    m_handle_trans_file_info_thread = std::thread([this]() {
+        while (m_is_handle_trans_file_info_thread_running.load())
+        {
+            auto trans_info_optional = m_handle_trans_file_info_queue.pop();
+            if (trans_info_optional.has_value())
+            {
+                auto trans_info = trans_info_optional.value();
+                std::list<BlockRequestInfo> block_list = MessageHandler::calculate_block_info(trans_info.file_info, trans_info.block_param_config);
+
+                for (auto& block_info : block_list)
+                {
+                    m_block_request_info_service.add(block_info);
+                }
+                FileTransInfoTableModel::get_instance()->add(trans_info.file_info);
+            }
+        }
+        });
+
+    connect(m_add_download_push_button, &QPushButton::clicked, this, &NewDownloadDialog::on_download_push_button_clicked);
     // 连接文件信息对话框的文件信息设置和线程接收
     connect(m_connection_thread, &ConnectionThread::data_received_signal, m_file_info_dialog, &FileInfoDialog::on_received_raw_file_info);
     connect(m_file_info_dialog, &FileInfoDialog::info_ok_button_clicked, this, &NewDownloadDialog::ok_to_add_file_info);
     m_is_init = true;
 }
-
+NewDownloadDialog::~NewDownloadDialog()
+{
+    m_is_handle_trans_file_info_thread_running.store(false);
+    m_handle_trans_file_info_queue.close();
+    if (m_handle_trans_file_info_thread.joinable())
+    {
+        m_handle_trans_file_info_thread.join();
+    }
+}
 void NewDownloadDialog::on_download_push_button_clicked()
 {
     if (!m_is_init)
@@ -156,6 +183,7 @@ void NewDownloadDialog::ok_to_add_file_info(std::string raw_file_info, ClientFil
     ClientFileInfo info = MessageHandler::parse_raw_file_info(raw_file_info, Operation::Download);
     info.saved_name = file_info.saved_name;
     info.saved_path = file_info.saved_path;
+    info.operation = Operation::Download;
     info.source_path = m_url_line_edit->text().toStdString();
 
     /// @todo 使用其他方式持久化配置
@@ -175,14 +203,7 @@ void NewDownloadDialog::ok_to_add_file_info(std::string raw_file_info, ClientFil
         QMessageBox::warning(this, "Error", "Cannot add file info.");
         return;
     }
-
-    /// @todo 开线程处理
-    std::list<BlockRequestInfo> block_list = MessageHandler::calculate_block_info(info, config);
-
-    for (auto& block_info : block_list)
-    {
-        m_block_request_info_service.add(block_info);
-    }
-    FileTransInfoTableModel::get_instance()->add(info);
+    m_handle_trans_file_info_queue.push(TransFileInfo{ info,config });
     m_download_info_browser->setText(QString::fromStdString(info.to_string()));
+    QMessageBox::information(this, "Success", "Add file info success. Please wait for moment.");
 }

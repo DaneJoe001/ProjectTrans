@@ -26,6 +26,7 @@ ClientFileInfo MessageHandler::parse_raw_file_info(const std::string& raw_data, 
     file_name.resize(256);
     result_info.source_path.resize(256);
     result_info.md5_code.resize(128);
+    result_info.operation = operation;
 
     int matched = std::sscanf(raw_data.c_str(),
         "file_id: %d, file_name: %255[^,], resource_path: %255[^,], file_size: %u, md5_code: %127s",

@@ -5,6 +5,7 @@
 #include <QStackedWidget>
 #include <QString>
 #include <QScreen>
+#include <QMessageBox>
 
 #include "client/view/client_main_window.hpp"
 #include "log/manage_logger.hpp"
@@ -14,6 +15,7 @@
 #include "client/view/trans_dialog.hpp"
 #include "client/view/file_trans_info_widget.hpp"
 #include "common/util/screen_util.hpp"
+#include "client/model/file_trans_info_table_model.hpp"
 
 ClientMainWindow::ClientMainWindow(QWidget* parent) :QMainWindow(parent) {}
 
@@ -131,6 +133,9 @@ void ClientMainWindow::init()
     connect(m_new_download_action, &QAction::triggered, this, &ClientMainWindow::on_new_download_action_triggered);
     connect(m_new_upload_action, &QAction::triggered, this, &ClientMainWindow::on_new_upload_action_triggered);
     connect(m_connection_test_dialog, &QDialog::finished, this, &ClientMainWindow::on_connection_test_dialog_closed);
+    connect(m_file_trans_info_widget, &FileTransInfoWidget::row_clicked, this, &ClientMainWindow::on_file_trans_selected);
+    connect(m_start_task_action, &QAction::triggered, this, &ClientMainWindow::on_start_task_action_triggered);
+    connect(m_stop_task_action, &QAction::triggered, this, &ClientMainWindow::on_stop_task_action_triggered);
 
     startTimer(1000);
     m_is_init = true;
@@ -189,4 +194,64 @@ void ClientMainWindow::on_new_download_action_triggered()
     }
     DANEJOE_LOG_TRACE("default", "MainWindow", "on_new_download_action_triggered");
     m_new_download_dialog->show();
+}
+
+void ClientMainWindow::on_file_trans_selected(int32_t row)
+{
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
+        return;
+    }
+    DANEJOE_LOG_TRACE("default", "MainWindow", "on_file_trans_selected");
+    if (row < 0)
+    {
+        return;
+    }
+    m_selected_task_index = row;
+}
+
+void ClientMainWindow::on_start_task_action_triggered()
+{
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
+        return;
+    }
+    if (m_selected_task_index < 0)
+    {
+        QMessageBox::warning(this, "Warning", "Currently, no tasks have been selected.");
+        return;
+    }
+    auto file_info = FileTransInfoTableModel::get_instance()->get_file_info(m_selected_task_index);
+    if (file_info.file_id < 0)
+    {
+        QMessageBox::warning(this, "Warning", "Invalid task selected.");
+        return;
+    }
+    DANEJOE_LOG_TRACE("default", "MainWindow", "Task file info: {}", file_info.to_string());
+    QMessageBox::information(this, "info", "Task will start soon.");
+}
+
+void ClientMainWindow::on_stop_task_action_triggered()
+{
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
+        return;
+    }
+    if (m_selected_task_index < 0)
+    {
+        QMessageBox::warning(this, "Warning", "Currently, no tasks have been selected.");
+        return;
+    }
+    auto file_info = FileTransInfoTableModel::get_instance()->get_file_info(m_selected_task_index);
+    if (file_info.file_id < 0)
+    {
+        QMessageBox::warning(this, "Warning", "Invalid task selected.");
+        return;
+    }
+
+    DANEJOE_LOG_TRACE("default", "MainWindow", "Task file info: {}", file_info.to_string());
+    QMessageBox::information(this, "info", "Task will stop soon.");
 }
