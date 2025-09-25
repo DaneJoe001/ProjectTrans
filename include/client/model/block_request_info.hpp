@@ -12,6 +12,9 @@
 
 #include "client/model/common.hpp"
 
+/**
+ * @brief 块参数配置
+ */
 struct BlockParamConfig
 {
   /// @brief 块最小尺寸

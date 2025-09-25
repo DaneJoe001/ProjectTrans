@@ -8,6 +8,10 @@
 
 #include "common/network/i_socket.hpp"
 
+/**
+ * @class ISocketMonitor
+ * @brief 套接字监控器接口
+ */
 class ISocketMonitor
 {
 public:

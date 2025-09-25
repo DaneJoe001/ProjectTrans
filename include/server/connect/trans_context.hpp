@@ -20,19 +20,36 @@
 class TransContext : public ISocketContext
 {
 public:
+    /**
+     * @enum RequestType
+     * @brief 请求类型
+     */
     enum class RequestType
     {
+        /// @brief 下载
         Download,
+        /// @brief 上传
         Upload,
+        /// @brief 块
         Block,
+        /// @brief 测试
         Test
     };
+    /**
+     * @struct RequestInfo
+     * @brief 请求信息
+     */
     struct RequestInfo
     {
+        /// @brief 请求类型
         RequestType type;
+        /// @brief 请求信息
         std::unordered_map<std::string, std::string> info;
     };
 public:
+    /**
+     * @brief 构造函数
+     */
     TransContext();
     /**
      * @brief 接收数据回调
@@ -53,9 +70,24 @@ public:
      * @brief 销毁传输上下文，当前仅执行解注册
      */
     void destroy(std::shared_ptr<ISocketContext> context);
+    /**
+     * @brief 处理下载请求
+     * @param request_info 请求信息
+     */
     void handle_download_request(const RequestInfo& request_info);
+    /**
+     * @brief 处理上传请求
+     */
     void handle_upload_request(const RequestInfo& request_info);
+    /**
+     * @brief 处理测试请求
+     * @param request_info 请求信息
+     */
     void handle_test_request(const RequestInfo& request_info);
+    /**
+     * @brief 处理块请求
+     * @param request_info 请求信息
+     */
     void handle_block_request(const RequestInfo& request_info);
 private:
     /// @brief 用于回显测试用
@@ -87,5 +119,9 @@ public:
     std::shared_ptr<ISocketContext> create(
         std::shared_ptr<DaneJoe::MTQueue<uint8_t>> recv_buffer,
         std::shared_ptr<DaneJoe::MTQueue<uint8_t>> send_buffer)override;
+    /**
+     * @brief 销毁传输上下文
+     * @param context 传输上下文
+     */
     void destroy(std::shared_ptr<ISocketContext> context)override;
 };

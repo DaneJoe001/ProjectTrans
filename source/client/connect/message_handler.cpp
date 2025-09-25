@@ -6,9 +6,13 @@
 
 UrlResolver::UrlInfo MessageHandler::add_account_info(const UrlResolver::UrlInfo& raw_info, const std::string& account, const std::string& password)
 {
+    // 拷贝原始信息
     UrlResolver::UrlInfo result_info = raw_info;
+    // 检查协议
     if (raw_info.protocol == UrlResolver::UrlProtocol::DANEJOE)
     {
+        // 添加账户信息
+        // @todo 加密
         result_info.path += "?account=" + account + "&password=" + password;
     }
     return result_info;
@@ -27,7 +31,7 @@ ClientFileInfo MessageHandler::parse_raw_file_info(const std::string& raw_data, 
     result_info.source_path.resize(256);
     result_info.md5_code.resize(128);
     result_info.operation = operation;
-
+    // 简易提取文件信息
     int matched = std::sscanf(raw_data.c_str(),
         "file_id: %d, file_name: %255[^,], resource_path: %255[^,], file_size: %u, md5_code: %127s",
         &result_info.file_id,
@@ -35,7 +39,7 @@ ClientFileInfo MessageHandler::parse_raw_file_info(const std::string& raw_data, 
         result_info.source_path.data(),
         &result_info.file_size,
         result_info.md5_code.data());
-
+    // 初始化文件状态
     result_info.state = FileState::Waiting;
     result_info.create_time = std::chrono::system_clock::now();
     return result_info;
@@ -45,6 +49,7 @@ std::list<BlockRequestInfo> MessageHandler::calculate_block_info(const ClientFil
 {
     /// @todo 根据硬件以及手动设置，来完成更具体地请求分块
     std::list<BlockRequestInfo> result_info;
+    // 当前仅根据块最小大小来计算
     uint32_t block_size = config.min_block_size;
     uint32_t current_index = 0;
     while (current_index < file_info.file_size)
@@ -63,6 +68,7 @@ std::list<BlockRequestInfo> MessageHandler::calculate_block_info(const ClientFil
 
 std::string build_block_request(const BlockRequestInfo& block_request_info)
 {
+    // 当前简易版本请求，仅发送文件块字符串
     std::string request = "/block?value=" + block_request_info.to_string();
     return request;
 }

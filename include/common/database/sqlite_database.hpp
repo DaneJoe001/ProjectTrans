@@ -16,9 +16,16 @@
 
 class SQLiteDatabase;
 
+/**
+ * @class SQLiteStatement
+ * @brief SQLite语句
+ */
 class SQLiteStatement :public IStatement
 {
-public:
+private:
+    /**
+     * @brief 列数据
+     */
     struct ColumnData
     {
         SQLite::Column m_column;
@@ -27,12 +34,31 @@ public:
         }
     };
 public:
+    /**
+     * @brief 构造函数
+     * @param database 数据库
+     * @param statement 语句
+     */
     SQLiteStatement(SQLiteDatabase* database, const std::string& statement);
+    /**
+     * @brief 绑定参数
+     * @param value 参数值
+     */
     void bind(const DataType& value)override;
+    /**
+     * @brief 执行语句
+     * @return 是否执行成功
+     */
     bool execute()override;
+    /**
+     * @brief 查询数据
+     * @return 数据
+     */
     std::vector<std::vector<DataType>> query()override;
 private:
+    /// @brief 参数索引
     uint32_t m_param_index = 1;
+    /// @brief 语句
     std::unique_ptr<SQLite::Statement> m_statement = nullptr;
 };
 
@@ -71,7 +97,16 @@ public:
      * @brief 获取错误码
      */
     virtual std::string error_code() override;
+    /**
+     * @brief 获取原始数据库
+     * @return 原始数据库
+     */
     SQLite::Database* get_raw_database();
+    /**
+     * @brief 获取语句
+     * @param statement 语句
+     * @return 语句
+     */
     std::unique_ptr<IStatement> get_statement(const std::string statement)override;
 private:
     /// @brief 数据库连接

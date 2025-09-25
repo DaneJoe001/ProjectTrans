@@ -54,6 +54,10 @@ public:
      * @param data 数据
      */
 signals:
+    /**
+     * @brief 发送数据信号
+     * @param data 数据
+     */
     void send_data_signal(const std::vector<uint8_t>& data);
 public slots:
     /**
@@ -96,5 +100,6 @@ private:
     ConnectionThread* m_connection_thread = nullptr;
     /// @brief 是否已初始化
     bool m_is_init = false;
+    /// @brief URL信息
     UrlResolver::UrlInfo m_url_info;
 };

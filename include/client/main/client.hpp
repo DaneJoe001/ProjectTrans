@@ -15,6 +15,12 @@ void init_database();
  */
 void clear_database();
 
+/**
+ * @brief 设置日志
+ */
 void set_logger();
 
+/**
+ * @brief 清除日志
+ */
 void clear_log();
