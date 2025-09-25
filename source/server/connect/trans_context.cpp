@@ -214,9 +214,9 @@ void TransContext::handle_test_request(const RequestInfo& request_info)
 
 void TransContext::handle_block_request(const RequestInfo& request_info)
 {
-    if (request_info.type != RequestType::Test)
+    if (request_info.type != RequestType::Block)
     {
-        DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle download request: request type is not download");
+        DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle download request: request type is not block");
         return;
     }
     auto value_it = request_info.info.find("value");
