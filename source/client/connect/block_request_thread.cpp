@@ -1,5 +1,7 @@
 #include "client/connect/block_request_thread.hpp"
 #include "log/manage_logger.hpp"
+#include "client/connect/connection_manager.hpp"
+#include "common/network/url_resolver.hpp"
 
 void BlockRequestThread::init(std::shared_ptr<DaneJoe::MTQueue<BlockRequestInfo>> block_task_queue)
 {
@@ -24,6 +26,8 @@ void BlockRequestThread::run()
         }
         auto block_request_info = block_request_info_opt.value();
         DANEJOE_LOG_TRACE("default", "BlockRequestThread", "Reques block: {}", block_request_info.to_string());
+        // auto url_info = UrlResolver::parse(block_request_info.source_path);
+        // auto connection_guard = ConnectionManager::get_instance().get_connection_guard(block_request_info.ip, block_request_info.port);
         /// @todo 获取连接后开始请求
         /// @todo 完成请求并写入文件后发送完成信号，完成数据库更新
         emit block_request_finished(block_request_info.file_id, block_request_info.block_id);

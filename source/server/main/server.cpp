@@ -15,8 +15,14 @@
 #include "server/connect/trans_context.hpp"
 #include "server/view/server_main_window.hpp"
 #include "server/connect/server_trans.hpp"
+#include "server/connect/http_context.hpp"
 
 #define USE_SERVER_TRANS
+
+#define DANEJOE_PROTOCOL 1
+#define HTTP_PROTOCOL 2
+
+#define PROTOCOL_TYPE 1
 
 namespace fs = std::filesystem;
 
@@ -92,7 +98,11 @@ void run_server()
     // 创建服务器套接字
     std::unique_ptr<PosixServerSocket> server = std::make_unique<PosixServerSocket>("0.0.0.0", 8080, option);
     // 创建上下文创建者
+#if PROTOCOL_TYPE == DANEJOE_PROTOCOL
     std::unique_ptr<ISocketContextCreator> context_creator = std::make_unique<TransContextCreator>();
+#elif PROTOCOL_TYPE == HTTP_PROTOCOL
+    std::unique_ptr<ISocketContextCreator> context_creator = std::make_unique<HttpContextCreator>();
+#endif
     // 创建事件循环
     EpollEventLoop loop(std::move(server), std::move(context_creator));
 #ifdef USE_SERVER_TRANS

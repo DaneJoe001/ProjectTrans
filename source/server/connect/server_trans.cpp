@@ -22,7 +22,7 @@ ServerTrans::~ServerTrans()
     }
 }
 
-bool ServerTrans::register_trans(std::shared_ptr<TransContext> trans)
+bool ServerTrans::register_trans(std::shared_ptr<ISocketContext> trans)
 {
     // 在有效的情况下插入set
     if (!trans)
@@ -34,7 +34,7 @@ bool ServerTrans::register_trans(std::shared_ptr<TransContext> trans)
     return true;
 }
 
-void ServerTrans::unregister_trans(std::shared_ptr<TransContext> trans)
+void ServerTrans::unregister_trans(std::shared_ptr<ISocketContext> trans)
 {
     auto it = m_trans_set.find(trans);
     if (it == m_trans_set.end())

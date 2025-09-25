@@ -11,7 +11,8 @@
 #include <unordered_set>
 #include <atomic>
 
-#include "server/connect/trans_context.hpp"
+ // #include "server/connect/trans_context.hpp"
+#include "common/network/i_socket_context.hpp"
 
  /**
   * @class ServerTrans
@@ -28,12 +29,12 @@ public:
      * @brief 注册传输
      * @param trans 传输
      */
-    bool register_trans(std::shared_ptr<TransContext> trans);
+    bool register_trans(std::shared_ptr<ISocketContext> trans);
     /**
      * @brief 注销传输
      * @param trans 传输
      */
-    void unregister_trans(std::shared_ptr<TransContext> trans);
+    void unregister_trans(std::shared_ptr<ISocketContext> trans);
     /**
      * @brief 接收数据处理
      */
@@ -55,7 +56,7 @@ private:
     ~ServerTrans();
 private:
     /// @brief 传输上下文列表
-    std::unordered_set<std::shared_ptr<TransContext>> m_trans_set;
+    std::unordered_set<std::shared_ptr<ISocketContext>> m_trans_set;
     std::atomic<bool> m_is_running = false;
     std::thread m_recv_thread;
     std::thread m_send_thread;
