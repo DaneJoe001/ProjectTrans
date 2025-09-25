@@ -72,8 +72,18 @@ public slots:
      * @brief 新下载动作触发
      */
     void on_new_download_action_triggered();
+    /**
+     * @brief 文件传输选中
+     * @param row 行
+     */
     void on_file_trans_selected(int32_t row);
+    /**
+     * @brief 开始任务动作触发
+     */
     void on_start_task_action_triggered();
+    /**
+     * @brief 停止任务动作触发
+     */
     void on_stop_task_action_triggered();
 private:
     /// @brief 是否在连接测试
@@ -118,6 +128,8 @@ private:
     FileTransInfoWidget* m_file_trans_info_widget = nullptr;
     /// @brief 是否已初始化
     bool m_is_init = false;
+    /// @brief 选中任务索引
     int32_t m_selected_task_index = -1;
+    /// @brief 传输管理器
     TransManager* m_trans_manager = nullptr;
 };

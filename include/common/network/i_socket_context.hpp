@@ -42,6 +42,7 @@ public:
 protected:
     /// @brief 接收缓冲区
     std::shared_ptr<DaneJoe::MTQueue<uint8_t>> m_recv_buffer = nullptr;
+    /// @brief 发送缓冲区
     std::shared_ptr<DaneJoe::MTQueue<uint8_t>> m_send_buffer = nullptr;
 };
 
@@ -59,6 +60,8 @@ public:
     virtual std::shared_ptr<ISocketContext> create() = 0;
     /**
      * @brief 创建套接字上下文
+     * @param recv_buffer 接收缓冲区
+     * @param send_buffer 发送缓冲区
      * @return 套接字上下文
      */
     virtual std::shared_ptr<ISocketContext> create(

@@ -41,6 +41,12 @@ public:
      * @return 客户端文件信息列表
      */
     std::vector<ClientFileInfo> get_all();
+    /**
+     * @brief 获取客户端文件信息
+     * @param saved_name 保存名称
+     * @param path 路径
+     * @return 客户端文件信息
+     */
     std::optional<ClientFileInfo> get_by_saved_name_and_path(const std::string& saved_name, const std::string& path);
     /**
      * @brief 添加客户端文件信息

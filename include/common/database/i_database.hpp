@@ -25,33 +25,89 @@
   * @brief Statement 类用于表示数据库查询语句。
   * 该类继承自 std::string，并提供了参数化查询的功能。
   * 可以通过 arg 方法添加参数到查询语句中。
-  * @note 该类是一个抽象基类，必须实现 replace 方法来替换占位符。
   * @todo 后面再考虑完善实现以适应不同的数据库
   */
 class IStatement
 {
 public:
+    /// @brief DataType包含数据库常用类型
     using DataType = std::variant<std::nullptr_t, int32_t, int64_t, double, std::string, std::vector<uint8_t>>;
 public:
+    /*
+     * @brief 添加参数到查询语句中
+     * @tparam T 参数类型
+     * @param value 参数值
+     * @return 查询语句
+     */
     template<class T>
     IStatement& arg(T value)
     {
         bind(to_data_type(value));
         return *this;
     }
+    /**
+     * @brief 将nullptr转换为DataType
+     * @param s 字符串
+     * @return DataType
+     */
     static DataType to_data_type(const std::nullptr_t&) { return nullptr; }
+    /**
+     * @brief 将字符串转换为DataType
+     * @param s 字符串
+     * @return DataType
+     */
     static DataType to_data_type(const char* s) { return std::string{ s ? s : "" }; }
+    /**
+     * @brief 将字符串转换为DataType
+     * @param s 字符串
+     * @return DataType
+     */
     static DataType to_data_type(const std::string& s) { return s; }
+    /**
+     * @brief 将字符串视图转换为DataType
+     * @param s 字符串视图
+     * @return DataType
+     */
     static DataType to_data_type(std::string_view s) { return std::string{ s }; }
+    /**
+     * @brief 将整数转换为DataType
+     * @param v 整数
+     * @return DataType
+     */
     template <class I, std::enable_if_t<std::is_integral_v<I> && !std::is_same_v<I, bool>, int> = 0>
     static DataType to_data_type(I v) { return static_cast<int64_t>(v); }
 
+    /**
+     * @brief 将浮点数转换为DataType
+     * @param v 浮点数
+     * @return DataType
+     */
     template <class F, std::enable_if_t<std::is_floating_point_v<F>, int> = 0>
     static DataType to_data_type(F v) { return static_cast<double>(v); }
+    /**
+     * @brief 将字节数组转换为DataType
+     * @param b 字节数组
+     * @return DataType
+     */
     static DataType to_data_type(const std::vector<uint8_t>& b) { return b; }
+    /**
+     * @brief 绑定参数
+     * @param value 参数值
+     */
     virtual void bind(const DataType& value) = 0;
+    /**
+     * @brief 析构函数
+     */
     virtual ~IStatement() = default;
+    /**
+     * @brief 执行查询语句
+     * @return 是否执行成功
+     */
     virtual bool execute() = 0;
+    /**
+     * @brief 查询数据
+     * @return 数据
+     */
     virtual std::vector<std::vector<DataType>> query() = 0;
 };
 

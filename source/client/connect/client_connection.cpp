@@ -9,6 +9,7 @@
 
 ClientConnection::ClientConnection(const std::string& ip, uint16_t port) :m_ip(ip), m_port(port), m_socket(ip, port)
 {
+    // 设置套接字非阻塞模式
     m_socket.set_non_blocking(true);
 }
 ClientConnection::~ClientConnection()

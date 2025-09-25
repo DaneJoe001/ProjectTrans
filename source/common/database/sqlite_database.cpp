@@ -11,6 +11,7 @@ namespace fs = std::filesystem;
 
 SQLiteStatement::SQLiteStatement(SQLiteDatabase* database, const std::string& statement)
 {
+    // 获取数据库原始指针
     auto database_ptr = database->get_raw_database();
     if (!database_ptr)
     {
@@ -103,6 +104,7 @@ void SQLiteStatement::bind(const DataType& value)
     }
     try
     {
+        // 根据不同的数据类型，进行绑定
         std::visit([this](auto&& arg) {
             using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, std::nullptr_t>)
@@ -126,6 +128,7 @@ void SQLiteStatement::bind(const DataType& value)
                 m_statement->bind(static_cast<int>(m_param_index), arg.data(), static_cast<int>(arg.size()));
             }
             }, value);
+        // 更新参数索引
         m_param_index++;
     }
     catch (const SQLite::Exception& e)
@@ -140,6 +143,7 @@ SQLiteDatabase::~SQLiteDatabase()
 
 SQLite::Database* SQLiteDatabase::get_raw_database()
 {
+    // 返回原始指针
     return m_database.get();
 }
 
@@ -171,6 +175,7 @@ bool SQLiteDatabase::connect()
         DANEJOE_LOG_ERROR("default", "DatabaseSQLite", "Failed to connect to SQLite database: {}", e.what());
         m_error_message = e.what();
         m_error_code = std::to_string(e.getErrorCode());
+        return false;
     }
     return false;
 }

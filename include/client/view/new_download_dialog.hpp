@@ -32,7 +32,9 @@ class FileInfoDialog;
  */
 struct TransFileInfo
 {
+    /// @brief 文件信息
     ClientFileInfo file_info;
+    /// @brief 块参数配置
     BlockParamConfig block_param_config;
 };
 
@@ -49,6 +51,9 @@ public:
      * @param parent 父窗口
      */
     NewDownloadDialog(QWidget* parent = nullptr);
+    /**
+     * @brief 析构函数
+     */
     ~NewDownloadDialog();
     /**
      * @brief 初始化
@@ -59,6 +64,11 @@ public slots:
      * @brief 下载按钮点击
      */
     void on_download_push_button_clicked();
+    /**
+     * @brief 接收原始文件信息信号
+     * @param raw_file_info 原始文件信息
+     * @param file_info 文件信息
+     */
     void ok_to_add_file_info(std::string raw_file_info, ClientFileInfo file_info);
 private:
     /// @brief 主布局
@@ -95,10 +105,14 @@ private:
     FileInfoDialog* m_file_info_dialog = nullptr;
     /// @brief 是否已初始化
     bool m_is_init = false;
+    /// @brief 文件信息服务
     ClientFileInfoService m_file_info_service;
+    /// @brief 块请求信息服务
     BlockRequestInfoService m_block_request_info_service;
     /// @brief 文件传输信息处理线程
     std::thread m_handle_trans_file_info_thread;
+    /// @brief 是否已处理文件信息线程运行
     std::atomic<bool> m_is_handle_trans_file_info_thread_running = false;
+    /// @brief 文件传输信息队列
     DaneJoe::MTQueue<TransFileInfo> m_handle_trans_file_info_queue;
 };

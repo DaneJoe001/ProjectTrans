@@ -18,16 +18,20 @@ void FileTransInfoTableModel::init()
 {
     //初始化块请求信息服务
     m_block_request_info_service.init();
+    // 初始化文件信息服务
     m_client_file_info_service.init();
-    /// @todo 获取文件列表，根据文件id计算块
-    /// 有个地方需要持有块列表，用来分配块请求任务
+    // 获取所有文件信息
     auto file_list = m_client_file_info_service.get_all();
     for (auto& file_info : file_list)
     {
         TransInfo trans_info;
         trans_info.file_info = file_info;
+        // 查找对应文件等待块的数量
         int64_t block_request_info_waiting_count = m_block_request_info_service.get_count_by_file_id_and_state(file_info.file_id, FileState::Waiting);
+        // 查找对应文件块已经完成的数量
         int64_t block_request_info_completed_count = m_block_request_info_service.get_count_by_file_id_and_state(file_info.file_id, FileState::Completed);
+        // 更新传输信息当前块的数量
+        /// @todo TransManager中的信息需要更新
         trans_info.current_count = block_request_info_completed_count;
         trans_info.total_count = block_request_info_completed_count + block_request_info_waiting_count;
         m_trans_info_list.push_back(trans_info);

@@ -225,6 +225,8 @@ void TransContext::handle_block_request(const RequestInfo& request_info)
         return;
     }
     DANEJOE_LOG_TRACE("default", "TransContext", "Received block request: {}", value_it->second);
+    std::string response_str = "Server received request!";
+    m_send_buffer->push(response_str.begin(), response_str.end());
 }
 
 std::shared_ptr<ISocketContext> TransContextCreator::create()

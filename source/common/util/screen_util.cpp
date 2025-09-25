@@ -57,6 +57,7 @@ QRect ScreenUtil::RectInfo::to_qrect() const
 
 ScreenUtil::RectInfo ScreenUtil::get_screen_rect(uint32_t screen_index)
 {
+    // 获取屏幕列表
     QList<QScreen*> screens = QGuiApplication::screens();
     DANEJOE_LOG_TRACE("default", "ScreenUtil", "Screen count: {}", screens.size());
     if (screen_index >= screens.size())

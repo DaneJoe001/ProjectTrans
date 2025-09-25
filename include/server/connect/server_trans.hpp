@@ -11,7 +11,6 @@
 #include <unordered_set>
 #include <atomic>
 
- // #include "server/connect/trans_context.hpp"
 #include "common/network/i_socket_context.hpp"
 
  /**
@@ -52,12 +51,21 @@ public:
      */
     void stop_loop();
 private:
+    /**
+     * @brief 构造函数
+     */
     ServerTrans();
+    /**
+     * @brief 析构函数
+     */
     ~ServerTrans();
 private:
     /// @brief 传输上下文列表
     std::unordered_set<std::shared_ptr<ISocketContext>> m_trans_set;
+    /// @brief 是否运行
     std::atomic<bool> m_is_running = false;
+    /// @brief 接收线程
     std::thread m_recv_thread;
+    /// @brief 发送线程
     std::thread m_send_thread;
 };

@@ -53,6 +53,9 @@ public:
      * @return 是否成功
      */
     bool remove(int32_t file_id);
+    /**
+     * @brief 初始化
+     */
     void init();
 private:
     /// @brief 客户端文件信息仓库

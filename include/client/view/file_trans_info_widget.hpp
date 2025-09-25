@@ -30,8 +30,15 @@ public:
      */
     void init();
 signals:
+    /**
+     * @brief 行点击信号
+     * @param row 行
+     */
     void row_clicked(int32_t row);
 public slots:
+    /**
+     * @brief 单元格点击槽函数
+     */
     void on_cell_clicked(const QModelIndex& index);
 private:
     /// @brief 布局
