@@ -99,7 +99,9 @@
         "qstackedwidget": "cpp",
         "qthread": "cpp",
         "unordered_set": "cpp",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "queue": "cpp",
+        "qlabel": "cpp"
     },
     "commentTranslate.browse.mode": "contrast"
 }

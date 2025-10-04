@@ -2,6 +2,7 @@
 #include "log/manage_logger.hpp"
 #include "client/connect/connection_manager.hpp"
 #include "common/network/url_resolver.hpp"
+#include "client/connect/message_handler.hpp"
 
 void BlockRequestThread::init(std::shared_ptr<DaneJoe::MTQueue<BlockRequestInfo>> block_task_queue)
 {
@@ -39,10 +40,7 @@ void BlockRequestThread::run()
         }
         // 获取块请求信息
         auto block_request_info = block_request_info_opt.value();
-        // 构建块请求信息，当前只使用简单构建的字符串
-        /// @todo 完成信息序列化和构建
-        auto request_str = block_request_info.to_string();
-        DANEJOE_LOG_TRACE("default", "BlockRequestThread", "Reques block: {}", request_str);
+        DANEJOE_LOG_TRACE("default", "BlockRequestThread", "Reques block: {}", block_request_info.to_string());
         // 在文件信息表中查找是否有该文件信息记录
         auto m_file_info_it = m_file_info_map->find(block_request_info.file_id);
         if (m_file_info_it == m_file_info_map->end())
@@ -57,6 +55,7 @@ void BlockRequestThread::run()
         {
             continue;
         }
+        auto block_request_data = MessageHandler::build_block_request(block_request_info);
         // 获取连接管理器
         auto& connection_manager = ConnectionManager::get_instance();
         // 添加连接
@@ -69,11 +68,8 @@ void BlockRequestThread::run()
             /// @todo 考虑是否重试
             continue;
         }
-        // 构建请求数据
-        std::vector<uint8_t> request_data = std::vector<uint8_t>(request_str.begin(), request_str.end());
         // 发送数据
-        /// @todo 添加一个std::string参数的接口
-        guard_connection->send(request_data);
+        guard_connection->send(block_request_data);
 
         // 接收数据响应
         auto response_data = guard_connection->receive();
@@ -84,8 +80,7 @@ void BlockRequestThread::run()
             continue;
         }
         // 从接收的数据构建字符串
-        std::string response_str = std::string(response_data.begin(), response_data.end());
-        DANEJOE_LOG_DEBUG("default", "BlockRequestThread", "response_str: {}", response_str);
+        MessageHandler::parse_block_response(response_data);
         // 发送收到块的信号
         /// @todo 实现线程安全化，在对应槽检查是否完全接收，并验证下载完全
         /// @todo 在TransManager中添加一个槽，接收块信号，并调用相应的方法
@@ -97,6 +92,8 @@ void BlockRequestThread::stop()
 {
     // 更新标志位，停止线程循环
     m_is_running.store(false);
+    quit();
+    wait();
 }
 
 void BlockRequestThread::on_file_state_changed(int32_t file_id, FileState state)
@@ -116,5 +113,5 @@ BlockRequestThread::BlockRequestThread(QObject* parent) :QThread(parent)
 
 BlockRequestThread::~BlockRequestThread()
 {
-
+    stop();
 }

@@ -8,6 +8,8 @@
 #include "log/manage_logger.hpp"
 #include "server/connect/server_trans.hpp"
 #include "server/model/server_file_info.hpp"
+#include "server/connect/message_handler.hpp"
+#include "server/model/block_response_info.hpp"
 
 /// @todo 修复添加长度后的接收问题
 // #define ADD_LENGTH_INFO_TO_RECV
@@ -177,8 +179,7 @@ void TransContext::handle_download_request(const RequestInfo& request_info)
         DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle download request: file info not found");
         return;
     }
-    std::string file_info_str = file_info.to_string();
-    std::vector<uint8_t> file_info_vector(file_info_str.begin(), file_info_str.end());
+    std::vector<uint8_t> file_info_vector = MessageHandler::build_download_response(file_info);
     m_send_buffer->push(file_info_vector.begin(), file_info_vector.end());
 }
 
@@ -219,14 +220,17 @@ void TransContext::handle_block_request(const RequestInfo& request_info)
         DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle download request: request type is not block");
         return;
     }
+    /// @todo 发送方 /block?value=序列化的块信息
     auto value_it = request_info.info.find("value");
     if (value_it == request_info.info.end())
     {
         return;
     }
+
+    BlockResponseInfo info = MessageHandler::build_block_data(value_it->second);
     DANEJOE_LOG_TRACE("default", "TransContext", "Received block request: {}", value_it->second);
-    std::string response_str = "Server received request!";
-    m_send_buffer->push(response_str.begin(), response_str.end());
+    std::vector<uint8_t> response_data = MessageHandler::build_block_response(info);
+    m_send_buffer->push(response_data.begin(), response_data.end());
 }
 
 std::shared_ptr<ISocketContext> TransContextCreator::create()

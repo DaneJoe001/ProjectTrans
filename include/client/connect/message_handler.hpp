@@ -15,10 +15,10 @@
 #include "client/model/client_file_info.hpp"
 #include "client/model/block_request_info.hpp"
 
-/**
- * @brief 消息处理类
- * @details 用于构建和解析消息
- */
+ /**
+  * @brief 消息处理类
+  * @details 用于构建和解析消息
+  */
 class MessageHandler
 {
 public:
@@ -36,7 +36,7 @@ public:
      * @param operation 操作
      * @return 解析后的文件信息
      */
-    static ClientFileInfo parse_raw_file_info(const std::string& raw_data, Operation operation);
+    static ClientFileInfo parse_raw_file_info(const std::vector<uint8_t>& raw_data, Operation operation);
     /**
      * @brief 计算分块数据信息
      * @param file_info 文件信息
@@ -50,5 +50,6 @@ public:
      * @return 构建后的块请求
      * @todo 实现信息序列化
      */
-    static std::string build_block_request(const BlockRequestInfo& block_request_info);
+    static std::vector<uint8_t> build_block_request(const BlockRequestInfo& block_request_info);
+    static void parse_block_response(const std::vector<uint8_t>& raw_data);
 };

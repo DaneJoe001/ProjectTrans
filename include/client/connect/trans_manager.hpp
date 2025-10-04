@@ -50,6 +50,7 @@ public:
      * @brief 初始化
      */
     void init();
+public slots:
 private:
     /// @brief 是否运行
     std::atomic<bool> m_is_running = false;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 /**
  * @file common.hpp
  * @brief 通用枚举
@@ -7,10 +9,10 @@
  */
 
 
-/**
- * @enum FileState
- * @brief 文件状态
- */
+ /**
+  * @enum FileState
+  * @brief 文件状态
+  */
 enum class FileState
 {
     /// @brief 未知
@@ -38,3 +40,7 @@ enum class Operation
     /// @brief 上传
     Upload,
 };
+
+std::string to_string(FileState state);
+
+std::string to_string(Operation operation);

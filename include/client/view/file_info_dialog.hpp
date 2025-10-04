@@ -51,7 +51,7 @@ signals:
      * @brief 接收原始文件信息信号
      * @param info 原始文件信息
      */
-    void info_ok_button_clicked(std::string raw_file_info, ClientFileInfo file_info);
+    void info_ok_button_clicked(ClientFileInfo file_info);
 public slots:
     /**
      * @brief 接收原始文件信息槽函数
@@ -76,7 +76,7 @@ public slots:
     void on_info_saved_path_button_clicked();
 private:
     /// @brief 原始文件信息
-    std::string m_raw_file_info;
+    ClientFileInfo m_info_received;
 
     /// @brief 主布局
     QVBoxLayout* m_main_layout = nullptr;
