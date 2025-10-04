@@ -69,7 +69,7 @@ public slots:
      * @param raw_file_info 原始文件信息
      * @param file_info 文件信息
      */
-    void ok_to_add_file_info(std::string raw_file_info, ClientFileInfo file_info);
+    void ok_to_add_file_info(ClientFileInfo file_info);
 private:
     /// @brief 主布局
     QVBoxLayout* m_main_layout = nullptr;

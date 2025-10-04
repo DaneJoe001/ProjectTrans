@@ -31,6 +31,10 @@ TransManager::~TransManager()
             block_request_thread->stop();
         }
     }
+    if (m_client_file_info_thread.joinable())
+    {
+        m_client_file_info_thread.join();
+    }
 }
 
 void TransManager::add_trans(const ClientFileInfo& info)

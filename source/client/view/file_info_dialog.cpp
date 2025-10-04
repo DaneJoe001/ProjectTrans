@@ -1,3 +1,4 @@
+#include <QString>
 #include <QLabel>
 #include <QPushButton>
 #include <QTextBrowser>
@@ -12,6 +13,8 @@
 #include "client/view/file_info_dialog.hpp"
 #include "log/manage_logger.hpp"
 #include "common/util/screen_util.hpp"
+#include "common/network/danejoe_serializer.hpp"
+#include "client/connect/message_handler.hpp"
 
 FileInfoDialog::FileInfoDialog(QWidget* parent) :QDialog(parent)
 {
@@ -108,9 +111,55 @@ void FileInfoDialog::on_received_raw_file_info(std::vector<uint8_t> info)
         DANEJOE_LOG_ERROR("default", "FileInfoDialog", "FileInfoDialog has not been initialized");
         return;
     }
-    m_raw_file_info = std::string(info.begin(), info.end());
+    m_info_received = MessageHandler::parse_raw_file_info(info, m_operation);
+
+    QString file_info_text = QString(R"(
+        <!DOCTYPE html>
+        <html lang="zh">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>文件信息展示</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                }
+                .file-info {
+                    border: 1px solid #ccc;
+                    padding: 15px;
+                    border-radius: 5px;
+                    background-color: #f9f9f9;
+                }
+                .file-info h2 {
+                    margin-top: 0;
+                }
+                .file-info p {
+                    margin: 5px 0;
+                }
+            </style>
+        </head>
+        <body>
+
+            <div class="file-info">
+                <h2>文件信息</h2>
+                <p><strong>文件ID:</strong> <span id="file_id">%1</span></p>
+                <p><strong>文件名:</strong> <span id="file_name">%2</span></p>
+                <p><strong>文件大小:</strong> <span id="file_size">%3</span></p>
+                <p><strong>MD5码:</strong> <span        id="md5_code">%4</span></p>
+            </div>
+
+        </body>
+        </html>
+        )")
+        .arg(m_info_received.file_id)
+        // 默认saved_name为文件名
+        .arg(QString::fromStdString(m_info_received.saved_name))
+        .arg(m_info_received.file_size)
+        .arg(QString::fromStdString(m_info_received.md5_code));
+
     /// @todo 使用富文本展示文件信息
-    m_info_text_browser->setText(QString::fromStdString(m_raw_file_info));
+    m_info_text_browser->setText(file_info_text);
     // 切换到文件信息界面
     m_stack_widget->setCurrentIndex(1);
 }
@@ -143,13 +192,12 @@ void FileInfoDialog::on_info_ok_button_clicked()
     QFileInfo saved_full_path_info(saved_full_path);
     QString saved_path = saved_full_path_info.absoluteFilePath();
     QString saved_name = saved_full_path_info.fileName();
-    ClientFileInfo info;
-    info.saved_name = saved_name.toStdString();
-    info.saved_path = saved_path.toStdString();
-    info.operation = m_operation;
+    m_info_received.saved_name = saved_name.toStdString();
+    m_info_received.saved_path = saved_path.toStdString();
+    m_info_received.operation = m_operation;
     this->hide();
-    emit info_ok_button_clicked(m_raw_file_info, info);
-    m_raw_file_info.clear();
+    emit info_ok_button_clicked(m_info_received);
+    m_info_received = ClientFileInfo();
 
 }
 
@@ -160,7 +208,7 @@ void FileInfoDialog::on_info_cancel_button_clicked()
         DANEJOE_LOG_ERROR("default", "FileInfoDialog", "FileInfoDialog has not been initialized");
         return;
     }
-    m_raw_file_info.clear();
+    m_info_received = ClientFileInfo();
     this->hide();
 }
 

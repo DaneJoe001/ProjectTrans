@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -6,6 +8,7 @@
 #include <QTextBrowser>
 #include <QProgressBar>
 #include <QMessageBox>
+#include <QDateTime>
 
 #include "client/view/new_download_dialog.hpp"
 #include "client/connect/trans_manager.hpp"
@@ -171,37 +174,87 @@ void NewDownloadDialog::on_download_push_button_clicked()
     m_file_info_dialog->show();
 }
 
-void NewDownloadDialog::ok_to_add_file_info(std::string raw_file_info, ClientFileInfo file_info)
+void NewDownloadDialog::ok_to_add_file_info(ClientFileInfo file_info)
 {
     if (!m_is_init)
     {
         DANEJOE_LOG_ERROR("default", "NewDownloadDialog", "NewDownloadDialog has not been initialized");
         return;
     }
-    ClientFileInfo info = MessageHandler::parse_raw_file_info(raw_file_info, Operation::Download);
-    info.saved_name = file_info.saved_name;
-    info.saved_path = file_info.saved_path;
-    info.operation = Operation::Download;
-    info.source_path = m_url_line_edit->text().toStdString();
+    file_info.operation = Operation::Download;
+    file_info.source_path = m_url_line_edit->text().toStdString();
 
     /// @todo 使用其他方式持久化配置
     BlockParamConfig config;
     config.min_block_size = 102400;
 
     // 当路径相同时且保存文件名相同时不执行添加
-    auto data = m_file_info_service.get_by_saved_name_and_path(info.saved_name, info.saved_path);
+    auto data = m_file_info_service.get_by_saved_name_and_path(file_info.saved_name, file_info.saved_path);
     if (data.has_value())
     {
         QMessageBox::warning(this, "Error", "You can't add task with same saved name and path.");
         return;
     }
-    bool is_added_info = m_file_info_service.add(info);
+    bool is_added_info = m_file_info_service.add(file_info);
     if (!is_added_info)
     {
         QMessageBox::warning(this, "Error", "Cannot add file info.");
         return;
     }
-    m_handle_trans_file_info_queue.push(TransFileInfo{ info,config });
-    m_download_info_browser->setText(QString::fromStdString(info.to_string()));
+    m_handle_trans_file_info_queue.push(TransFileInfo{ file_info,config });
+    QString text = QString(R"(
+        <!DOCTYPE html>
+        <html lang="zh">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>文件信息展示</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                }
+                .file-info {
+                    border: 1px solid #ccc;
+                    padding: 15px;
+                    border-radius: 5px;
+                    background-color: #f9f9f9;
+                }
+                .file-info h2 {
+                    margin-top: 0;
+                }
+                .file-info p {
+                    margin: 5px 0;
+                }
+            </style>
+        </head>
+        <body>
+
+            <div class="file-info">
+                <h2>文件信息</h2>
+                <p><strong>文件ID:</strong> <span id="file_id">%1</span></p>
+                <p><strong>保存名称:</strong> <span id="saved_name">%2</span></p>
+                <p><strong>源路径:</strong> <span id="source_path">%3</span></p>
+                <p><strong>保存路径:</strong> <span id="saved_path">%4</span></p>
+                <p><strong>文件大小:</strong> <span id="file_size">%5</span> 字节</p>
+                <p><strong>操作:</strong> <span id="operation">%6</span></p>
+                <p><strong>文件状态:</strong> <span id="state">%7</span></p>
+                <p><strong>MD5码:</strong> <span id="md5_code">%8</span></p>
+                <p><strong>创建时间:</strong> <span id="create_time">%9</span></p>
+            </div>
+
+        </body>
+        </html>
+        )").
+        arg(file_info.file_id).
+        arg(QString::fromStdString(file_info.saved_name)).
+        arg(QString::fromStdString(file_info.source_path)).
+        arg(QString::fromStdString(file_info.saved_path)).
+        arg(file_info.file_size).
+        arg(QString::fromStdString(to_string(file_info.operation))).
+        arg(QString::fromStdString(to_string(file_info.state))).
+        arg(QString::fromStdString(file_info.md5_code)).
+        arg(QDateTime::fromSecsSinceEpoch(std::chrono::duration_cast<std::chrono::seconds>(file_info.create_time.time_since_epoch()).count()).toString("yyyy-MM-dd hh:mm:ss"));
+    m_download_info_browser->setText(text);
     QMessageBox::information(this, "Success", "Add file info success. Please wait for moment.");
 }
