@@ -35,6 +35,7 @@ void set_logger()
     DaneJoe::ILogger::LogOutputSetting output_setting;
     output_setting.enable_function_name = true;
     output_setting.enable_line_num = true;
+    output_setting.enable_time=false;
     // output_setting.enable_file_name = true;
     auto logger = DaneJoe::ManageLogger::get_instance().get_logger("default");
     logger->set_config(logger_config);
@@ -90,13 +91,23 @@ void run_server()
     /// @todo 设置地址复用，后续再抽象拓展
     int32_t opt_val = 1;
     ISocket::IOption option;
-    option.level = 1;
-    option.opt_name = 2;
-    option.opt_val = &opt_val;
-    option.opt_len = sizeof(opt_val);
+    option.level = SOL_SOCKET;
+    option.opt_name = SO_REUSEADDR|SO_REUSEPORT;
+    option.opt_value = &opt_val;
+    option.opt_length = sizeof(opt_val);
 
     // 创建服务器套接字
     std::unique_ptr<PosixServerSocket> server = std::make_unique<PosixServerSocket>("0.0.0.0", 8080, option);
+
+    if (server->is_valid())
+    {
+        DANEJOE_LOG_TRACE("default", "server", "Server socket create success");
+    }
+    else
+    {
+        DANEJOE_LOG_ERROR("default", "server", "Server socket create failed");
+        return;
+    }
     // 创建上下文创建者
 #if PROTOCOL_TYPE == DANEJOE_PROTOCOL
     std::unique_ptr<ISocketContextCreator> context_creator = std::make_unique<TransContextCreator>();

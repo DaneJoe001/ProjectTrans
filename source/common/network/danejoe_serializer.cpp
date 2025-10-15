@@ -11,6 +11,11 @@ DaneJoe::DaneJoeSerializer::SerializedConfig::SerializedConfig()
 {
 }
 
+uint16_t DaneJoe::DaneJoeSerializer::get_message_header_size()
+{
+    return HEADER_SIZE;
+}
+
 uint32_t DaneJoe::DaneJoeSerializer::MessageHeader::min_serialized_byte_array_size()
 {
     uint32_t size
@@ -99,7 +104,7 @@ std::string DaneJoe::DaneJoeSerializer::MessageHeader::to_string()const
         << " magic_number: " << magic_number
         << ", version: " << static_cast<int>(version) // 使用 static_cast<int> 以确保正确输出 uint8_t
         << ", message_length: " << message_length
-        << ", flag: " << static_cast<int>(flag)
+        << ", flag: " << DaneJoe::to_string(flag)
         << ", checksum: " << checksum
         << ", field_count: " << field_count
         << " }"; // 结束大括号
@@ -267,8 +272,8 @@ std::string DaneJoe::DaneJoeSerializer::Field::to_string()const
     oss << "Field: {"
         << " name_length: " << name_length
         << ", name: " << std::string(name.begin(), name.end())
-        << ", type: " << static_cast<int>(type)
-        << ", flag: " << static_cast<int>(flag)
+        << ", type: " << DaneJoe::to_string(type)
+        << ", flag: " << DaneJoe::to_string(flag)
         << ", value size: " << value.size()
         << " }"; // 结束大括号
 
@@ -434,9 +439,9 @@ std::string DaneJoe::DaneJoeSerializer::ArrayValue::to_string()const
 {
     std::ostringstream oss;
     oss << "ArrayValue: {"
-        << " element_type: " << static_cast<int>(element_type)
+        << " element_type: " << DaneJoe::to_string(element_type)
         << ", element_count: " << element_count
-        << ", flag: " << static_cast<int>(flag)
+        << ", flag: " << DaneJoe::to_string(flag)
         << ", element_value_length size: " << element_value_length.size()
         << ", element_value size: " << element_value.size();
     oss << " }"; // 结束大括号
@@ -498,6 +503,8 @@ void DaneJoe::DaneJoeSerializer::reset_parse()
 {
     m_serialized_byte_array_parsed.clear();
     m_serialized_data_map_parsed.clear();
+    m_parsed_buffer_index = 0;
+    m_is_parsed_header_finished = false;
 }
 
 std::vector<uint8_t>  DaneJoe::DaneJoeSerializer::get_serialized_data_vector_build()noexcept
@@ -572,6 +579,11 @@ void DaneJoe::DaneJoeSerializer::deserialize(const std::string& data)
     deserialize(data_vector);
 }
 
+void DaneJoe::DaneJoeSerializer::deserialize()
+{
+
+}
+
 DaneJoe::DaneJoeSerializer& DaneJoe::DaneJoeSerializer::serialize(const Field& field)
 {
     if (field.name_length > m_serialized_config.max_field_name_length)
@@ -637,6 +649,48 @@ void DaneJoe::DaneJoeSerializer::ensure_enough_capacity_rest_to_build(uint32_t s
     }
 }
 
+void DaneJoe::DaneJoeSerializer::add_data_block_to_parse(const std::vector<uint8_t>& data)
+{
+    // 先判断是否有足够的空间容量
+    uint32_t size_need = m_parsed_buffer_index + data.size();
+    if ( size_need> m_serialized_byte_array_parsed.size())
+    {
+        m_serialized_byte_array_parsed.resize(size_need);
+    }
+    for (const auto& byte : data)
+    {
+        m_serialized_byte_array_parsed[m_parsed_buffer_index++] = byte;
+    }
+}
+
+bool DaneJoe::DaneJoeSerializer::is_frame_complete()
+{
+    if (m_parsed_buffer_index < HEADER_SIZE)
+    {
+        return false;
+    }
+    if (!m_is_parsed_header_finished)
+    {
+        auto header_optional = get_message_header(m_serialized_byte_array_parsed);
+        // 当消息头解析失败时说明帧不完整，需要重置
+        if (!header_optional.has_value())
+        {
+            reset_parse();
+            return false;
+        }
+        m_parsed_message_header = header_optional.value();
+        m_is_parsed_header_finished = true;
+    }
+    /// @todo 可能存在多个帧粘连的情况
+    
+    if (m_parsed_buffer_index < m_parsed_message_header.message_length + HEADER_SIZE)
+    {
+        return false;
+    }
+    return true;
+
+}
+
 DaneJoe::DaneJoeSerializer& DaneJoe::DaneJoeSerializer::serialize(const std::string& data_name, const IDictionary& data)
 {
     /// @todo 后续再完善
@@ -651,6 +705,11 @@ std::optional<DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::get
         return std::nullopt;
     }
     return field_it->second;
+}
+
+std::unordered_multimap<std::string, DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::get_parsed_data_map()const noexcept
+{
+    return m_serialized_data_map_parsed;
 }
 
 std::string DaneJoe::to_string(const DaneJoeSerializer::Field& field)
@@ -717,4 +776,89 @@ std::vector<uint8_t>  DaneJoe::to_dictionary(const DaneJoe::DaneJoeSerializer::F
         return std::vector<uint8_t>();
     }
     return field.value;
+}
+
+std::string DaneJoe::to_string(DaneJoe::DaneJoeSerializer::FieldFlag flag)
+{
+    bool is_valid = false;
+    std::string flag_str;
+    if(has_flag(flag, DaneJoe::DaneJoeSerializer::FieldFlag::HasValueLength))
+    {
+        flag_str += "HasValueLength|";
+        is_valid = true;
+    }
+    if(is_valid)
+    {
+        flag_str.pop_back();
+    }
+    else
+    {
+        flag_str = "None";
+    }
+    return flag_str;
+}
+
+std::string DaneJoe::to_string(DaneJoe::DaneJoeSerializer::ArrayFlag flag)
+{
+    bool is_valid = false;
+    std::string flag_str;
+    if(has_flag(flag, DaneJoe::DaneJoeSerializer::ArrayFlag::IsElementLengthVariable))
+    {
+        flag_str += "IsElementLengthVariable|";
+        is_valid = true;
+    }
+    if(is_valid)
+    {
+        flag_str.pop_back();
+    }
+    else
+    {
+        flag_str = "None";
+    }
+    return flag_str;
+}
+
+std::string DaneJoe::to_string(DaneJoe::DaneJoeSerializer::MapFlag flag)
+{
+    bool is_valid = false;
+    std::string flag_str;
+    if(has_flag(flag, DaneJoe::DaneJoeSerializer::MapFlag::IsKeyLengthVariable))
+    {
+        flag_str += "IsKeyLengthVariable|";
+        is_valid = true;
+    }
+    if(has_flag(flag, DaneJoe::DaneJoeSerializer::MapFlag::IsValueLengthVariable))
+    {
+        flag_str += "IsValueLengthVariable|";
+        is_valid = true;
+    }
+    if(is_valid)
+    {
+        flag_str.pop_back();
+    }
+    else
+    {
+        flag_str = "None";
+    }
+    return flag_str;
+}
+
+std::string DaneJoe::to_string(DaneJoe::DaneJoeSerializer::MessageFlag flag)
+{
+    bool is_valid = false;
+    std::string flag_str;
+    if(has_flag(flag, DaneJoe::DaneJoeSerializer::MessageFlag::HasCheckSum))
+    {
+        flag_str += "HasCheckSum|";
+        is_valid = true;
+    }
+    if(is_valid)
+    {
+        flag_str.pop_back();
+    }
+    else
+    {
+        flag_str = "None";
+    }
+    return flag_str;
 }

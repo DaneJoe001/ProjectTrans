@@ -15,6 +15,7 @@ void set_logger()
     DaneJoe::ILogger::LogOutputSetting output_setting;
     output_setting.enable_function_name = true;
     output_setting.enable_line_num = true;
+    output_setting.enable_time=false;
     // output_setting.enable_file_name = true;
     auto logger = DaneJoe::ManageLogger::get_instance().get_logger("default");
     logger->set_config(logger_config);

@@ -1,13 +1,12 @@
 #pragma once
 
-#include <string>
-
 /**
  * @file common.hpp
  * @brief 通用枚举
  * @author DaneJoe001
  */
 
+#include <string>
 
  /**
   * @enum FileState
@@ -41,6 +40,16 @@ enum class Operation
     Upload,
 };
 
+/**
+ * @brief 将文件状态枚举转换为字符串
+ * @param state 文件状态
+ * @return 文件状态的字符串表示
+ */
 std::string to_string(FileState state);
 
+/**
+ * @brief 将操作枚举转换为字符串
+ * @param operation 操作
+ * @return 操作的字符串表示
+ */
 std::string to_string(Operation operation);

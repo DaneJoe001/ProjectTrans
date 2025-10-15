@@ -28,9 +28,9 @@ public:
         /// @brief 选项名称
         int32_t opt_name;
         /// @brief 选项值
-        void* opt_val = nullptr;
+        void* opt_value = nullptr;
         /// @brief 选项长度
-        int32_t opt_len;
+        int32_t opt_length;
     };
 public:
     virtual ~ISocket() = default;

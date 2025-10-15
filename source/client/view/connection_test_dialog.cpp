@@ -13,6 +13,7 @@
 #include "client/connect/connection_manager.hpp"
 #include "client/connect/connection_thread.hpp"
 #include "common/util/screen_util.hpp"
+#include "client/connect/message_handler.hpp"
 
 ConnectionTestDialog::ConnectionTestDialog(QWidget* parent)
     : QDialog(parent) {
@@ -89,21 +90,16 @@ void ConnectionTestDialog::on_send_push_button_clicked()
         DANEJOE_LOG_ERROR("default", "ConnectionTestDialog", "ConnectionTestDialog has not been initialized");
         return;
     }
-    QString text;
-    if (m_url_info.protocol == UrlResolver::UrlProtocol::DANEJOE)
-    {
-        text.append("test?content=");
-    }
-    text.append(m_send_text_edit->toPlainText());
+    QString text = m_send_text_edit->toPlainText();
+    std::vector<uint8_t> data;
+    data=Client::MessageHandler::build_test_request(m_url_info,text.toStdString());
     m_send_text_edit->clear();
-    auto data = text.toUtf8();
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_send_push_button_clicked():{}", text.toStdString());
     if (!m_connection_thread)
     {
         QMessageBox::warning(this, "Error", "Not connected");
         return;
     }
-
     emit(send_data_signal(std::vector<uint8_t>(data.begin(), data.end())));
 
 }
@@ -118,9 +114,9 @@ void ConnectionTestDialog::on_connect_push_button_clicked()
     QString url = m_url_line_edit->text();
     m_url_info = UrlResolver::parse(url.toStdString());
 
-    DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "URL Parsed:{}:{}:{}", UrlResolver::to_string(m_url_info.protocol), m_url_info.ip, m_url_info.port);
+    DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "URL Parsed:{}", m_url_info.to_string());
 
-    bool is_connect = m_connection_thread->init(m_url_info.ip, m_url_info.port);
+    bool is_connect = m_connection_thread->init(m_url_info.host, m_url_info.port);
     if (is_connect)
     {
         m_connection_thread->start();
@@ -140,7 +136,8 @@ void ConnectionTestDialog::on_message_received(const std::vector<uint8_t>& data)
         return;
     }
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_message_received()");
-    QString text = QString::fromUtf8(QByteArray(reinterpret_cast<const char*>(data.data()), data.size()));
+    auto message_info = Client::MessageHandler::parse_test_response(data);
+    QString text = QString::fromStdString(message_info);
     m_recv_text_browser->append(text);
 }
 

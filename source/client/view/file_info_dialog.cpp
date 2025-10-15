@@ -111,8 +111,13 @@ void FileInfoDialog::on_received_raw_file_info(std::vector<uint8_t> info)
         DANEJOE_LOG_ERROR("default", "FileInfoDialog", "FileInfoDialog has not been initialized");
         return;
     }
-    m_info_received = MessageHandler::parse_raw_file_info(info, m_operation);
-
+    /// @todo 这个地方需要接受的是消息体
+    auto file_info_opt = Client::MessageHandler::parse_download_response(info);
+    if (!file_info_opt.has_value())
+    {
+        DANEJOE_LOG_ERROR("default", "FileInfoDialog", "Failed to parse file info");
+    }
+    m_info_received =file_info_opt.value();
     QString file_info_text = QString(R"(
         <!DOCTYPE html>
         <html lang="zh">

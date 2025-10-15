@@ -20,13 +20,14 @@ extern "C"
 EpollEventLoop::EpollEventLoop(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator)
 {
     // 先检查服务器套接字是否不为空且有效
-    if (!server_socket && server_socket->is_valid())
+    if (!server_socket || !(server_socket->is_valid()))
     {
         DANEJOE_LOG_ERROR("default", "EpollEventLoop", "Failed to create epoll: server socket is null");
         return;
     }
     // 服务器套接字
     m_server_socket = std::move(server_socket);
+    m_server_socket->set_non_blocking(true);
     // 确保服务器套接字为非阻塞模式
     bool is_set_non_blocking = m_server_socket->set_non_blocking(true);
     // 设置失败则退出
@@ -328,6 +329,7 @@ void EpollEventLoop::acceptable_event()
             continue;
         }
         // 确保在处理新连接时仅关注可读事件，而不是可写事件。
+        // if (!add_socket(std::move(client), EventType::Readable | EventType::Writable | EventType::EdgeTriggered | EventType::PeerClosed))
         if (!add_socket(std::move(client), EventType::Readable | EventType::Writable | EventType::EdgeTriggered | EventType::PeerClosed))
         {
             DANEJOE_LOG_ERROR("default", "EpollEventLoop", "add socket failed");
@@ -360,7 +362,7 @@ void EpollEventLoop::readable_event(int32_t socket_id)
     std::vector<uint8_t> data = m_sockets.at(socket_id)->read_all();
     if (!data.empty())
     {
-        DANEJOE_LOG_TRACE("default", "EpollEventLoop", "From socket: {}, read data: {}, data size: {}", socket_id, std::string(data.begin(), data.end()), data.size());
+        DANEJOE_LOG_TRACE("default", "EpollEventLoop", "From socket: {}, data size: {}", socket_id, data.size());
     }
     // 检查读取的长度
     uint32_t data_length = data.size();
@@ -435,7 +437,7 @@ void EpollEventLoop::writable_event(int32_t socket_id)
         std::string send_data = std::string(data_optional.value().begin(), data_optional.value().end());
         if (!send_data.empty() && send_data.length() != 4)
         {
-            DANEJOE_LOG_TRACE("default", "EpollEventLoop", "To socket: {} ,send data: {}, data size: {}", socket_id, send_data, send_data.size());
+            DANEJOE_LOG_TRACE("default", "EpollEventLoop", "To socket: {}, data size: {}", socket_id, send_data.size());
         }
         // 发送数据
         m_sockets.at(socket_id)->write_all(data_optional.value());
