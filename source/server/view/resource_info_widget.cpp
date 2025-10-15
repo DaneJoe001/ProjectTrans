@@ -4,7 +4,7 @@
 
 #include "server/view/resource_info_widget.hpp"
 #include "server/model/server_file_info_table_model.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 
 ResourceInfoWidget::ResourceInfoWidget(QWidget* parent) : QWidget(parent) {}
 void ResourceInfoWidget::init()

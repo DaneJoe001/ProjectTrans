@@ -1,7 +1,7 @@
 #include <cstring>
 
 #include "client/connect/client_connection.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 
 ClientConnection::ClientConnection(const std::string& ip, uint16_t port) :m_ip(ip), m_port(port), m_socket(ip, port)
 {

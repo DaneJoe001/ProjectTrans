@@ -12,7 +12,7 @@
 
 #include <QThread>
 
-#include "mt_queue/mt_queue.hpp"
+#include "common/mt_queue/mt_queue.hpp"
 #include "common/protocol/frame_assembler.hpp"
 #include "client/model/block_request_info.hpp"
 #include "client/model/client_file_info.hpp"

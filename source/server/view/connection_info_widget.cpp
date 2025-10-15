@@ -1,5 +1,5 @@
 #include "server/view/connection_info_widget.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 
 ConnectionInfoWidget::ConnectionInfoWidget(QWidget* parent)
     : QWidget(parent) {

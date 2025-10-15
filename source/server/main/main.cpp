@@ -4,7 +4,7 @@
 #include <atomic>
 #include <QApplication>
 
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "server/main/server.hpp"
 #include "server/view/server_main_window.hpp"
 

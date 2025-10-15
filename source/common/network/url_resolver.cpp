@@ -2,7 +2,7 @@
 #include <cctype>
 
 #include "common/network/url_resolver.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "common/util/print_util.hpp"
 
 std::string UrlResolver::UrlInfo::to_string() const

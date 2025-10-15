@@ -1,6 +1,6 @@
 #include "client/connect/connection_manager.hpp"
 #include "client/connect/trans_manager.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 
 TransManager::TransManager(QObject* parent) :QObject(parent), m_connection_manager(ConnectionManager::get_instance())
 {

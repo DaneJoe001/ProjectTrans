@@ -1,5 +1,5 @@
 #include "client/view/trans_dialog.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "common/util/screen_util.hpp"
 
 TransDialog::TransDialog(QWidget* parent)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0.1)
+cmake_minimum_required(VERSION 3.20)
 
 project(ProjectTrans LANGUAGES CXX)
 
@@ -25,6 +25,8 @@ file(GLOB CLIENT_SOURCES CONFIGURE_DEPENDS
     "source/common/database/*.cpp"
     "source/common/util/*.cpp"
     "source/common/protocol/*.cpp"
+    "source/common/log/*.cpp"
+    "source/common/mt_queue/*.cpp"
 )
 
 file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
@@ -40,6 +42,8 @@ file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
     "source/common/database/*.cpp"
     "source/common/util/*.cpp"
     "source/common/protocol/*.cpp"
+    "source/common/log/*.cpp"
+    "source/common/mt_queue/*.cpp"
 )
 
 set(BUILD_CLIENT on)
@@ -51,10 +55,6 @@ find_package(OpenSSL REQUIRED)
 # 使用add_subdirectory方式添加SQLiteCpp
 add_subdirectory(/home/danejoe001/develop_environment/environment_database/database_sqlite/SQLiteCpp ${CMAKE_BINARY_DIR}/external/sqlitecpp)
 
-# 指定二进制目录
-add_subdirectory(/home/danejoe001/personal_code/code_cpp_library/library_danejoe_log ${CMAKE_BINARY_DIR}/external/danejoe_log)
-add_subdirectory(/home/danejoe001/personal_code/code_cpp_library/library_danejoe_mt_queue ${CMAKE_BINARY_DIR}/external/danejoe_mt_queue)
-
 
 if(BUILD_CLIENT)
     add_executable(client ${CLIENT_SOURCES})
@@ -64,8 +64,6 @@ if(BUILD_CLIENT)
         Qt6::Widgets
     )
     target_include_directories(client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(client PRIVATE DaneJoeLog)
-    target_link_libraries(client PRIVATE DaneJoeMTQueue)
     target_link_libraries(client PRIVATE SQLiteCpp)
     target_link_libraries(client PRIVATE OpenSSL::SSL)
     target_link_libraries(client PRIVATE OpenSSL::Crypto)
@@ -74,8 +72,6 @@ endif()
 if(BUILD_SERVER)
     add_executable(server ${SERVER_SOURCES})
     target_include_directories(server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(server PRIVATE DaneJoeLog)
-    target_link_libraries(server PRIVATE    DaneJoeMTQueue)
     target_link_libraries(server PRIVATE 
         Qt6::Core 
         Qt6::Gui 
