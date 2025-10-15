@@ -90,8 +90,6 @@ public:
 private:
     /// @brief 用于回echo测试用
     DaneJoe::MTQueue<uint8_t> m_queue = DaneJoe::MTQueue<uint8_t>(4096);
-    // 判断是否已接收到长度信息
-    bool is_got_length_info = false;
 };
 
 /**

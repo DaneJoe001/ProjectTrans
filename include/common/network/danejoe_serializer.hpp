@@ -18,7 +18,6 @@
 
 namespace DaneJoe
 {
-
     /**
      * @brief 字典接口
      */
@@ -319,6 +318,16 @@ namespace DaneJoe
          */
         void ensure_enough_capacity_rest_to_build(uint32_t size_need);
         /**
+         * @brief 添加数据块到要解析容器中
+         * @param data 数据块
+         */
+        void add_data_block_to_parse(const std::vector<uint8_t>& data);
+        /**
+         * @brief 判断帧是否完整
+         * @note 当帧出现问题时，会对已接收部分进行重置
+         */
+        bool is_frame_complete();
+        /**
          * @brief 反序列化字节流数据,并存储至内部映射
          */
         void deserialize(const std::vector<uint8_t>& data);
@@ -326,6 +335,10 @@ namespace DaneJoe
          * @brief 反序列化字节流数据(字符串传递),并存储至内部映射
          */
         void deserialize(const std::string& data);
+        /**
+         * @brief 解析内部反序列化数据
+         */
+        void deserialize();
         /**
          * @brief 序列化字节流数据，可递归调用
          * @param filed 字段
@@ -381,6 +394,7 @@ namespace DaneJoe
             if (size > 1)
             {
                 // char*的多元素数据按字符串类型进行处理
+                // 需要区分一下字节流
                 if (std::is_same_v<T, char>)
                 {
                     field.type = DaneJoe::DataType::String;
@@ -455,10 +469,23 @@ namespace DaneJoe
             field.value_length = field.value.size();
             return serialize(field);
         }
+        static uint16_t get_message_header_size();
+        /**
+         * @brief 获取解析的字段映射表
+         * @return 返回字段信息映射表
+         */
+        std::unordered_multimap<std::string, Field> get_parsed_data_map()const noexcept;
     private:
         /// @brief 头部大小固定16字节
-        const uint32_t HEADER_SIZE = 16;
+        static const uint32_t HEADER_SIZE = 16;
     private:
+        /// @brief 接收到的序列化字节流解析的当前下标位置
+        /// @note 用于判断消息头判断，以及长度判断
+        uint32_t m_parsed_buffer_index = 0;
+        /// @brief 完成解析的字节流
+        MessageHeader m_parsed_message_header;
+        /// @brief 是否已经完成解析消息头
+        bool m_is_parsed_header_finished = false;
         /// @brief 构建字节流当前的下标位置，已信息头结束位置开始
         uint32_t m_current_index = HEADER_SIZE;
         /// @brief 逐步构建的序列化字节流
@@ -466,9 +493,9 @@ namespace DaneJoe
         /// @brief 接收到的序列化字节流
         std::vector<uint8_t> m_serialized_byte_array_parsed;
         /// @brief 构建的序列化字节流映射
-        std::unordered_map<std::string, Field> m_serialized_data_map_build;
+        std::unordered_multimap<std::string, Field> m_serialized_data_map_build;
         /// @brief 接收到的序列化字节流映射
-        std::unordered_map<std::string, Field> m_serialized_data_map_parsed;
+        std::unordered_multimap<std::string, Field> m_serialized_data_map_parsed;
         /// @brief 序列化配置
         SerializedConfig m_serialized_config;
 
@@ -559,5 +586,28 @@ namespace DaneJoe
         }
         return to_value<T>(field.value);
     }
-
+    /**
+     * @brief 获取枚举字符串
+     * @param flag 枚举标志
+     * @note 用于日志输出
+     */
+    std::string to_string(DaneJoe::DaneJoeSerializer::MessageFlag flag);
+    /**
+     * @brief 获取枚举字符串
+     * @param flag 枚举标志
+     * @note 用于日志输出
+     */
+    std::string to_string(DaneJoe::DaneJoeSerializer::FieldFlag flag);
+    /**
+     * @brief 获取枚举字符串
+     * @param flag 枚举标志
+     * @note 用于日志输出
+     */
+    std::string to_string(DaneJoe::DaneJoeSerializer::ArrayFlag flag);
+    /**
+     * @brief 获取枚举字符串
+     * @param flag 枚举标志
+     * @note 用于日志输出
+     */
+    std::string to_string(DaneJoe::DaneJoeSerializer::MapFlag flag);
 }

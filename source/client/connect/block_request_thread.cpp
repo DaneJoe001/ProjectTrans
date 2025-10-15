@@ -51,17 +51,17 @@ void BlockRequestThread::run()
         // 从文件源路径中提取url信息
         UrlResolver::UrlInfo url_info = UrlResolver::parse(m_file_info_it->second.source_path);
         // 当前只处理自定义协议
-        if (url_info.protocol != UrlResolver::UrlProtocol::DANEJOE)
+        if (url_info.protocol != UrlResolver::UrlProtocol::Danejoe)
         {
             continue;
         }
-        auto block_request_data = MessageHandler::build_block_request(block_request_info);
+        auto block_request_data = Client::MessageHandler::build_block_request(url_info,block_request_info);
         // 获取连接管理器
         auto& connection_manager = ConnectionManager::get_instance();
         // 添加连接
-        connection_manager.add_connection(url_info.ip, url_info.port);
+        connection_manager.add_connection(url_info.host, url_info.port);
         // 获取连接
-        auto guard_connection = connection_manager.get_connection_guard(url_info.ip, url_info.port);
+        auto guard_connection = connection_manager.get_connection_guard(url_info.host, url_info.port);
         // 检查是否已连接
         if (!guard_connection->is_connected())
         {
@@ -80,7 +80,7 @@ void BlockRequestThread::run()
             continue;
         }
         // 从接收的数据构建字符串
-        MessageHandler::parse_block_response(response_data);
+        Client::MessageHandler::parse_block_response(response_data);
         // 发送收到块的信号
         /// @todo 实现线程安全化，在对应槽检查是否完全接收，并验证下载完全
         /// @todo 在TransManager中添加一个槽，接收块信号，并调用相应的方法

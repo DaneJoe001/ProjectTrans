@@ -1,6 +1,8 @@
 #include "client/connect/connection_thread.hpp"
 #include "client/connect/connection_manager.hpp"
 #include "log/manage_logger.hpp"
+#include "client/connect/message_handler.hpp"
+#include "mt_queue/mt_queue.hpp"
 
 ConnectionThread::ConnectionThread(QObject* parent) :QThread(parent)
 {
@@ -45,11 +47,20 @@ void ConnectionThread::run()
         if (m_connection && m_connection->is_connected() && m_connection->is_readable())
         {
             // 当前为非阻塞实现
-            auto data = m_connection->receive();
-            // 当接收到的数据不为空时发送接收到数据的信号
-            if (!data.empty())
+            auto data_received = m_connection->receive();
+            DANEJOE_LOG_TRACE("default", "ConnectionThread", "received size: {}", data_received.size());
+            m_frame_assembler.push_data(data_received);
+            auto frame_opt = m_frame_assembler.pop_frame();
+            if (!frame_opt.has_value())
             {
-                emit data_received_signal(data);
+                continue;
+            }
+            auto response_info = Client::MessageHandler::parse_response(frame_opt.value());
+            // 当接收到的数据不为空时发送接收到数据的信号
+            if (response_info.has_value())
+            {
+                DANEJOE_LOG_DEBUG("default", "ConnectionThread", "Parsed response body size: {}", response_info->body.size());
+                emit data_received_signal(response_info->body);
             }
         }
         // 延时等待，避免忙等待

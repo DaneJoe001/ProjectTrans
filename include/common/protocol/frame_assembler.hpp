@@ -1,0 +1,35 @@
+#pragma once
+
+#include <vector>
+#include <queue>
+#include <optional>
+#include <cstdint>
+
+#include "common/network/danejoe_serializer.hpp"
+
+// 多个帧
+//有一个问题，我需要尝试对缓冲区尝试解析消息头
+
+namespace DaneJoe
+{
+    void ensure_capacity(std::vector<uint8_t>& vec, size_t size);
+}
+
+class FrameAssembler
+{
+public:
+    void push_data(const std::vector<uint8_t>& data);
+    std::vector<uint8_t> pop_data(uint32_t size);
+    /**
+     * @brief 获取一个完整帧
+     */
+    std::optional<std::vector<uint8_t>> pop_frame();
+    void clear_current_frame();
+private:
+    /// @brief 接收缓冲区
+    std::deque<uint8_t> m_buffer;
+    std::vector<uint8_t> m_current_frame;
+    uint32_t m_current_frame_index = 0;
+    DaneJoe::DaneJoeSerializer::MessageHeader m_current_header;
+    bool m_is_got_header = false;
+};

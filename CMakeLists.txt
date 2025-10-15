@@ -5,6 +5,7 @@ project(ProjectTrans LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_AUTOMOC ON )
 set(CMAKE_AUTORCC ON )
@@ -23,6 +24,7 @@ file(GLOB CLIENT_SOURCES CONFIGURE_DEPENDS
     "source/common/network/*.cpp"
     "source/common/database/*.cpp"
     "source/common/util/*.cpp"
+    "source/common/protocol/*.cpp"
 )
 
 file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
@@ -37,6 +39,7 @@ file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
     "source/common/network/*.cpp"
     "source/common/database/*.cpp"
     "source/common/util/*.cpp"
+    "source/common/protocol/*.cpp"
 )
 
 set(BUILD_CLIENT on)

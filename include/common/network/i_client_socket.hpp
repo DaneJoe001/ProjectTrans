@@ -30,12 +30,12 @@ public:
      */
     virtual void write_all(const std::vector<uint8_t>& data) = 0;
     /**
-     * @brief 发送数据(暂时未区分是否阻塞)
+     * @brief 阻塞直至发送完成
      * @param data 数据
      */
     virtual void write(const std::vector<uint8_t>& data) = 0;
     /**
-     * @brief 接收数据(暂时未区分是否阻塞)
+     * @brief 接收数据至指定长度
      * @param size 数据大小
      * @return 数据
      */

@@ -23,8 +23,8 @@ PosixSocket::PosixOption PosixSocket::to_posix_option(const IOption& option)
     PosixOption posix_option;
     posix_option.level = option.level;
     posix_option.opt_name = option.opt_name;
-    posix_option.opt_val = option.opt_val;
-    posix_option.opt_len = option.opt_len;
+    posix_option.opt_val = option.opt_value;
+    posix_option.opt_len = option.opt_length;
     return posix_option;
 }
 
@@ -54,13 +54,13 @@ bool PosixSocket::set_opt(const IOption& option)
         return false;
     }
     // 判断选项是否为空
-    if (option.opt_val == nullptr)
+    if (option.opt_value == nullptr)
     {
         DANEJOE_LOG_ERROR("default", "PosixSocket", "Failed to set option: option value is null");
         return false;
     }
     // 设置套接字选项
-    int32_t ret = ::setsockopt(m_socket, option.level, option.opt_name, option.opt_val, option.opt_len);
+    int32_t ret = ::setsockopt(m_socket, option.level, option.opt_name, option.opt_value, option.opt_length);
     // 检查设置结果
     if (ret < 0)
     {

@@ -115,5 +115,15 @@ namespace DaneJoe
      * @note 仅支持基础数据类型
      */
     uint32_t get_data_type_length(DataType type);
+    /**
+     * @brief 获取数据类型字符串
+     * @param type 数据类型枚举
+     */
+    std::string to_string(DataType type);
+    /**
+     * @brief 获取数据类型枚举
+     * @param type_code 数据类型标志位
+     */
+    DataType to_data_type(uint8_t type_code);
 
 }

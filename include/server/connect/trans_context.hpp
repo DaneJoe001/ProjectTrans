@@ -9,9 +9,12 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "common/network/i_socket_context.hpp"
 #include "mt_queue/mt_queue.hpp"
+#include "common/network/i_socket_context.hpp"
+#include "common/network/danejoe_serializer.hpp"
+#include "common/protocol/frame_assembler.hpp"
 #include "server/service/server_file_info_service.hpp"
+#include "server/connect/message_handler.hpp"
 
  /**
   * @class TransContext
@@ -19,33 +22,6 @@
   */
 class TransContext : public ISocketContext
 {
-public:
-    /**
-     * @enum RequestType
-     * @brief 请求类型
-     */
-    enum class RequestType
-    {
-        /// @brief 下载
-        Download,
-        /// @brief 上传
-        Upload,
-        /// @brief 块
-        Block,
-        /// @brief 测试
-        Test
-    };
-    /**
-     * @struct RequestInfo
-     * @brief 请求信息
-     */
-    struct RequestInfo
-    {
-        /// @brief 请求类型
-        RequestType type;
-        /// @brief 请求信息
-        std::unordered_map<std::string, std::string> info;
-    };
 public:
     /**
      * @brief 构造函数
@@ -62,39 +38,37 @@ public:
      */
     void on_send()override;
     /**
-     * @brief 解析请求
-     * @param data 请求数据
-     */
-    RequestInfo parse_request(const std::vector<uint8_t>& data);
-    /**
      * @brief 销毁传输上下文，当前仅执行解注册
      */
     void destroy(std::shared_ptr<ISocketContext> context);
     /**
+     * @brief 处理未知请求
+     * @param request_info 请求信息
+     */
+    void handle_unknown_request(const DaneJoe::Protocol::RequestInfo& request_info);
+    /**
      * @brief 处理下载请求
      * @param request_info 请求信息
      */
-    void handle_download_request(const RequestInfo& request_info);
+    void handle_download_request(const DaneJoe::Protocol::RequestInfo& request_info);
     /**
      * @brief 处理上传请求
      */
-    void handle_upload_request(const RequestInfo& request_info);
+    void handle_upload_request(const DaneJoe::Protocol::RequestInfo& request_info);
     /**
      * @brief 处理测试请求
      * @param request_info 请求信息
      */
-    void handle_test_request(const RequestInfo& request_info);
+    void handle_test_request(const DaneJoe::Protocol::RequestInfo& request_info);
     /**
      * @brief 处理块请求
      * @param request_info 请求信息
      */
-    void handle_block_request(const RequestInfo& request_info);
+    void handle_block_request(const DaneJoe::Protocol::RequestInfo& request_info);
 private:
-    /// @brief 用于回显测试用
-    DaneJoe::MTQueue<uint8_t> m_queue = DaneJoe::MTQueue<uint8_t>(4096);
-    // 判断是否已接收到长度信息
-    bool is_got_length_info = false;
-    // 文件信息
+    /// @brief 帧组装器
+    FrameAssembler m_frame_assembler;
+    /// @brief 文件信息服务
     ServerFileInfoService m_file_info_service;
 };
 

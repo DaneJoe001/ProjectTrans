@@ -16,38 +16,73 @@
 
 namespace DaneJoe
 {
+    /**
+     * @brief 无std::to_string分支
+     * @tparam T 类型
+     * @note 模板类::velue返回true或false
+     */
     template <typename T, typename = void>
     struct has_std_to_string : std::false_type
     {
     };
-
+    /**
+     * @brief std::to_string分支
+     * @tparam T 类型
+     */
     template <typename T>
     struct has_std_to_string<T, std::void_t<decltype(std::to_string(std::declval<T>()))>> : std::true_type
     {
     };
-
+    /**
+     * @brief 无to_string成员函数分支
+     * @tparam T 类型
+     */
     template <typename T, typename = void>
     struct has_member_to_string : std::false_type
     {
     };
-
+    /**
+     * @brief to_string成员函数分支
+     * @tparam T 类型
+     */
     template <typename T>
     struct has_member_to_string<T, std::void_t<decltype(std::declval<T>().to_string())>> : std::true_type
     {
     };
-
+    /**
+     * @brief 无迭代器分支
+     * @tparam T 类型
+     */
     template <typename T, typename = void>
     struct has_iterator : std::false_type
     {
     };
-
+    /**
+     * @brief 迭代器分支
+     * @tparam T 类型
+     */
     template <typename T>
     struct has_iterator<T, std::void_t<
         decltype(std::begin(std::declval<T>())),
         decltype(std::end(std::declval<T>()))>> : std::true_type
     {
     };
+    /**
+     * @brief std::pair特化to_string
+     * @tparam Key 键类型
+     * @tparam Value 值类型
+     * @param pair 键值对
+     * @return 转换后的字符串
+     */
+    template<class Key, class Value>
+    std::string to_string(const std::pair<Key, Value>& pair);
 
+    /**
+     * @brief 尝试将变量转为字符串
+     * @tparam T 类型
+     * @param obj 变量
+     * @return 尝试转换后的字符串
+     */
     template<class T>
     std::string try_to_string(const T& obj)
     {
@@ -84,6 +119,11 @@ namespace DaneJoe
         return str;
     }
 
+    /**
+     * @brief 尝试将变量转为字符串
+     * @tparam T 类型
+     * @param value 变量
+     */
     template<class T>
     std::string to_string(const T& value)
     {
@@ -112,7 +152,13 @@ namespace DaneJoe
         }
         return str;
     }
-
+    /**
+     * @brief 尝试将数组转为字符串
+     * @tparam T 类型
+     * @param array 数组
+     * @param count 数组长度
+     * @return 尝试转换后的字符串
+     */
     template<class T>
     std::string to_string(const T* array, std::size_t count = 1)
     {
@@ -123,14 +169,14 @@ namespace DaneJoe
         }
         else if (count == 1)
         {
-            return DaneJoe::try_to_string(*array);
+            return DaneJoe::to_string(*array);
         }
         else
         {
             str += "[";
             for (int i = 0; i < count; i++)
             {
-                str += DaneJoe::try_to_string(*(array + i));
+                str += DaneJoe::to_string(*(array + i));
                 if (i < count - 1)
                 {
                     str += ", ";
@@ -141,6 +187,13 @@ namespace DaneJoe
         return str;
     }
 
+    /**
+     * @brief 尝试将std::pair转为字符串
+     * @tparam Key 键类型
+     * @tparam Value 值类型
+     * @param pair 键值对
+     * @return 尝试转换后的字符串
+     */
     template<class Key, class Value>
     std::string to_string(const std::pair<Key, Value>& pair)
     {
@@ -151,57 +204,4 @@ namespace DaneJoe
         str += "}";
         return str;
     }
-
-    template<class Key, class Value>
-    std::string to_string(const std::map<Key, Value>& map)
-    {
-        std::string str = "[";
-        std::size_t count = map.size();
-        std::size_t index = 0;
-        for (auto begin = map.begin(); begin != map.end(); begin++, index++)
-        {
-            str += to_string(*begin);
-            if (index < count - 1)
-            {
-                str += ", ";
-            }
-        }
-        str += "]";
-        return str;
-    }
-    template<class Key, class Value>
-    std::string to_string(const std::multimap<Key, Value>& map)
-    {
-        std::string str = "[";
-        std::size_t count = map.size();
-        std::size_t index = 0;
-        for (auto begin = map.begin(); begin != map.end(); begin++, index++)
-        {
-            str += to_string(*begin);
-            if (index < count - 1)
-            {
-                str += ", ";
-            }
-        }
-        str += "]";
-        return str;
-    }
-    template<class Key, class Value>
-    std::string to_string(const std::unordered_map<Key, Value>& map)
-    {
-        std::string str = "[";
-        std::size_t count = map.size();
-        std::size_t index = 0;
-        for (auto begin = map.begin(); begin != map.end(); begin++, index++)
-        {
-            str += to_string(*begin);
-            if (index < count - 1)
-            {
-                str += ", ";
-            }
-        }
-        str += "]";
-        return str;
-    }
-
 }

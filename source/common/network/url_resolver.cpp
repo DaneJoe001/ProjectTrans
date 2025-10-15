@@ -3,54 +3,174 @@
 
 #include "common/network/url_resolver.hpp"
 #include "log/manage_logger.hpp"
+#include "common/util/print_util.hpp"
+
+std::string UrlResolver::UrlInfo::to_string() const
+{
+    std::string result=std::format("{{ prtocol: {}, host: {}, port: {}, path: {},query: {} }}",
+        UrlResolver::to_string(protocol),
+        host,
+        port,
+        path,
+        DaneJoe::to_string(query));
+    return result;
+}
 
 UrlResolver::UrlInfo UrlResolver::parse(const std::string& url)
 {
+    /// @todo URL转义解码
     // 构建并初始化Url信息
-    UrlInfo info = { UrlProtocol::UNKNOWN, "", 0, "" };
-    // 查找协议分割
-    auto pos = url.find("://");
+    UrlInfo info;
+    info.protocol = UrlProtocol::Unknown;
+    info.host = "";
+    info.port = 0;
+    info.path = "/";
+    // Url起始下标
+    // http://127.0.0.1:8080/download?file_id=1
+    std::size_t current_pos = 0;
+    // 片段标识符位置
+    auto url_end_pos = url.find("#");
+    // 检查是否存在片段标识符，不存在则以长度为结束位置
+    url_end_pos = (url_end_pos == std::string::npos) ? url.size() : url_end_pos;
+    // 查找协议结束位置
+    auto protocol_end_pos = url.find("://");
     // 找不到时返回空信息
-    if (pos == std::string::npos)
+    if (protocol_end_pos == std::string::npos)
     {
         DANEJOE_LOG_ERROR("default", "UrlResolver", "Invalid URL: {}", url);
         return info;
     }
     // 获取协议字符串
-    std::string protocol_str = url.substr(0, pos);
+    std::string protocol_str = url.substr(current_pos, protocol_end_pos - current_pos);
+    // 转换为协议枚举
     info.protocol = to_protocol(protocol_str);
-    // 端口号标记位置
-    auto port_sign_pos = url.find(":", pos + 3);
-    // 域名结束位置
-    auto ip_end_pos = url.find("/", pos + 3);
-    // 当域名结束位置为空时，则将域名结束位置设置为URL长度
-    if (ip_end_pos == std::string::npos)
+    // 更新当前位置
+    // 127.0.0.1:8080/download?file_id=1
+    current_pos = protocol_end_pos + 3;
+    // 检查是否存在剩余参数
+    if (current_pos > url_end_pos)
     {
-        ip_end_pos = url.size();
+        return info;
+    }
+    // 端口号标记位置
+    /// @todo IPv6支持
+    auto port_sign_pos = url.find(":", current_pos);
+    // 域名结束位置
+    auto host_port_end_pos = url.find("/", current_pos);
+    
+    // 当url不存在路径时，路径结束位置为url结束位置
+    if (host_port_end_pos == std::string::npos)
+    {
+        host_port_end_pos = url_end_pos;
+    }
+    // 当端口号标记位置在域名结束位置之后时，视为不存在端口号
+    if (port_sign_pos > host_port_end_pos)
+    {
+        port_sign_pos = std::string::npos;
     }
     if (port_sign_pos == std::string::npos)
     {
         // 当没有端口号时
-        info.ip = to_ip(url.substr(pos + 3, ip_end_pos - 3));
+        std::string host_str = url.substr(current_pos, host_port_end_pos - current_pos);
+        info.host = to_ip(host_str);
         // 获取默认端口号
         info.port = default_port(info.protocol);
     }
     else
     {
         // 当有端口号时
-        info.ip = to_ip(url.substr(pos + 3, port_sign_pos - protocol_str.size() - 3));
+        std::string host_str = url.substr(current_pos, port_sign_pos - current_pos);
+        info.host = to_ip(host_str);
+        // 更新当前位置
+        // 8080/download?file_id=1
+        current_pos = port_sign_pos + 1;
+        // 检查是否存在剩余参数
+        if (current_pos > url_end_pos)
+        {
+            return info;
+        }
         // 获取端口
-        info.port = std::stoi(url.substr(port_sign_pos + 1, ip_end_pos - port_sign_pos - 1));
+        std::string port_str = url.substr(current_pos, host_port_end_pos - current_pos);
+        info.port = std::stoi(port_str);
+    }
+    // 更新当前位置
+    // download?file_id=1
+    current_pos = host_port_end_pos;
+    // 检查是否存在剩余参数
+    if (current_pos > url_end_pos)
+    {
+        return info;
+    }
+    // 查询参数位置
+    auto query_pos = url.find("?", current_pos);
+
+    // '#'所在位置或者字符串结尾位置
+    std::size_t path_end_pos = url_end_pos;
+
+    // 检查是否存在查询参数
+    if (query_pos != std::string::npos)
+    {
+        // 查询参数标识符位置即路径结束位置
+        path_end_pos = query_pos;
     }
     // 获取路径
-    info.path = url.substr(ip_end_pos);
+    std::string path_str = path_end_pos==current_pos?"/":url.substr(current_pos, path_end_pos - current_pos);
+    info.path = path_str;
+    // 更新当前位置
+    // file_id=1
+    current_pos = path_end_pos + 1;
+    // 检查是否存在剩余参数
+    if (current_pos > url_end_pos)
+    {
+        return info;
+    }
+    while(true)
+    {
+        auto equal_pos = url.find("=", current_pos);
+        if (equal_pos == std::string::npos)
+        {
+            return info;
+        }
+        // 获取查询参数键值对
+        auto query_key = url.substr(current_pos, equal_pos - current_pos);
+        // 更新当前位置
+        current_pos = equal_pos + 1;
+        // 检查是否存在查询参数值
+        if (current_pos > url_end_pos)
+        {
+            return info;
+        }
+        auto and_pos = url.find("&", current_pos);
+        auto query_value_end_pos = and_pos == std::string::npos ? url_end_pos :     and_pos;
+        auto query_value = url.substr(current_pos, query_value_end_pos - current_pos);
+        // 插入查询参数
+        info.query.insert({ query_key,query_value });
+        // 更新当前位置
+        current_pos = query_value_end_pos + 1;
+        // 检查是否存在剩余参数
+        if (current_pos > url_end_pos)
+        {
+            return info;
+        }
+    }
     return info;
 }
 
 std::string UrlResolver::build(const UrlInfo& info)
 {
     // 构建url
-    return std::format("{}://{}:{}{}", to_string(info.protocol), info.ip, info.port, info.path);
+    std::string result = std::format("{}://{}:{}{}", to_string(info.protocol), info.host, info.port, info.path);
+    if (info.query.size() > 0)
+    {
+        result += "?";
+        for (auto& [key, value] : info.query)
+        {
+            result += std::format("{}={}&", key, value);
+        }
+        // 移除最后一个多余的&
+        result.pop_back();
+    }
+    return result;
 }
 
 UrlResolver::UrlProtocol UrlResolver::to_protocol(const std::string& protocol)
@@ -63,19 +183,23 @@ UrlResolver::UrlProtocol UrlResolver::to_protocol(const std::string& protocol)
     }
     if (temp == "http")
     {
-        return UrlProtocol::HTTP;
+        return UrlProtocol::Http;
     }
     else if (temp == "https")
     {
-        return UrlProtocol::HTTPS;
+        return UrlProtocol::Https;
+    }
+    else if(temp=="ftp")
+    {
+        return UrlProtocol::Ftp;
     }
     else if (temp == "danejoe")
     {
-        return UrlProtocol::DANEJOE;
+        return UrlProtocol::Danejoe;
     }
     else
     {
-        return UrlProtocol::UNKNOWN;
+        return UrlProtocol::Unknown;
     }
 }
 
@@ -92,11 +216,13 @@ uint16_t UrlResolver::default_port(UrlProtocol protocol)
     // 获取普通协议默认的端口号
     switch (protocol)
     {
-    case UrlProtocol::HTTP:
+    case UrlProtocol::Http:
         return 80;
-    case UrlProtocol::HTTPS:
+    case UrlProtocol::Https:
         return 443;
-    case UrlProtocol::DANEJOE:
+    case UrlProtocol::Ftp:
+            return 21;
+    case UrlProtocol::Danejoe:
         return 8080;
     default:
         return 0;
@@ -109,12 +235,14 @@ std::string UrlResolver::to_string(UrlProtocol protocol)
     // 从协议枚举转为对应字符串
     switch (protocol)
     {
-    case UrlProtocol::HTTP:
+    case UrlProtocol::Http:
         return "http";
-    case UrlProtocol::HTTPS:
+    case UrlProtocol::Https:
         return "https";
-    case UrlProtocol::DANEJOE:
+    case UrlProtocol::Danejoe:
         return "danejoe";
+    case UrlProtocol::Ftp:
+        return "ftp";
     default:
         return "";
     }

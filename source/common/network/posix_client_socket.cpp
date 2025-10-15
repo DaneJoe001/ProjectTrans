@@ -143,6 +143,7 @@ std::vector<uint8_t> PosixClientSocket::read(uint32_t size)
             has_read += ret;
         }
     }
+    buffer.resize(has_read);
     return buffer;
 }
 

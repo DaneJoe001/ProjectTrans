@@ -107,7 +107,7 @@ void NewDownloadDialog::init()
             if (trans_info_optional.has_value())
             {
                 auto trans_info = trans_info_optional.value();
-                std::list<BlockRequestInfo> block_list = MessageHandler::calculate_block_info(trans_info.file_info, trans_info.block_param_config);
+                std::list<BlockRequestInfo> block_list = Client::MessageHandler::calculate_block_info(trans_info.file_info, trans_info.block_param_config);
 
                 for (auto& block_info : block_list)
                 {
@@ -159,16 +159,16 @@ void NewDownloadDialog::on_download_push_button_clicked()
     // 不过消息中可以追加信息在MessageHandler中构建
     // 设置源路径
     info.source_path = std_url;
-
-    bool is_init = m_connection_thread->init(url_info.ip, url_info.port);
+    bool is_init = m_connection_thread->init(url_info.host, url_info.port);
     if (!is_init)
     {
         QMessageBox::warning(this, "Error", "Cannot connect to server.");
         return;
     }
-    url_info = MessageHandler::add_account_info(url_info, std_username, std_password);
+    auto download_request = Client::MessageHandler::build_download_request(url_info, std_username, std_password);
+
     // 发送文件下载请求
-    m_connection_thread->data_send_slot(std::vector<uint8_t>(url_info.path.begin(), url_info.path.end()));
+    m_connection_thread->data_send_slot(download_request);
 
     // 显示文件信息对话框，进去默认为等待界面
     m_file_info_dialog->show();

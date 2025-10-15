@@ -8,6 +8,7 @@
 
 #include <string>
 #include <cstdint>
+#include <unordered_map>
 
  /**
   * @class UrlResolver
@@ -23,13 +24,15 @@ public:
     enum class UrlProtocol
     {
         /// @brief 未知协议
-        UNKNOWN,
+        Unknown,
         /// @brief HTTP协议
-        HTTP,
+        Http,
         /// @brief HTTPS协议
-        HTTPS,
+        Https,
+        /// @brief FTP协议
+        Ftp,
         /// @brief 个人测试用
-        DANEJOE,
+        Danejoe,
     };
     /**
      * @struct UrlInfo
@@ -39,12 +42,19 @@ public:
     {
         /// @brief URL协议
         UrlProtocol protocol;
-        /// @brief IP地址
-        std::string ip;
+        /// @brief 主机地址
+        std::string host;
         /// @brief 端口
         uint16_t port;
         /// @brief 路径
         std::string path;
+        /// @brief 查询参数
+        std::unordered_multimap<std::string, std::string> query;
+        /**
+         * @brief 将结构体字符串化，便于调试输出
+         * @return 返回字符串化结果
+         */
+        std::string to_string() const;
     };
 public:
     /**
