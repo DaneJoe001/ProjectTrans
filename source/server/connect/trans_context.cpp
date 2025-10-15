@@ -42,6 +42,7 @@ void TransContext::on_recv()
     if(request_info_opt.has_value())
     {
         DaneJoe::Protocol::RequestInfo request_info = request_info_opt.value();
+        DANEJOE_LOG_TRACE("default", "TransContext", "Received request: {}", request_info.url_info.to_string());
         if (request_info.url_info.path == "/download")
         {
             DANEJOE_LOG_TRACE("default", "TransContext", "Received download request");
@@ -99,6 +100,7 @@ void TransContext::handle_download_request(const DaneJoe::Protocol::RequestInfo&
     }
     // 解析下载请求消息体
     ServerFileInfo file_info = file_info_opt.value();
+    DANEJOE_LOG_TRACE("default", "TransContext", "Handling download request for file: {}", file_info.to_string());
     // 构建下载响应
     std::vector<uint8_t> response = Server::MessageHandler::build_download_response(file_info);
     // 将下载响应写入发送缓冲区

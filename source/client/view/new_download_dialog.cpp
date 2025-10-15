@@ -186,7 +186,7 @@ void NewDownloadDialog::ok_to_add_file_info(ClientFileInfo file_info)
 
     /// @todo 使用其他方式持久化配置
     BlockParamConfig config;
-    config.min_block_size = 102400;
+    config.min_block_size = 1024 * 1024 * 30;
 
     // 当路径相同时且保存文件名相同时不执行添加
     auto data = m_file_info_service.get_by_saved_name_and_path(file_info.saved_name, file_info.saved_path);

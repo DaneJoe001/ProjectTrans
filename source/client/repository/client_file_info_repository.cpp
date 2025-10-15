@@ -121,12 +121,12 @@ bool ClientFileInfoRepository::add(const ClientFileInfo& file_info)
         return true;
     }
     std::unique_ptr<IStatement> statement = m_database->get_statement(R"(
-        INSERT INTO file_info (saved_name, source_path, saved_path, file_size, operation, state, md5_code, create_time, finished_time)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        INSERT INTO file_info (file_id, saved_name, source_path, saved_path, file_size, operation, state, md5_code, create_time, finished_time)
+        VALUES (? ,? , ?, ?, ?, ?, ?, ?, ?, ?);
     )");
     DANEJOE_LOG_TRACE("default", "ClientFileInfoRepository", "File info: {}", file_info.to_string());
 
-    bool result = statement->arg(file_info.saved_name).arg(file_info.source_path).arg(file_info.saved_path).arg(file_info.file_size).arg(static_cast<int>(file_info.operation)).arg(static_cast<int>(file_info.state)).arg(file_info.md5_code).arg(std::chrono::duration_cast<std::chrono::seconds>(file_info.create_time.time_since_epoch()).count()).arg(std::chrono::duration_cast<std::chrono::seconds>(file_info.finished_time.time_since_epoch()).count()).execute();
+    bool result = statement->arg(file_info.file_id).arg(file_info.saved_name).arg(file_info.source_path).arg(file_info.saved_path).arg(file_info.file_size).arg(static_cast<int>(file_info.operation)).arg(static_cast<int>(file_info.state)).arg(file_info.md5_code).arg(std::chrono::duration_cast<std::chrono::seconds>(file_info.create_time.time_since_epoch()).count()).arg(std::chrono::duration_cast<std::chrono::seconds>(file_info.finished_time.time_since_epoch()).count()).execute();
 
     // std::string state_ment = std::format(R"(
     //     INSERT INTO file_info (saved_name, source_path, saved_path, file_size, operation, state, md5_code, create_time, finished_time)

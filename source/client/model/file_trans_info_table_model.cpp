@@ -38,6 +38,29 @@ void FileTransInfoTableModel::init()
     }
 }
 
+void FileTransInfoTableModel::update(int32_t file_id, int32_t block_id)
+{
+    DANEJOE_LOG_TRACE("default", "FileTransInfoTableModel", "Update file_id: {}, block_id: {}", file_id, block_id);
+    // 获取所有文件信息
+    auto file_list = m_client_file_info_service.get_all();
+    QList<TransInfo> new_trans_info_list;
+    for (auto& file_info : file_list)
+    {
+        TransInfo trans_info;
+        trans_info.file_info = file_info;
+        // 查找对应文件等待块的数量
+        int64_t block_request_info_waiting_count = m_block_request_info_service.get_count_by_file_id_and_state(file_info.file_id, FileState::Waiting);
+        // 查找对应文件块已经完成的数量
+        int64_t block_request_info_completed_count = m_block_request_info_service.get_count_by_file_id_and_state(file_info.file_id, FileState::Completed);
+        // 更新传输信息当前块的数量
+        /// @todo TransManager中的信息需要更新
+        trans_info.current_count = block_request_info_completed_count;
+        trans_info.total_count = block_request_info_completed_count + block_request_info_waiting_count;
+        new_trans_info_list.push_back(trans_info);
+    }
+    m_trans_info_list = new_trans_info_list;
+}
+
 FileTransInfoTableModel* FileTransInfoTableModel::get_instance()
 {
     // 创建文件传输表格模型实例

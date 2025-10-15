@@ -32,6 +32,10 @@ public:
      */
     void init();
     /**
+     * @brief 更新
+     */
+    void update(int32_t file_id, int32_t block_id);
+    /**
      * @brief 列数
      * @param parent 父索引
      * @return 列数

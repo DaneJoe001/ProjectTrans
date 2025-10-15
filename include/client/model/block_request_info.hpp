@@ -49,3 +49,13 @@ struct BlockRequestInfo
    */
   std::string to_string() const;
 };
+
+/// @todo 调整定义位置
+struct BlockResponseInfo
+{
+    int32_t file_id;
+    int32_t block_id;
+    uint32_t offset;
+    uint32_t block_size;
+    std::vector<uint8_t> data;
+};

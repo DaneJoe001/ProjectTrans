@@ -40,6 +40,7 @@ std::optional<ClientFileInfo> Client::MessageHandler::parse_download_response(co
     auto file_name_field_opt = serializer.get_parsed_field("file_name");
     auto file_size_field_opt = serializer.get_parsed_field("file_size");
     auto md5_code_field_opt = serializer.get_parsed_field("md5_code");
+
     if (file_id_field_opt.has_value())
     {
         auto file_id_it = DaneJoe::to_value<int32_t>(file_id_field_opt.value());
@@ -82,10 +83,12 @@ std::optional<ClientFileInfo> Client::MessageHandler::parse_download_response(co
     return info;
 }
 
-void Client::MessageHandler::parse_block_response(const std::vector<uint8_t>& body)
+std::optional<BlockResponseInfo> Client::MessageHandler::parse_block_response(const std::vector<uint8_t>& body)
 {
+    BlockResponseInfo info;
     DaneJoe::DaneJoeSerializer serializer;
     serializer.deserialize(body);
+
     auto block_id_field_op = serializer.get_parsed_field("block_id");
     auto file_id_field_op = serializer.get_parsed_field("file_id");
     auto offset_field_op = serializer.get_parsed_field("offset");
@@ -94,58 +97,58 @@ void Client::MessageHandler::parse_block_response(const std::vector<uint8_t>& bo
     if (!block_id_field_op.has_value())
     {
         DANEJOE_LOG_ERROR("default", "MessageHandler", "Block id parse failed");
-        return;
+        return std::nullopt;
     }
     auto block_id_op = DaneJoe::to_value<int32_t>(block_id_field_op.value());
     if (!block_id_op.has_value())
     {
         DANEJOE_LOG_ERROR("default", "MessageHandler", "Block id parse failed");
-        return;
+        return std::nullopt;
     }
-    uint32_t block_id = block_id_op.value();
+    info.block_id = block_id_op.value();
     if (!file_id_field_op.has_value())
     {
         DANEJOE_LOG_ERROR("default", "MessageHandler", "File id parse failed");
-        return;
+        return std::nullopt;
     }
     auto file_id_op = DaneJoe::to_value<int32_t>(file_id_field_op.value());
     if (!file_id_op.has_value())
     {
         DANEJOE_LOG_ERROR("default", "MessageHandler", "File id parse failed");
-        return;
+        return std::nullopt;
     }
-    uint32_t file_id = file_id_op.value();
+    info.file_id = file_id_op.value();
     if (!offset_field_op.has_value())
     {
         DANEJOE_LOG_ERROR("default", "MessageHandler", "Offset parse failed");
-        return;
+        return std::nullopt;
     }
     auto offset_op = DaneJoe::to_value<uint32_t>(offset_field_op.value());
     if (!offset_op.has_value())
     {
         DANEJOE_LOG_ERROR("default", "MessageHandler", "Offset parse failed");
-        return;
+        return std::nullopt;
     }
-    uint32_t offset = offset_op.value();
+    info.offset = offset_op.value();
     if (!block_size_field_op.has_value())
     {
         DANEJOE_LOG_ERROR("default", "MessageHandler", "Block size parse failed");
-        return;
+        return std::nullopt;
     }
     auto block_size_op = DaneJoe::to_value<uint32_t>(block_size_field_op.value());
     if (!block_size_op.has_value())
     {
         DANEJOE_LOG_ERROR("default", "MessageHandler", "Block size parse failed");
-        return;
+        return std::nullopt;
     }
-    uint32_t block_size = block_size_op.value();
+    info.block_size = block_size_op.value();
     if (!data_field_op.has_value())
     {
         DANEJOE_LOG_ERROR("default", "MessageHandler", "Data parse failed");
-        return;
+        return std::nullopt;
     }
-    std::vector<uint8_t> data = DaneJoe::to_array<uint8_t>(data_field_op.value());
-    DANEJOE_LOG_TRACE("default", "MessageHandler", "Block id: {}, file id: {}, offset: {}, block size: {}, data size: {}", block_id, file_id, offset, block_size, data.size());
+    info.data = DaneJoe::to_array<uint8_t>(data_field_op.value());
+    return info;
 }
 
 std::string Client::MessageHandler::parse_test_response(const std::vector<uint8_t>& body)
@@ -154,14 +157,6 @@ std::string Client::MessageHandler::parse_test_response(const std::vector<uint8_
     auto header_opt = serializer.get_message_header(body);
     DANEJOE_LOG_DEBUG("default", "Client::MessageHandler", "Header: {}", header_opt.has_value() ? header_opt->to_string() : "Invalid header");
     serializer.deserialize(body);
-    
-    auto map = serializer.get_parsed_data_map();
-    for (const auto& [key, value] : map)
-    {
-        DANEJOE_LOG_TRACE("default", "Client::MessageHandler", "-------------------");
-        // DANEJOE_LOG_TRACE("default", "Client::MessageHandler", "value: {}", value.to_string());
-        DANEJOE_LOG_TRACE("default", "Client::MessageHandler", "-------------------");
-    }
     auto message_field_op = serializer.get_parsed_field("message");
     if (!message_field_op.has_value())
     {
@@ -273,6 +268,7 @@ std::vector<uint8_t> Client::MessageHandler::build_test_request(const UrlResolve
 
 std::vector<uint8_t> Client::MessageHandler::build_block_request(const UrlResolver::UrlInfo url_info,const BlockRequestInfo& block_request_info)
 {
+    DANEJOE_LOG_TRACE("default", "Client::MessageHandler", "Building block request for block: {}", block_request_info.to_string());
     DaneJoe::DaneJoeSerializer serializer;
     serializer.serialize(block_request_info.block_id, "block_id");
     serializer.serialize(block_request_info.file_id, "file_id");
@@ -281,6 +277,8 @@ std::vector<uint8_t> Client::MessageHandler::build_block_request(const UrlResolv
     DaneJoe::Protocol::RequestInfo info;
     info.type = DaneJoe::Protocol::RequestType::Get;
     info.url_info = url_info;
+    /// @note 当前只是自定义协议
+    info.url_info.path = "/block";
     info.body = serializer.get_serialized_data_vector_build();
     // 当前默认使用自定义协议
     return build_request(info);
@@ -288,11 +286,16 @@ std::vector<uint8_t> Client::MessageHandler::build_block_request(const UrlResolv
 
 std::vector<uint8_t> Client::MessageHandler::build_download_request(const UrlResolver::UrlInfo url_info, const std::string& account, const std::string& password)
 {
+    DANEJOE_LOG_TRACE("default", "Client::MessageHandler", "Query params: {}", DaneJoe::to_string(url_info.query));
     // 构建消息体
     DaneJoe::DaneJoeSerializer serializer;
     /// @todo 解析url,获取文件id
     serializer.serialize(account, "account");
     serializer.serialize(password, "password");
+    for(const auto& [key, value]: url_info.query)
+    {
+        serializer.serialize(value, key);
+    }
     /// 处理协议
     DaneJoe::Protocol::RequestInfo info;
     info.type = DaneJoe::Protocol::RequestType::Get;

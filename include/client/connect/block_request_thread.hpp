@@ -13,8 +13,11 @@
 #include <QThread>
 
 #include "mt_queue/mt_queue.hpp"
+#include "common/protocol/frame_assembler.hpp"
 #include "client/model/block_request_info.hpp"
 #include "client/model/client_file_info.hpp"
+#include "client/service/client_file_info_service.hpp"
+#include "client/service/block_request_info_service.hpp"
 
  /**
   * @brief 块请求线程，继承自QThread
@@ -48,6 +51,11 @@ public:
      * @brief 运行
      */
     void run() override;
+    /**
+     * @brief 写入块数据
+     * @param block_response_info 块响应信息
+     */
+    void write_block_data(const BlockResponseInfo& block_response_info);
 signals:
     /**
      * @brief 块请求完成信号
@@ -75,4 +83,10 @@ private:
     std::unordered_map<int32_t, FileState> m_file_state_map;
     /// @brief 文件信息映射,此信息与TransManager共享，由TransManager管理
     std::shared_ptr<std::unordered_map<int32_t, ClientFileInfo>> m_file_info_map = nullptr;
+    /// @brief 块请求帧组装器
+    FrameAssembler m_frame_assembler;
+    /// @brief 文件信息服务
+    ClientFileInfoService m_file_info_service;
+    /// @brief 块请求信息服务
+    BlockRequestInfoService m_block_request_info_service;
 };
