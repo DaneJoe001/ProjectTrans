@@ -4,10 +4,9 @@
 #include "common/network/danejoe_serializer.hpp"
 #include "common/util/print_util.hpp"
 
+const uint32_t DaneJoe::DaneJoeSerializer::HEADER_SIZE = 16;
+
 DaneJoe::DaneJoeSerializer::SerializedConfig::SerializedConfig()
-    : max_field_value_length(1 * 1024 * 1024),
-    max_field_name_length(128),
-    pre_allocated_size(4 * 1024)
 {
 }
 
@@ -40,6 +39,7 @@ std::optional<DaneJoe::DaneJoeSerializer::MessageHeader> DaneJoe::DaneJoeSeriali
     // 检查源长度是否合法
     if (data.size() < min_serialized_byte_array_size())
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Data size {} is less than minimum header size {}", data.size(), min_serialized_byte_array_size());
         return std::nullopt;
     }
     // 源起始坐标
@@ -146,6 +146,7 @@ std::optional<DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::Fie
     uint32_t data_size = data.size();
     if (data_size < min_serialized_byte_array_size())
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Data size {} is less than minimum field size {}", data_size, min_serialized_byte_array_size());
         return std::nullopt;
     }
     Field field;
@@ -155,6 +156,7 @@ std::optional<DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::Fie
     current_need_to_read_size += sizeof(name_length);
     if (!ensure_enough_to_read(data, current_need_to_read_size))
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read name_length, needed {}, available {}", current_need_to_read_size, data.size());
         return std::nullopt;
     }
     to_local_byte_order(reinterpret_cast<uint8_t*>(&(field.name_length)), reinterpret_cast<const uint16_t*>(data.data() + current_index));
@@ -163,6 +165,7 @@ std::optional<DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::Fie
     current_need_to_read_size += field.name_length;
     if (!ensure_enough_to_read(data, current_need_to_read_size))
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read name, needed {}, available {}", current_need_to_read_size, data.size());
         return std::nullopt;
     }
     field.name = std::vector<uint8_t>(data.begin() + current_index, data.begin() + current_index + field.name_length);
@@ -171,6 +174,7 @@ std::optional<DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::Fie
     current_need_to_read_size += sizeof(type);
     if (!ensure_enough_to_read(data, current_need_to_read_size))
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read type, needed {}, available {}", current_need_to_read_size, data.size());
         return std::nullopt;
     }
     to_local_byte_order(reinterpret_cast<uint8_t*>(&(field.type)), reinterpret_cast<const DataType*>(data.data() + current_index));
@@ -179,6 +183,7 @@ std::optional<DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::Fie
     current_need_to_read_size += sizeof(flag);
     if (!ensure_enough_to_read(data, current_need_to_read_size))
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read flag, needed {}, available {}", current_need_to_read_size, data.size());
         return std::nullopt;
     }
     to_local_byte_order(reinterpret_cast<uint8_t*>(&(field.flag)), reinterpret_cast<const FieldFlag*>(data.data() + current_index));
@@ -189,6 +194,7 @@ std::optional<DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::Fie
         current_need_to_read_size += sizeof(value_length);
         if (!ensure_enough_to_read(data, current_need_to_read_size))
         {
+            DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read value_length, needed {}, available {}", current_need_to_read_size, data.size());
             return std::nullopt;
         }
         to_local_byte_order(reinterpret_cast<uint8_t*>(&(field.value_length)), reinterpret_cast<const uint32_t*>(data.data() + current_index));
@@ -202,6 +208,7 @@ std::optional<DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::Fie
     current_need_to_read_size += field.value_length;
     if (!ensure_enough_to_read(data, current_need_to_read_size))
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read value, needed {}, available {}", current_need_to_read_size, data.size());
         return std::nullopt;
     }
     // 当类型为字符串/字节数组/数组/图/字典时直接写入数据
@@ -304,6 +311,7 @@ std::optional<DaneJoe::DaneJoeSerializer::ArrayValue> DaneJoe::DaneJoeSerializer
 {
     if (data.size() < min_serialized_byte_array_size())
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Data size {} is less than minimum array size {}", data.size(), min_serialized_byte_array_size());
         return std::nullopt;
     }
     ArrayValue array_value;
@@ -313,6 +321,7 @@ std::optional<DaneJoe::DaneJoeSerializer::ArrayValue> DaneJoe::DaneJoeSerializer
     current_need_size += sizeof(element_type);
     if (!ensure_enough_to_read(data, current_need_size))
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read element_type, needed {}, available {}", current_need_size, data.size());
         return std::nullopt;
     }
     to_local_byte_order(reinterpret_cast<uint8_t*>(&(array_value.element_type)), reinterpret_cast<const DataType*>(data.data() + current_index));
@@ -321,6 +330,7 @@ std::optional<DaneJoe::DaneJoeSerializer::ArrayValue> DaneJoe::DaneJoeSerializer
     current_need_size += sizeof(element_count);
     if (!ensure_enough_to_read(data, current_need_size))
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read element_count, needed {}, available {}", current_need_size, data.size());
         return std::nullopt;
     }
     to_local_byte_order(reinterpret_cast<uint8_t*>(&(array_value.element_count)), reinterpret_cast<const uint32_t*>(data.data() + current_index));
@@ -329,6 +339,7 @@ std::optional<DaneJoe::DaneJoeSerializer::ArrayValue> DaneJoe::DaneJoeSerializer
     current_need_size += sizeof(flag);
     if (!ensure_enough_to_read(data, current_need_size))
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read flag, needed {}, available {}", current_need_size, data.size());
         return std::nullopt;
     }
     to_local_byte_order(reinterpret_cast<uint8_t*>(&(array_value.flag)), reinterpret_cast<const ArrayFlag*>(data.data() + current_index));
@@ -345,6 +356,7 @@ std::optional<DaneJoe::DaneJoeSerializer::ArrayValue> DaneJoe::DaneJoeSerializer
             current_need_size += sizeof(uint32_t);
             if (!ensure_enough_to_read(data, current_need_size))
             {
+                DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read element_value_length[{}], needed {}, available {}", i, current_need_size, data.size());
                 return std::nullopt;
             }
             to_local_byte_order(reinterpret_cast<uint8_t*>(array_value.element_value_length.data() + i), reinterpret_cast<const uint32_t*>(data.data() + current_index));
@@ -358,6 +370,7 @@ std::optional<DaneJoe::DaneJoeSerializer::ArrayValue> DaneJoe::DaneJoeSerializer
         current_need_size += sizeof(uint32_t);
         if (!ensure_enough_to_read(data, current_need_size))
         {
+            DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read element_value_length, needed {}, available {}", current_need_size, data.size());
             return std::nullopt;
         }
         // 长度不变时写入一个长度信息
@@ -370,6 +383,7 @@ std::optional<DaneJoe::DaneJoeSerializer::ArrayValue> DaneJoe::DaneJoeSerializer
     current_need_size += value_length;
     if (!ensure_enough_to_read(data, current_need_size))
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Not enough data to read element_value, needed {}, available {}", current_need_size, data.size());
         return std::nullopt;
     }
     array_value.element_value = std::vector<uint8_t>(data.begin() + current_index, data.begin() + current_index + value_length);
@@ -390,6 +404,7 @@ std::vector<uint8_t> DaneJoe::DaneJoeSerializer::ArrayValue::to_serialized_byte_
     // 当数组变长但长度数量不足时返回
     if (is_variable_array && element_count != element_value_length.size())
     {
+        DANEJOE_LOG_ERROR("default", "to_serialized_byte_array", "element_count not match element_value_length size");
         return std::vector<uint8_t>();
     }
     uint32_t current_index = 0;
@@ -477,6 +492,8 @@ std::string DaneJoe::DaneJoeSerializer::MapValue::to_string()const
 
 DaneJoe::DaneJoeSerializer::DaneJoeSerializer(const SerializedConfig& config) :m_serialized_config(config), m_serialized_byte_array_build(std::vector<uint8_t>(config.pre_allocated_size))
 {
+    DANEJOE_LOG_TRACE("default","DaneJoeSerializer","Serialized config: max_field_value_length={}, max_field_name_length={}, pre_allocated_size={}",
+        config.max_field_value_length, config.max_field_name_length, config.pre_allocated_size);
 }
 
 void DaneJoe::DaneJoeSerializer::set_config(const SerializedConfig& config)
@@ -523,12 +540,14 @@ void DaneJoe::DaneJoeSerializer::deserialize(const std::vector<uint8_t>& data)
     auto header_optional = get_message_header(data);
     if (!header_optional.has_value())
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Failed to parse message header");
         return;
     }
     // 消息长度超出数据长度
     auto header = header_optional.value();
     if (header.message_length + HEADER_SIZE > data.size())
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Message length {} exceeds data size {}", header.message_length + HEADER_SIZE, data.size());
         return;
     }
     m_serialized_byte_array_parsed = data;
@@ -588,12 +607,12 @@ DaneJoe::DaneJoeSerializer& DaneJoe::DaneJoeSerializer::serialize(const Field& f
 {
     if (field.name_length > m_serialized_config.max_field_name_length)
     {
-        /// @todo Log
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Field name length {} exceeds the maximum limit of {}", field.name_length, m_serialized_config.max_field_name_length);
         return *this;
     }
     if (field.value_length > m_serialized_config.max_field_value_length)
     {
-        /// @todo Log
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Field value length {} exceeds the maximum limit of {}", field.value_length, m_serialized_config.max_field_value_length);
         return *this;
     }
     uint32_t field_size = field.serialized_size();
@@ -633,6 +652,7 @@ std::optional<DaneJoe::DaneJoeSerializer::MessageHeader> DaneJoe::DaneJoeSeriali
 {
     if (data.size() < HEADER_SIZE)
     {
+        DANEJOE_LOG_WARN("default","DaneJoeSerializer","Data size {} is less than header size {}", data.size(), get_message_header_size());
         return std::nullopt;
     }
     auto header_optional = DaneJoeSerializer::MessageHeader::from_serialized_byte_array(std::vector<uint8_t>(data.begin(), data.begin() + HEADER_SIZE));
@@ -667,6 +687,7 @@ bool DaneJoe::DaneJoeSerializer::is_frame_complete()
 {
     if (m_parsed_buffer_index < HEADER_SIZE)
     {
+        DANEJOE_LOG_DEBUG("default","DaneJoeSerializer","Buffer index {} is less than header size {}", m_parsed_buffer_index, HEADER_SIZE);
         return false;
     }
     if (!m_is_parsed_header_finished)
@@ -702,6 +723,7 @@ std::optional<DaneJoe::DaneJoeSerializer::Field> DaneJoe::DaneJoeSerializer::get
     auto field_it = m_serialized_data_map_parsed.find(key);
     if (field_it == m_serialized_data_map_parsed.end())
     {
+        DANEJOE_LOG_INFO("default","DaneJoeSerializer","Field with key '{}' not found in parsed data map", key);
         return std::nullopt;
     }
     return field_it->second;

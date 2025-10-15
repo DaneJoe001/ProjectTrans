@@ -40,6 +40,12 @@ public slots:
      * @brief 单元格点击槽函数
      */
     void on_cell_clicked(const QModelIndex& index);
+    /**
+     * @brief 更新视图槽函数
+     * @param file_id 文件ID
+     * @param block_id 块ID
+     */
+    void update_view(int32_t file_id, int32_t block_id);
 private:
     /// @brief 布局
     QVBoxLayout* m_layout;

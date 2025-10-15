@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "client/connect/block_request_thread.hpp"
 #include "log/manage_logger.hpp"
 #include "client/connect/connection_manager.hpp"
@@ -12,6 +14,8 @@ void BlockRequestThread::init(std::shared_ptr<DaneJoe::MTQueue<BlockRequestInfo>
         DANEJOE_LOG_WARN("default", "BlockRequestThread", "m_block_task_queue already initialized");
     }
     m_block_task_queue = block_task_queue;
+    m_file_info_service.init();
+    m_block_request_info_service.init();
 }
 
 void BlockRequestThread::run()
@@ -72,7 +76,15 @@ void BlockRequestThread::run()
         guard_connection->send(block_request_data);
 
         // 接收数据响应
-        auto response_data = guard_connection->receive();
+        auto frame_opt=m_frame_assembler.pop_frame();
+        do
+        {
+            auto response_data = guard_connection->receive();
+            m_frame_assembler.push_data(response_data);
+            frame_opt = m_frame_assembler.pop_frame();
+        } while (!frame_opt.has_value());
+        
+        auto response_data = frame_opt.value();
         // 检查响应数据是否为空
         if (response_data.empty())
         {
@@ -80,11 +92,24 @@ void BlockRequestThread::run()
             continue;
         }
         // 从接收的数据构建字符串
-        Client::MessageHandler::parse_block_response(response_data);
+        auto info_opt = Client::MessageHandler::parse_response(response_data);
+        if(!info_opt.has_value())
+        {
+            DANEJOE_LOG_WARN("default", "BlockRequestThread", "Failed to parse response data");
+            continue;
+        }
+        auto info = info_opt.value();
+        auto block_info_opt = Client::MessageHandler::parse_block_response(info_opt.value().body);
+        if(!block_info_opt.has_value())
+        {
+            DANEJOE_LOG_WARN("default", "BlockRequestThread", "Failed to parse block response");
+            continue;
+        }
+        auto block_info = block_info_opt.value();
+        write_block_data(block_info);
         // 发送收到块的信号
         /// @todo 实现线程安全化，在对应槽检查是否完全接收，并验证下载完全
         /// @todo 在TransManager中添加一个槽，接收块信号，并调用相应的方法
-        emit block_request_finished(block_request_info.file_id, block_request_info.block_id);
     }
 }
 
@@ -104,6 +129,35 @@ void BlockRequestThread::on_file_state_changed(int32_t file_id, FileState state)
 void BlockRequestThread::init(std::shared_ptr<std::unordered_map<int32_t, ClientFileInfo>> file_info_map)
 {
     m_file_info_map = file_info_map;
+    m_file_info_service.init();
+    m_block_request_info_service.init();
+}
+
+void BlockRequestThread::write_block_data(const BlockResponseInfo& block_response_info)
+{
+    auto file_info_opt = m_file_info_service.get_by_id(block_response_info.file_id);
+    if (!file_info_opt.has_value())
+    {
+        DANEJOE_LOG_WARN("default", "BlockRequestThread", "Failed to get file info");
+        return;
+    }
+    auto file_info = file_info_opt.value();
+    std::ofstream file(file_info.saved_path, std::ios::out | std::ios::binary | std::ios::app);
+    file.seekp(block_response_info.offset, std::ios::beg);
+    file.write(reinterpret_cast<const char*>(block_response_info.data.data()), block_response_info.data.size());
+    file.close();
+    auto block_request_info_opt = m_block_request_info_service.get_by_id(block_response_info.block_id);
+    if (!block_request_info_opt.has_value())
+    {
+        DANEJOE_LOG_WARN("default", "BlockRequestThread", "Failed to get block request info");
+        return;
+    }
+    auto block_request_info = block_request_info_opt.value();
+    DANEJOE_LOG_TRACE("default", "BlockRequestThread", "Write block data: file_id = {}, block_id = {}, offset = {}, size = {}", block_response_info.file_id, block_response_info.block_id, block_response_info.offset, block_response_info.data.size());
+    block_request_info.state = FileState::Completed;
+    block_request_info.end_time = std::chrono::steady_clock::now();
+    m_block_request_info_service.update(block_request_info);
+    emit block_request_finished(block_request_info.file_id, block_request_info.block_id);
 }
 
 BlockRequestThread::BlockRequestThread(QObject* parent) :QThread(parent)

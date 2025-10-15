@@ -139,6 +139,7 @@ void ClientMainWindow::init()
     connect(m_file_trans_info_widget, &FileTransInfoWidget::row_clicked, this, &ClientMainWindow::on_file_trans_selected);
     connect(m_start_task_action, &QAction::triggered, this, &ClientMainWindow::on_start_task_action_triggered);
     connect(m_stop_task_action, &QAction::triggered, this, &ClientMainWindow::on_stop_task_action_triggered);
+    connect(m_trans_manager, &TransManager::block_data_written, m_file_trans_info_widget, &FileTransInfoWidget::update_view);
 
     startTimer(1000);
     m_is_init = true;

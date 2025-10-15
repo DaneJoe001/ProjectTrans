@@ -12,6 +12,7 @@
 #include <memory>
 #include <algorithm>
 
+#include "log/manage_logger.hpp"
 #include "common/util/enum_util.hpp"
 #include "common/util/byte_array_util.hpp"
 #include "common/util/data_type_util.hpp"
@@ -271,7 +272,7 @@ namespace DaneJoe
          */
         struct SerializedConfig
         {
-            uint32_t max_field_value_length = 1 * 1024 * 1024;
+            uint64_t max_field_value_length = 40 * 1024 * 1024;
             uint32_t max_field_name_length = 128;
             uint32_t pre_allocated_size = 4 * 1024;
             SerializedConfig();
@@ -362,6 +363,10 @@ namespace DaneJoe
         template <class T>
         DaneJoeSerializer& serialize(const T& data, const std::string& data_name)
         {
+            if constexpr (std::is_same_v<std::decay_t<T>, char*>)
+            {
+                return serialize(std::string(data), data_name);
+            }
             Field field;
             field.name = std::vector<uint8_t>(data_name.begin(), data_name.end());
             field.name_length = field.name.size();
@@ -386,6 +391,7 @@ namespace DaneJoe
         {
             if (data == nullptr || size == 0)
             {
+                DANEJOE_LOG_WARN("default", "DaneJoe::DaneJoeSerializer", "serialize data is nullptr or size is 0");
                 return *this;
             }
             Field field;
@@ -477,7 +483,7 @@ namespace DaneJoe
         std::unordered_multimap<std::string, Field> get_parsed_data_map()const noexcept;
     private:
         /// @brief 头部大小固定16字节
-        static const uint32_t HEADER_SIZE = 16;
+        static const uint32_t HEADER_SIZE;
     private:
         /// @brief 接收到的序列化字节流解析的当前下标位置
         /// @note 用于判断消息头判断，以及长度判断
@@ -511,11 +517,13 @@ namespace DaneJoe
         auto array_op = DaneJoeSerializer::ArrayValue::from_serialized_byte_array(field.value);
         if (!array_op.has_value())
         {
+            DANEJOE_LOG_ERROR("default", "to_array", "from_serialized_byte_array failed");
             return std::vector<T>();
         }
         DaneJoeSerializer::ArrayValue array_value = array_op.value();
         if (array_value.element_type != get_data_type<T>())
         {
+            DANEJOE_LOG_ERROR("default", "to_array", "element_type not match");
             return std::vector<T>();
         }
         std::vector<T> result;
@@ -523,6 +531,7 @@ namespace DaneJoe
         {
             if (array_value.element_count != array_value.element_value_length.size())
             {
+                DANEJOE_LOG_ERROR("default", "to_array", "element_count not match element_value_length size");
                 return std::vector<T>();
             }
             if constexpr (std::is_same_v<T, std::vector<uint8_t>>)
@@ -582,6 +591,7 @@ namespace DaneJoe
         /// @todo 字节序转换
         if (field.type != dest_type)
         {
+            DANEJOE_LOG_ERROR("default", "to_value", "field type not match");
             return std::nullopt;
         }
         return to_value<T>(field.value);

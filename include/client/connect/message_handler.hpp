@@ -55,7 +55,7 @@ public:
      * @param body 消息体
      * @todo 实现信息解析
      */
-    static void parse_block_response(const std::vector<uint8_t>& body);
+    static std::optional<BlockResponseInfo> parse_block_response(const std::vector<uint8_t>& body);
     /**
      * @brief 解析测试响应
      * @param body 消息体

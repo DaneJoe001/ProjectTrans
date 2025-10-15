@@ -118,6 +118,13 @@ void TransManager::add_thread()
     m_block_thread_list.push_back(block_request_thread);
     block_request_thread->init(block_task_queue);
     block_request_thread->init(m_file_info_map);
+    connect(block_request_thread, &BlockRequestThread::block_request_finished, this, &TransManager::on_block_data_written);
     block_request_thread->start();
     m_thread_count++;
+}
+
+void TransManager::on_block_data_written(int32_t file_id, int32_t block_id)
+{
+    DANEJOE_LOG_DEBUG("default", "TransManager", "Block data written: file_id = {}, block_id = {}", file_id, block_id);
+    emit block_data_written(file_id, block_id);
 }

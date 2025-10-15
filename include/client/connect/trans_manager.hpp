@@ -50,7 +50,10 @@ public:
      * @brief 初始化
      */
     void init();
+signals:
+    void block_data_written(int32_t file_id, int32_t block_id);
 public slots:
+    void on_block_data_written(int32_t file_id, int32_t block_id);
 private:
     /// @brief 是否运行
     std::atomic<bool> m_is_running = false;

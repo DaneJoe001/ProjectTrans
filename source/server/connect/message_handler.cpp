@@ -22,7 +22,7 @@ std::vector<uint8_t> Server::MessageHandler::build_response(DaneJoe::Protocol::R
         serialize(info.body, "body");
 
     auto header_opt = serializer.get_message_header(info.body);
-    DANEJOE_LOG_DEBUG("default", "Client::MessageHandler", "Header: {}", header_opt.has_value() ? header_opt->to_string() : "Invalid header");
+    DANEJOE_LOG_DEBUG("default", "Server::MessageHandler", "Header: {}", header_opt.has_value() ? header_opt->to_string() : "Invalid header");
     return serializer.get_serialized_data_vector_build();
 }
 
@@ -63,7 +63,7 @@ std::vector<uint8_t> Server::MessageHandler::build_test_response(const std::stri
     DaneJoe::DaneJoeSerializer serializer;
     serializer.
         serialize("test_response", "response_type").
-        serialize("Test", "message");
+        serialize(message, "message");
     // 构建响应
     DaneJoe::Protocol::ResponseInfo info;
     info.status = DaneJoe::Protocol::ResponseStatus::Ok;
@@ -154,16 +154,18 @@ std::optional<BlockResponseInfo> Server::MessageHandler::parse_block_request(con
     BlockResponseInfo block_response_info;
     DaneJoe::DaneJoeSerializer serializer;
     serializer.deserialize(body);
-    auto file_id_field = serializer.get_parsed_field("file_id");
-    auto block_id_field = serializer.get_parsed_field("block_id");
-    auto offset_field = serializer.get_parsed_field("offset");
-    auto block_size_field = serializer.get_parsed_field("block_size");
-    if (file_id_field)
+
+    auto map = serializer.get_parsed_data_map();
+    auto file_id_field_opt = serializer.get_parsed_field("file_id");
+    auto block_id_field_opt = serializer.get_parsed_field("block_id");
+    auto offset_field_opt = serializer.get_parsed_field("offset");
+    auto block_size_field_opt = serializer.get_parsed_field("block_size");
+    if (file_id_field_opt.has_value())
     {
-        auto file_id_it = to_value<uint32_t>(file_id_field.value());
-        if (file_id_it)
+        auto file_id_opt = to_value<int32_t>(file_id_field_opt.value());
+        if (file_id_opt.has_value())
         {
-            block_response_info.file_id = file_id_it.value();
+            block_response_info.file_id = file_id_opt.value();
         }
         else
         {
@@ -171,9 +173,9 @@ std::optional<BlockResponseInfo> Server::MessageHandler::parse_block_request(con
             return BlockResponseInfo();
         }
     }
-    if (block_id_field)
+    if (block_id_field_opt.has_value())
     {
-        auto block_id_it = to_value<uint32_t>(block_id_field.value());
+        auto block_id_it = to_value<int32_t>(block_id_field_opt.value());
         if (block_id_it)
         {
             block_response_info.block_id = block_id_it.value();
@@ -184,9 +186,9 @@ std::optional<BlockResponseInfo> Server::MessageHandler::parse_block_request(con
             DANEJOE_LOG_WARN("default", "Server::MessageHandler", "block_id is not found");
         }
     }
-    if (offset_field)
+    if (offset_field_opt.has_value())
     {
-        auto offset_it = to_value<uint32_t>(offset_field.value());
+        auto offset_it = to_value<uint32_t>(offset_field_opt.value());
         if (offset_it)
         {
             block_response_info.offset = offset_it.value();
@@ -197,9 +199,9 @@ std::optional<BlockResponseInfo> Server::MessageHandler::parse_block_request(con
             return BlockResponseInfo();
         }
     }
-    if (block_size_field)
+    if (block_size_field_opt.has_value())
     {
-        auto block_size_it = to_value<uint32_t>(block_size_field.value());
+        auto block_size_it = to_value<uint32_t>(block_size_field_opt.value());
         if (block_size_it)
         {
             block_response_info.block_size = block_size_it.value();
@@ -231,15 +233,18 @@ std::optional<ServerFileInfo> Server::MessageHandler::parse_download_request(con
     DaneJoe::DaneJoeSerializer serializer;
     serializer.deserialize(body);
     // 通过id获取文件信息
+    // 注意当前的file_id是以字符串的形式传过来的
     auto file_id_field_opt = serializer.get_parsed_field("file_id");
     if (file_id_field_opt.has_value())
     {
-        auto file_id_opt = DaneJoe::to_value<int32_t>(file_id_field_opt.value());
-        if (!file_id_opt.has_value())
+        auto file_id_opt = DaneJoe::to_string(file_id_field_opt.value());
+        int32_t file_id = std::stoi(file_id_opt);
+        if(file_id <= 0)
         {
+            DANEJOE_LOG_WARN("default", "Server::MessageHandler", "Failed to handle download request: invalid file id {}", file_id);
             return std::nullopt;
         }
-        int32_t file_id = file_id_opt.value();
+        m_file_info_service.init();
         auto file_info_optional = m_file_info_service.get_by_id(file_id);
         if (!file_info_optional.has_value())
         {
@@ -247,6 +252,11 @@ std::optional<ServerFileInfo> Server::MessageHandler::parse_download_request(con
             return std::nullopt;
         }
         file_info = file_info_optional.value();
+    }
+    else
+    {
+        DANEJOE_LOG_WARN("default", "Server::MessageHandler", "Failed to handle download request: file_id field not found");
+        return std::nullopt;
     }
     return file_info;
 }

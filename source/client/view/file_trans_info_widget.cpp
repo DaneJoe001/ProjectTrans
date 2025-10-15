@@ -35,6 +35,12 @@ void FileTransInfoWidget::init()
     m_is_init = true;
 }
 
+void FileTransInfoWidget::update_view(int32_t file_id, int32_t block_id)
+{
+    DANEJOE_LOG_TRACE("default", "FileTransInfoWidget", "update_view: file_id {}, block_id {}", file_id, block_id);
+    m_model->update(file_id, block_id);
+}
+
 void FileTransInfoWidget::on_cell_clicked(const QModelIndex& index)
 {
     if (!index.isValid())
