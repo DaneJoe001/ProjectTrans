@@ -2,7 +2,7 @@
 #include <chrono>
 
 #include "client/model/file_trans_info_table_model.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 
 FileTransInfoTableModel::FileTransInfoTableModel(QObject* parent) :QAbstractTableModel(parent)
 {

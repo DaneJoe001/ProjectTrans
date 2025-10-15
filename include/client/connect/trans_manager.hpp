@@ -13,7 +13,7 @@
 #include <QList>
 #include <QObject>
 
-#include "mt_queue/mt_queue.hpp"
+#include "common/mt_queue/mt_queue.hpp"
 #include "client/model/trans_info.hpp"
 #include "client/model/client_file_info.hpp"
 #include "client/model/block_request_info.hpp"

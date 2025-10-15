@@ -11,7 +11,7 @@
 #include <QFileInfo>
 
 #include "client/view/file_info_dialog.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "common/util/screen_util.hpp"
 #include "common/network/danejoe_serializer.hpp"
 #include "client/connect/message_handler.hpp"

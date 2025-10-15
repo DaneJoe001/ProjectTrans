@@ -2,7 +2,7 @@
 #include <iostream>
 #include <thread>
 
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "client/view/client_main_window.hpp"
 #include "common/network/posix_client_socket.hpp"
 #include "client/main/client.hpp"

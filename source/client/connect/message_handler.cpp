@@ -3,7 +3,7 @@
 #include <chrono>
 
 #include "client/connect/message_handler.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "common/network/danejoe_serializer.hpp"
 #include "common/protocol/danejoe_protocol.hpp"
 #include "common/util/print_util.hpp"

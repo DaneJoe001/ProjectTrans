@@ -1,7 +1,7 @@
 #include <fstream>
 
 #include "client/connect/block_request_thread.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "client/connect/connection_manager.hpp"
 #include "common/network/url_resolver.hpp"
 #include "client/connect/message_handler.hpp"

@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <functional>
 
-#include "mt_queue/mt_queue.hpp"
+#include "common/mt_queue/mt_queue.hpp"
 
  /**
   * @class ISocketContext

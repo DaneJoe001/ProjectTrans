@@ -8,7 +8,7 @@
 #include "common/database/database_manager.hpp"
 #include "common/database/sqlite_database.hpp"
 #include "server/repository/server_file_info_repository.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "common/network/posix_server_socket.hpp"
 #include "common/network/posix_client_socket.hpp"
 #include "common/network/epoll_event_loop.hpp"

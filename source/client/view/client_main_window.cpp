@@ -8,7 +8,7 @@
 #include <QMessageBox>
 
 #include "client/view/client_main_window.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "client/view/connection_test_dialog.hpp"
 #include "client/view/new_download_dialog.hpp"
 #include "client/view/new_upload_dialog.hpp"

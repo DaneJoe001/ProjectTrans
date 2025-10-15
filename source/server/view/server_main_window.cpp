@@ -13,7 +13,7 @@
 #include "server/view/add_file_dialog.hpp"
 #include "server/view/connection_info_widget.hpp"
 #include "server/view/resource_info_widget.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "common/util/screen_util.hpp"
 
 extern std::atomic<bool> g_is_panel_running;

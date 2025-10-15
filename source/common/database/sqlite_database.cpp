@@ -3,7 +3,7 @@
 #include <cstring>
 
 #include "common/database/sqlite_database.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 
 // 确保 SQLite 命名空间的 Database 类已被正确前向声明或包含
 

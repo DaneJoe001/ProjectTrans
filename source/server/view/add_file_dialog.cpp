@@ -9,7 +9,7 @@
 #include <QCryptographicHash>
 
 #include "server/view/add_file_dialog.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "server/model/server_file_info.hpp"
 #include "common/database/database_manager.hpp"
 #include "server/model/server_file_info_table_model.hpp"

@@ -1,7 +1,7 @@
 #include <thread>
 
 #include "server/connect/server_trans.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 
 ServerTrans& ServerTrans::get_instance()
 {

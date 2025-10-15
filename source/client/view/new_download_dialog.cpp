@@ -12,7 +12,7 @@
 
 #include "client/view/new_download_dialog.hpp"
 #include "client/connect/trans_manager.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "client/connect/connection_thread.hpp"
 #include "common/network/url_resolver.hpp"
 #include "client/connect/message_handler.hpp"

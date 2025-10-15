@@ -12,7 +12,7 @@
 #include <memory>
 #include <algorithm>
 
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "common/util/enum_util.hpp"
 #include "common/util/byte_array_util.hpp"
 #include "common/util/data_type_util.hpp"

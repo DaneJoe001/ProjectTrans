@@ -14,7 +14,7 @@
 #include "client/model/client_file_info.hpp"
 #include "client/service/client_file_info_service.hpp"
 #include "client/service/block_request_info_service.hpp"
-#include "mt_queue/mt_queue.hpp"
+#include "common/mt_queue/mt_queue.hpp"
 
 class QPushButton;
 class QLineEdit;

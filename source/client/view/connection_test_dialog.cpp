@@ -9,7 +9,7 @@
 #include<QMessageBox>
 
 #include "client/view/connection_test_dialog.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "client/connect/connection_manager.hpp"
 #include "client/connect/connection_thread.hpp"
 #include "common/util/screen_util.hpp"

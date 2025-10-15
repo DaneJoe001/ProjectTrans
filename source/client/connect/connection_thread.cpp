@@ -1,8 +1,8 @@
 #include "client/connect/connection_thread.hpp"
 #include "client/connect/connection_manager.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "client/connect/message_handler.hpp"
-#include "mt_queue/mt_queue.hpp"
+#include "common/mt_queue/mt_queue.hpp"
 
 ConnectionThread::ConnectionThread(QObject* parent) :QThread(parent)
 {

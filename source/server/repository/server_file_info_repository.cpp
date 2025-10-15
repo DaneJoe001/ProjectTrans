@@ -1,6 +1,6 @@
 #include "server/repository/server_file_info_repository.hpp"
 #include "common/database/database_manager.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 
 ServerFileInfoRepository::ServerFileInfoRepository() {}
 ServerFileInfoRepository::~ServerFileInfoRepository() {}

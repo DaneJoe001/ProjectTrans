@@ -1,7 +1,7 @@
 #include <filesystem>
 
 #include "client/main/client.hpp"
-#include "log/manage_logger.hpp"
+#include "common/log/manage_logger.hpp"
 #include "common/database/database_manager.hpp"
 #include "client/repository/client_file_info_repository.hpp"
 #include "client/repository/block_request_info_repository.hpp"
