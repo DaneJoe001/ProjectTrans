@@ -1,7 +1,11 @@
-#include <cstring>
+#include <string>
+
+#include <danejoe/logger/logger_manager.hpp>
+
+#include "danejoe/network/socket/posix_client_socket.hpp"
+#include "danejoe/network/socket/posix_socket.hpp"
 
 #include "client/connect/client_connection.hpp"
-#include "common/log/manage_logger.hpp"
 
 ClientConnection::ClientConnection(const std::string& ip, uint16_t port) :m_ip(ip), m_port(port), m_socket(ip, port)
 {

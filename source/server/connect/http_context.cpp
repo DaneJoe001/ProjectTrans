@@ -1,7 +1,8 @@
 #include <fstream>
 
+#include <danejoe/logger/logger_manager.hpp>
+
 #include "server/connect/http_context.hpp"
-#include "common/log/manage_logger.hpp"
 #include "server/connect/server_trans.hpp"
 
 /** Http Request */
@@ -85,13 +86,13 @@ void HttpContext::handle_block_request(const RequestInfo& request_info)
 
 }
 
-std::shared_ptr<ISocketContext> HttpContextCreator::create()
+std::shared_ptr<DaneJoe::ISocketContext> HttpContextCreator::create()
 {
     return std::make_shared<HttpContext>();
 }
-std::shared_ptr<ISocketContext> HttpContextCreator::create(
-    std::shared_ptr<DaneJoe::MTQueue<uint8_t>> recv_buffer,
-    std::shared_ptr<DaneJoe::MTQueue<uint8_t>> send_buffer)
+std::shared_ptr<DaneJoe::ISocketContext> HttpContextCreator::create(
+    std::shared_ptr<DaneJoe::MpmcBoundedQueue<uint8_t>> recv_buffer,
+    std::shared_ptr<DaneJoe::MpmcBoundedQueue<uint8_t>> send_buffer)
 {
     auto context = std::make_shared<HttpContext>();
     context->set_recv_buffer(recv_buffer);
@@ -99,7 +100,7 @@ std::shared_ptr<ISocketContext> HttpContextCreator::create(
     ServerTrans::get_instance().register_trans(context);
     return context;
 }
-void HttpContextCreator::destroy(std::shared_ptr<ISocketContext> context)
+void HttpContextCreator::destroy(std::shared_ptr<DaneJoe::ISocketContext> context)
 {
     auto trans_context = std::dynamic_pointer_cast<HttpContext>(context);
     ServerTrans::get_instance().unregister_trans(trans_context);

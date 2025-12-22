@@ -1,9 +1,10 @@
+#include <danejoe/logger/logger_manager.hpp>
+
 #include "server/view/connection_info_widget.hpp"
-#include "common/log/manage_logger.hpp"
 
 ConnectionInfoWidget::ConnectionInfoWidget(QWidget* parent)
-    : QWidget(parent) {
-}
+    : QWidget(parent)
+{}
 void ConnectionInfoWidget::init()
 {
     if (m_is_init)

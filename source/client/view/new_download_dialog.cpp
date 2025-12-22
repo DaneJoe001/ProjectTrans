@@ -10,14 +10,15 @@
 #include <QMessageBox>
 #include <QDateTime>
 
+#include <danejoe/logger/logger_manager.hpp>
+
+#include "danejoe/network/url/url_resolver.hpp"
+
+#include "common/util/screen_util.hpp"
 #include "client/view/new_download_dialog.hpp"
-#include "client/connect/trans_manager.hpp"
-#include "common/log/manage_logger.hpp"
 #include "client/connect/connection_thread.hpp"
-#include "common/network/url_resolver.hpp"
 #include "client/connect/message_handler.hpp"
 #include "client/view/file_info_dialog.hpp"
-#include "common/util/screen_util.hpp"
 #include "client/model/file_trans_info_table_model.hpp"
 
 NewDownloadDialog::NewDownloadDialog(QWidget* parent) :QDialog(parent) {}
@@ -100,22 +101,23 @@ void NewDownloadDialog::init()
     m_block_request_info_service.init();
 
     m_is_handle_trans_file_info_thread_running = true;
-    m_handle_trans_file_info_thread = std::thread([this]() {
-        while (m_is_handle_trans_file_info_thread_running.load())
+    m_handle_trans_file_info_thread = std::thread([this]()
         {
-            auto trans_info_optional = m_handle_trans_file_info_queue.pop();
-            if (trans_info_optional.has_value())
+            while (m_is_handle_trans_file_info_thread_running.load())
             {
-                auto trans_info = trans_info_optional.value();
-                std::list<BlockRequestInfo> block_list = Client::MessageHandler::calculate_block_info(trans_info.file_info, trans_info.block_param_config);
-
-                for (auto& block_info : block_list)
+                auto trans_info_optional = m_handle_trans_file_info_queue.pop();
+                if (trans_info_optional.has_value())
                 {
-                    m_block_request_info_service.add(block_info);
+                    auto trans_info = trans_info_optional.value();
+                    std::list<BlockRequestInfo> block_list = Client::MessageHandler::calculate_block_info(trans_info.file_info, trans_info.block_param_config);
+
+                    for (auto& block_info : block_list)
+                    {
+                        m_block_request_info_service.add(block_info);
+                    }
+                    FileTransInfoTableModel::get_instance()->add(trans_info.file_info);
                 }
-                FileTransInfoTableModel::get_instance()->add(trans_info.file_info);
             }
-        }
         });
 
     connect(m_add_download_push_button, &QPushButton::clicked, this, &NewDownloadDialog::on_download_push_button_clicked);
@@ -154,7 +156,7 @@ void NewDownloadDialog::on_download_push_button_clicked()
     // 需要一个请求信息类
     ClientFileInfo info;
     // 解析URL
-    auto url_info = UrlResolver::parse(std_url);
+    auto url_info = DaneJoe::UrlResolver::parse(std_url);
     // 不需要根据不同的协议进行不同的处理，只需要向对应的IP和端口发送即可
     // 不过消息中可以追加信息在MessageHandler中构建
     // 设置源路径

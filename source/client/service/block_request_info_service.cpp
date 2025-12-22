@@ -1,5 +1,5 @@
 #include "client/service/block_request_info_service.hpp"
-#include "common/log/manage_logger.hpp"
+#include <danejoe/logger/logger_manager.hpp>
 
 std::vector<BlockRequestInfo> BlockRequestInfoService::get_all()
 {

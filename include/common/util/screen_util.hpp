@@ -9,6 +9,9 @@
 #include <cstdint>
 #include <string>
 
+#include <QPoint>
+#include <QRect>
+
 /**
  * @class ScreenUtil
  * @brief 屏幕工具类

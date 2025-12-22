@@ -8,10 +8,11 @@
 #include <QMessageBox>
 #include <QCryptographicHash>
 
+#include <danejoe/logger/logger_manager.hpp>
+#include <danejoe/database/sql_database_manager.hpp>
+
 #include "server/view/add_file_dialog.hpp"
-#include "common/log/manage_logger.hpp"
 #include "server/model/server_file_info.hpp"
-#include "common/database/database_manager.hpp"
 #include "server/model/server_file_info_table_model.hpp"
 #include "common/util/screen_util.hpp"
 

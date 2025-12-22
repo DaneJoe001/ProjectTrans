@@ -6,15 +6,15 @@
  * @author DaneJoe001
  */
 #include <thread>
-#include <functional>
 #include <atomic>
 
 #include <QDialog>
 
+#include <danejoe/concurrent/container/mpmc_bounded_queue.hpp>
+
 #include "client/model/client_file_info.hpp"
 #include "client/service/client_file_info_service.hpp"
 #include "client/service/block_request_info_service.hpp"
-#include "common/mt_queue/mt_queue.hpp"
 
 class QPushButton;
 class QLineEdit;
@@ -114,5 +114,5 @@ private:
     /// @brief 是否已处理文件信息线程运行
     std::atomic<bool> m_is_handle_trans_file_info_thread_running = false;
     /// @brief 文件传输信息队列
-    DaneJoe::MTQueue<TransFileInfo> m_handle_trans_file_info_queue;
+    DaneJoe::MpmcBoundedQueue<TransFileInfo> m_handle_trans_file_info_queue;
 };

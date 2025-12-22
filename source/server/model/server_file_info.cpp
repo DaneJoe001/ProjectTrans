@@ -1,3 +1,5 @@
+#include <format>
+
 #include "server/model/server_file_info.hpp"
 
 std::string ServerFileInfo::to_string() const

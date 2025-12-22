@@ -9,14 +9,16 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "common/network/i_socket_context.hpp"
-#include "common/mt_queue/mt_queue.hpp"
+#include <danejoe/concurrent/container/mpmc_bounded_queue.hpp>
+#include "danejoe/network/context/i_socket_context.hpp"
+
+// #include "common/network/i_socket_context.hpp"
 
  /**
   * @class HttpContext
   * @brief 传输上下文
   */
-class HttpContext : public ISocketContext
+class HttpContext : public DaneJoe::ISocketContext
 {
 public:
     /**
@@ -89,33 +91,33 @@ public:
     void handle_block_request(const RequestInfo& request_info);
 private:
     /// @brief 用于回echo测试用
-    DaneJoe::MTQueue<uint8_t> m_queue = DaneJoe::MTQueue<uint8_t>(4096);
+    DaneJoe::MpmcBoundedQueue<uint8_t> m_queue = DaneJoe::MpmcBoundedQueue<uint8_t>(4096);
 };
 
 /**
  * @class HttpContextCreator
  * @brief 传输上下文创建者
  */
-class HttpContextCreator : public ISocketContextCreator
+class HttpContextCreator : public DaneJoe::ISocketContextCreator
 {
 public:
     /**
      * @brief 创建传输上下文
      * @return 传输上下文
      */
-    std::shared_ptr<ISocketContext> create()override;
+    std::shared_ptr<DaneJoe::ISocketContext> create()override;
     /**
      * @brief 创建传输上下文
      * @param recv_buffer 接收缓冲区
      * @param send_buffer 发送缓冲区
      * @return 传输上下文
      */
-    std::shared_ptr<ISocketContext> create(
-        std::shared_ptr<DaneJoe::MTQueue<uint8_t>> recv_buffer,
-        std::shared_ptr<DaneJoe::MTQueue<uint8_t>> send_buffer)override;
+    std::shared_ptr<DaneJoe::ISocketContext> create(
+        std::shared_ptr<DaneJoe::MpmcBoundedQueue<uint8_t>> recv_buffer,
+        std::shared_ptr<DaneJoe::MpmcBoundedQueue<uint8_t>> send_buffer)override;
     /**
      * @brief 销毁传输上下文
      * @param context 传输上下文
      */
-    void destroy(std::shared_ptr<ISocketContext> context)override;
+    void destroy(std::shared_ptr<DaneJoe::ISocketContext> context)override;
 };

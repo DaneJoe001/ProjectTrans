@@ -6,7 +6,6 @@
  * @author DaneJoe001
  */
 
-
 #include <QWidget>
 
  /**

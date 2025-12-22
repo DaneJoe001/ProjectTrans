@@ -1,10 +1,57 @@
-#include <format>
-#include <variant>
-
+#include <danejoe/database/sql_database_manager.hpp>
+#include <danejoe/logger/logger_manager.hpp>
+#include <danejoe/database/sql_query.hpp>
 
 #include "client/repository/block_request_info_repository.hpp"
-#include "common/database/database_manager.hpp"
-#include "common/log/manage_logger.hpp"
+#include "client/model/common.hpp"
+
+std::vector<BlockRequestInfo>
+BlockRequestInfoRepository::from_query_data(const std::vector<std::vector<DaneJoe::SqlCell>>& data)
+{
+    // 构建结果
+    std::vector<BlockRequestInfo> result;
+    for (int i = 0; i < data.size(); i++)
+    {
+        BlockRequestInfo block_info;
+        for (int j = 0; j < data[i].size(); j++)
+        {
+            if (data[i][j].column_name == "block_id")
+            {
+                block_info.block_id = std::get<int64_t>(data[i][j].data);
+            }
+            else if (data[i][j].column_name == "file_id")
+            {
+                block_info.file_id = std::get<int64_t>(data[i][j].data);
+            }
+            else if (data[i][j].column_name == "offset")
+            {
+                block_info.offset = std::get<int64_t>(data[i][j].data);
+            }
+            else if (data[i][j].column_name == "block_size")
+            {
+                block_info.block_size = std::get<int64_t>(data[i][j].data);
+            }
+            else if (data[i][j].column_name == "operation")
+            {
+                block_info.operation = static_cast<Operation>(std::get<int64_t>(data[i][j].data));
+            }
+            else if (data[i][j].column_name == "state")
+            {
+                block_info.state = static_cast<FileState>(std::get<int64_t>(data[i][j].data));
+            }
+            else if (data[i][j].column_name == "start_time")
+            {
+                block_info.start_time = std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::get<int64_t>(data[i][j].data)));
+            }
+            else if (data[i][j].column_name == "end_time")
+            {
+                block_info.end_time = std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::get<int64_t>(data[i][j].data)));
+            }
+        }
+        result.push_back(block_info);
+    }
+    return result;
+}
 
 BlockRequestInfoRepository::BlockRequestInfoRepository() {}
 
@@ -13,13 +60,13 @@ BlockRequestInfoRepository::~BlockRequestInfoRepository() {}
 bool BlockRequestInfoRepository::ensure_table_exists()
 {
     // 判断数据库是否初始化
-    if (!m_database)
+    if (!m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
     // 执行创建表
-    bool result = m_database->execute(R"(
+    m_query->prepare(R"(
         CREATE TABLE IF NOT EXISTS block_request_info (
             block_id INTEGER PRIMARY KEY,
             file_id INTEGER NOT NULL,
@@ -31,216 +78,177 @@ bool BlockRequestInfoRepository::ensure_table_exists()
             end_time INTEGER NOT NULL      -- 使用 INTEGER 存储时间戳
         );
     )");
-    return result;
+    return m_query->execute_command();
 }
 
 void BlockRequestInfoRepository::init()
 {
     // 当内部数据库已经初始化时直接返回
-    if (m_database)
+    if (m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database already initialized");
         return;
     }
     // 未初始化时从管理器中获取数据库
-    m_database = DatabaseManager::get_instance().get_database("client_database");
+    m_database = DaneJoe::SqlDatabaseManager::get_instance().get_database(
+        "client_database");
+    m_query = std::make_shared<DaneJoe::SqlQuery>(m_database);
 }
 
 std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_all()
 {
     // 判断数据库是否初始化
-    if (!m_database)
+    if (!m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return std::vector<BlockRequestInfo>();
     }
     // 查询所有数据
-    auto data = m_database->query("SELECT * FROM block_request_info;");
-    // 构建结果
-    std::vector<BlockRequestInfo> result = std::vector<BlockRequestInfo>(data.size());
-    // 遍历填充结果
-    for (int32_t i = 0;i < data.size();i++)
-    {
-        result[i] = BlockRequestInfo(
-            std::stoi(data[i][0]),
-            std::stoi(data[i][1]),
-            std::stoi(data[i][2]),
-            std::stoi(data[i][3]),
-            static_cast<Operation>(std::stoi(data[i][4])),
-            static_cast<FileState>(std::stoi(data[i][5])),
-            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][6]))),
-            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][7])))
-        );
-    }
-    return result;
+    // auto data = m_database->query("SELECT * FROM block_request_info;");
+    m_query->prepare("SELECT * FROM block_request_info;");
+    m_query->reset();
+    auto data = m_query->execute_query();
+    return from_query_data(data);
 }
 
 std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_by_file_id(int32_t file_id)
 {
     // 判断数据库是否初始化
-    if (!m_database)
+    if (!m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return std::vector<BlockRequestInfo>();
     }
     // 查询所有数据
-    auto data = m_database->query(std::format(R"(SELECT * FROM block_request_info where file_id = {};)", file_id));
-    // 构建结果
-    std::vector<BlockRequestInfo> result = std::vector<BlockRequestInfo>(data.size());
-    // 遍历填充结果
-    for (int32_t i = 0;i < data.size();i++)
-    {
-        result[i] = BlockRequestInfo(
-            std::stoi(data[i][0]),
-            std::stoi(data[i][1]),
-            std::stoi(data[i][2]),
-            std::stoi(data[i][3]),
-            static_cast<Operation>(std::stoi(data[i][4])),
-            static_cast<FileState>(std::stoi(data[i][5])),
-            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][6]))),
-            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][7])))
-        );
-    }
-    return result;
+    m_query->prepare("SELECT * FROM block_request_info where file_id = ?;");
+    m_query->reset();
+    m_query->bind(1, file_id);
+    auto data = m_query->execute_query();
+    return from_query_data(data);
 }
 
 int64_t BlockRequestInfoRepository::get_count_by_file_id_and_state(int32_t file_id, FileState state)
 {
-    if (!m_database)
+    if (!m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return 0;
     }
-    auto statement = m_database->get_statement(std::format(R"(
-        SELECT COUNT(*) FROM block_request_info where file_id = ? and state = ?;)"));
-    auto result = statement->arg(file_id).arg(static_cast<int>(state)).query();
-    if (result.size() > 0 && result[0].size() > 0)
+    m_query->prepare("SELECT COUNT(*) FROM block_request_info where file_id = ? and state = ?;");
+    m_query->reset();
+    m_query->bind(1, file_id);
+    m_query->bind(2, static_cast<int>(state));
+    auto data = m_query->execute_query();
+    if (data.size() > 0)
     {
-        return std::get<int64_t>(result[0][0]);
+        return std::get<int64_t>(data[0][0].data);
     }
     return 0;
 }
 
 std::vector<BlockRequestInfo> BlockRequestInfoRepository::get_by_file_id_and_state(int32_t file_id, FileState state)
 {
-    if (!m_database)
+    if (!m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return std::vector<BlockRequestInfo>();
     }
     // 查询所有数据
-    auto data = m_database->query(std::format(R"(SELECT * FROM block_request_info where file_id = {} and state = {};)", file_id, static_cast<int>(state)));
-    // 构建结果
-    std::vector<BlockRequestInfo> result = std::vector<BlockRequestInfo>(data.size());
-    // 遍历填充结果
-    for (int32_t i = 0;i < data.size();i++)
-    {
-        result[i] = BlockRequestInfo(
-            std::stoi(data[i][0]),
-            std::stoi(data[i][1]),
-            std::stoi(data[i][2]),
-            std::stoi(data[i][3]),
-            static_cast<Operation>(std::stoi(data[i][4])),
-            static_cast<FileState>(std::stoi(data[i][5])),
-            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][6]))),
-            std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[i][7])))
-        );
-    }
-    return result;
+    m_query->prepare("SELECT * FROM block_request_info where file_id = ? and state = ?;");
+    m_query->reset();
+    m_query->bind(1, file_id);
+    m_query->bind(2, static_cast<int>(state));
+    auto data = m_query->execute_query();
+    return from_query_data(data);
 }
 
 bool BlockRequestInfoRepository::add(const BlockRequestInfo& block_info)
 {
     // 判断数据库是否初始化
-    if (!m_database)
+    if (!m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
-    // 这个地方不能添加block_id，由数据库自动递增
-    auto statement = m_database->get_statement(R"(
-        INSERT INTO block_request_info (file_id, offset, block_size, operation, state, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?, ?);)"
-    );
-    bool result = statement->arg(block_info.file_id).arg(block_info.offset).arg(block_info.block_size).arg(static_cast<int>(block_info.operation)).arg(static_cast<int>(block_info.state)).arg(std::chrono::duration_cast<std::chrono::seconds>(block_info.start_time.time_since_epoch()).count()).arg(std::chrono::duration_cast<std::chrono::seconds>(block_info.end_time.time_since_epoch()).count()).execute();
-
-    // 执行插入数据并返回是否成功
-    std::string sql = std::format(
-        "INSERT INTO block_request_info (block_id, file_id, offset, block_size, operation, state, start_time, end_time) VALUES ({}, {}, {}, {}, {}, {}, {}, {});",
-        block_info.block_id,
-        block_info.file_id,
-        block_info.offset,
-        block_info.block_size,
-        static_cast<int>(block_info.operation),
-        static_cast<int>(block_info.state),
-        std::chrono::duration_cast<std::chrono::seconds>(block_info.start_time.time_since_epoch()).count(),
-        std::chrono::duration_cast<std::chrono::seconds>(block_info.end_time.time_since_epoch()).count()
-    );
-    // DANEJOE_LOG_DEBUG("default", "BlockRequestInfoRepository", "Statement: {}", sql);
-    return result;
+    m_query->prepare("INSERT INTO block_request_info (file_id, offset, "
+        "block_size, operation, state, start_time, end_time) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?);");
+    m_query->reset();
+    m_query->bind(1, block_info.file_id);
+    m_query->bind(2, block_info.offset);
+    m_query->bind(3, block_info.block_size);
+    m_query->bind(4, static_cast<int>(block_info.operation));
+    m_query->bind(5, static_cast<int>(block_info.state));
+    m_query->bind(6, std::chrono::duration_cast<std::chrono::seconds>(
+        block_info.start_time.time_since_epoch())
+        .count());
+    m_query->bind(7, std::chrono::duration_cast<std::chrono::seconds>(
+        block_info.end_time.time_since_epoch())
+        .count());
+    return m_query->execute_command();
 }
 std::optional<BlockRequestInfo> BlockRequestInfoRepository::get_by_id(int32_t block_id)
 {
     // 判断数据库是否初始化
-    if (!m_database)
+    if (!m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return std::nullopt;
     }
-    // 查询对应ID的数据
-    auto data = m_database->query(std::format("SELECT * FROM block_request_info WHERE block_id = {};", block_id));
-    // 找不到时返回空
+    m_query->prepare("SELECT * FROM block_request_info where block_id = ?;");
+    m_query->reset();
+    m_query->bind(1, block_id);
+    auto data = m_query->execute_query();
     if (data.size() == 0)
     {
         return std::nullopt;
     }
-    // 返回查找到的结果
-    return BlockRequestInfo(
-        std::stoi(data[0][0]),
-        std::stoi(data[0][1]),
-        std::stoi(data[0][2]),
-        std::stoi(data[0][3]),
-        static_cast<Operation>(std::stoi(data[0][4])),
-        static_cast<FileState>(std::stoi(data[0][5])),
-        std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[0][6]))),
-        std::chrono::time_point<std::chrono::steady_clock>(std::chrono::seconds(std::stoi(data[0][7])))
-    );
+    return from_query_data(data)[0];
 }
 
 bool BlockRequestInfoRepository::update(const BlockRequestInfo& block_info)
 {
     // 判断数据库是否初始化
-    if (!m_database)
+    if (!m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
-    // 执行更新数据并返回是否成功
-    return m_database->execute(std::format(
-        "UPDATE block_request_info SET file_id = {}, offset = {}, block_size = {}, operation = {}, state = {}, start_time = {}, end_time = {} WHERE block_id = {};",
-        block_info.file_id,
-        block_info.offset,
-        block_info.block_size,
-        static_cast<int>(block_info.operation),
-        static_cast<int>(block_info.state),
-        std::chrono::duration_cast<std::chrono::seconds>(block_info.start_time.time_since_epoch()).count(),
-        std::chrono::duration_cast<std::chrono::seconds>(block_info.end_time.time_since_epoch()).count(),
-        block_info.block_id
-    ));
+    m_query->prepare("UPDATE block_request_info SET file_id = ?, offset = ?, "
+        "block_size = ?, operation = ?, state = ?, start_time = "
+        "?, end_time = ? WHERE block_id = ?;");
+    m_query->reset();
+    m_query->bind(1, block_info.file_id);
+    m_query->bind(2, block_info.offset);
+    m_query->bind(3, block_info.block_size);
+    m_query->bind(4, static_cast<int>(block_info.operation));
+    m_query->bind(5, static_cast<int>(block_info.state));
+    m_query->bind(6, std::chrono::duration_cast<std::chrono::seconds>(
+        block_info.start_time.time_since_epoch())
+        .count());
+    m_query->bind(7, std::chrono::duration_cast<std::chrono::seconds>(
+        block_info.end_time.time_since_epoch())
+        .count());
+    m_query->bind(8, block_info.block_id);
+    return m_query->execute_command();
 }
 bool BlockRequestInfoRepository::remove(int32_t block_id)
 {
     // 判断数据库是否初始化
-    if (!m_database)
+    if (!m_query)
     {
         DANEJOE_LOG_TRACE("default", "BlockRequestInfoRepository", "Database not initialized");
         return false;
     }
     // 执行删除记录并返回是否成功
-    return m_database->execute(std::format("DELETE FROM block_request_info WHERE block_id = {};", block_id));
+    m_query->prepare("DELETE FROM block_request_info WHERE block_id = ?;");
+    m_query->reset();
+    m_query->bind(1, block_id);
+    return m_query->execute_command();
 }
 
 bool BlockRequestInfoRepository::is_init()const
 {
     // 判断数据库是否初始化
-    return m_database != nullptr;
+    return m_query != nullptr;
 }

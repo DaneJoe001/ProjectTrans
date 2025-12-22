@@ -9,14 +9,14 @@
 #include <QMenu>
 #include <QAction>
 
+#include <danejoe/logger/logger_manager.hpp>
+#include <qmainwindow.h>
+
+#include "common/util/screen_util.hpp"
 #include "server/view/server_main_window.hpp"
 #include "server/view/add_file_dialog.hpp"
 #include "server/view/connection_info_widget.hpp"
 #include "server/view/resource_info_widget.hpp"
-#include "common/log/manage_logger.hpp"
-#include "common/util/screen_util.hpp"
-
-extern std::atomic<bool> g_is_panel_running;
 
 ServerMainWindow::ServerMainWindow(QWidget* parent) :QMainWindow(parent) {}
 void ServerMainWindow::init()
@@ -73,19 +73,10 @@ void ServerMainWindow::init()
 }
 
 void ServerMainWindow::closeEvent(QCloseEvent* event)
-{
-    event->ignore(); // 忽略关闭事件
-    hide(); // 隐藏窗口
-    g_is_panel_running.store(false);
-}
+{}
 
 void ServerMainWindow::timerEvent(QTimerEvent* event)
-{
-    if (g_is_panel_running.load() && !this->isVisible())
-    {
-        this->show();
-    }
-}
+{}
 
 void ServerMainWindow::on_add_file_action_triggered()
 {

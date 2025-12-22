@@ -13,7 +13,8 @@
 #include <QList>
 #include <QObject>
 
-#include "common/mt_queue/mt_queue.hpp"
+#include <danejoe/concurrent/container/mpmc_bounded_queue.hpp>
+
 #include "client/model/trans_info.hpp"
 #include "client/model/client_file_info.hpp"
 #include "client/model/block_request_info.hpp"
@@ -50,7 +51,8 @@ public:
      * @brief 初始化
      */
     void init();
-signals:
+  signals:
+  void update();
     void block_data_written(int32_t file_id, int32_t block_id);
 public slots:
     void on_block_data_written(int32_t file_id, int32_t block_id);
@@ -60,9 +62,9 @@ private:
     /// @brief 客户端文件信息线程，用于处理文件，完成块请求入队
     std::thread m_client_file_info_thread;
     /// @brief 客户端文件信息队列，用于客户端传输文件列表
-    DaneJoe::MTQueue<ClientFileInfo>m_client_file_info_queue;
+    DaneJoe::MpmcBoundedQueue<ClientFileInfo>m_client_file_info_queue;
     /// @brief 块请求队列列表，用于存储块请求队列
-    QList<std::shared_ptr<DaneJoe::MTQueue<BlockRequestInfo>>>  m_block_task_queue_list;
+    QList<std::shared_ptr<DaneJoe::MpmcBoundedQueue<BlockRequestInfo>>>  m_block_task_queue_list;
     /// @brief 块请求线程列表，用于处理块请求线程
     QList<BlockRequestThread*> m_block_thread_list;
     /// @brief 传输信息映射，用于存储传输信息

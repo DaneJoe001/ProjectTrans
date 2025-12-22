@@ -1,10 +1,10 @@
-#include "common/log/manage_logger.hpp"
+#include <danejoe/logger/logger_manager.hpp>
+
 #include "client/connect/connection_manager.hpp"
 
 ConnectionGuard::ConnectionGuard(std::unique_ptr<ClientConnection> connection)
     : m_connection(std::move(connection))
-{
-}
+{}
 
 ConnectionGuard::operator bool()const
 {

@@ -6,8 +6,6 @@
  * @author DaneJoe001
  */
 
-
-
 #include <QWidget>
 
 class ServerFileInfoTableModel;

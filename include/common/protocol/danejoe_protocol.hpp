@@ -4,7 +4,7 @@
 #include <string>
 #include <cstdint>
 
-#include "common/network/url_resolver.hpp"
+#include "danejoe/network/url/url_info.hpp"
 
 namespace DaneJoe
 {
@@ -88,7 +88,7 @@ namespace DaneJoe
           /// @brief 请求类型
           RequestType type;
           /// @brief Url信息
-          UrlResolver::UrlInfo url_info;
+          DaneJoe::UrlInfo url_info;
           /// @brief 序列化的消息体
           std::vector<uint8_t> body;
         };

@@ -6,7 +6,6 @@
  * @author DaneJoe001
  */
 
-
 #include "client/repository/block_request_info_repository.hpp"
 
  /**

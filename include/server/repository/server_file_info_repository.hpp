@@ -11,14 +11,16 @@
 #include <vector>
 #include <cstdint>
 
-#include "server/model/server_file_info.hpp"
-#include "common/database/i_database.hpp"
+#include <danejoe/database/sql_query.hpp>
+#include <danejoe/database/sql_database.hpp>
 
-/**
- * @class ServerFileInfoRepository
- * @brief 服务器文件信息仓库
- */
-class ServerFileInfoRepository 
+#include "server/model/server_file_info.hpp"
+
+ /**
+  * @class ServerFileInfoRepository
+  * @brief 服务器文件信息仓库
+  */
+class ServerFileInfoRepository
 {
 public:
     /**
@@ -78,7 +80,13 @@ public:
      * @return 是否删除成功
      */
     bool remove(int32_t file_id);
+    /**
+     * @brief 是否初始化
+     * @return 是否初始化
+     */
+    bool is_init()const;
 private:
     /// @brief 数据库
-    std::shared_ptr<IDatabase> m_database;
+    DaneJoe::SqlDatabasePtr m_database;
+    DaneJoe::SqlQueryPtr m_query;
 };

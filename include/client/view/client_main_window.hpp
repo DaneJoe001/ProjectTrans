@@ -12,7 +12,6 @@
 #include <QMainWindow>
 #include <QString>
 
-
 class QMenuBar;
 class QMenu;
 class QAction;
@@ -85,6 +84,7 @@ public slots:
      * @brief 停止任务动作触发
      */
     void on_stop_task_action_triggered();
+    void on_view_update();
 private:
     /// @brief 是否在连接测试
     bool m_is_on_connection_test = false;

@@ -90,8 +90,8 @@ ev.events = EPOLLOUT; // 未合并 EPOLLET/EPOLLRDHUP 等
 ```
   - 建议：维护一份每连接“当前关心事件”掩码，在修改时进行合并（保持 ET、RDHUP 等语义不变）。
 - **读写管线/回压模型不完整**
-  - 读：`read_all` 每次切换非阻塞、循环到 EAGAIN，内存拷贝较多，且一次性推入 `MTQueue`，当上层处理慢时容易膨胀。
-  - 写：`send_all` 自旋式忙等 EAGAIN（继续循环），未与事件循环配合，可能引发 CPU 突增。写缓冲从 `MTQueue` 拉取 1024 字节，调用 `send_all` 又在内部循环，需明确“试探性 send”与“直至完全发送”的边界。
+  - 读：`read_all` 每次切换非阻塞、循环到 EAGAIN，内存拷贝较多，且一次性推入 `MpmcBoundedQueue`，当上层处理慢时容易膨胀。
+  - 写：`send_all` 自旋式忙等 EAGAIN（继续循环），未与事件循环配合，可能引发 CPU 突增。写缓冲从 `MpmcBoundedQueue` 拉取 1024 字节，调用 `send_all` 又在内部循环，需明确“试探性 send”与“直至完全发送”的边界。
   - 建议：
     - 将 `read_all` 拆为“尽量读取至内部环形缓冲/分段处理”，避免每次切换阻塞模式；或在事件循环层处理“读尽”逻辑。
     - 写侧仅执行单次 `send`（非阻塞），根据返回值维护“剩余待发数据”，并基于是否有剩余来打开/关闭 `EPOLLOUT`。
@@ -111,7 +111,7 @@ ev.events = EPOLLOUT; // 未合并 EPOLLET/EPOLLRDHUP 等
 - **上下文数据的全局共享隐患**
   - `TransContext` 使用了一个全局 `temp` 队列，导致所有连接共享该缓冲，数据交叉污染：
 ```1:34:/home/danejoe001/personal_code/code_cpp_project/cpp_project_trans/source/server/trans_context.cpp
-DaneJoe::MTQueue<uint8_t> temp(4096);
+DaneJoe::MpmcBoundedQueue<uint8_t> temp(4096);
 ```
   - 建议：将 per-connection 状态放入 `TransContext` 的成员，确保隔离；按连接私有的收发缓冲、解析状态机、序列化器等都应在实例内。
 - **协议与消息分帧**

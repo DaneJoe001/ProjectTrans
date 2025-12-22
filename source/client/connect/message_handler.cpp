@@ -1,12 +1,16 @@
-#include <cstdio>
 #include <string>
 #include <chrono>
+#include <optional>
+
+#include <danejoe/logger/logger_manager.hpp>
+#include <danejoe/stringify//stringify_to_string.hpp>
+#include "danejoe/network/url/url_resolver.hpp"
+
+#include "danejoe/network/codec/serialize_codec.hpp"
+
+#include "common/protocol/danejoe_protocol.hpp"
 
 #include "client/connect/message_handler.hpp"
-#include "common/log/manage_logger.hpp"
-#include "common/network/danejoe_serializer.hpp"
-#include "common/protocol/danejoe_protocol.hpp"
-#include "common/util/print_util.hpp"
 
 std::list<BlockRequestInfo> Client::MessageHandler::calculate_block_info(const ClientFileInfo& file_info, const BlockParamConfig& config)
 {
@@ -34,7 +38,7 @@ std::optional<ClientFileInfo> Client::MessageHandler::parse_download_response(co
     /// @todo 添加文件名长度限制/移除硬编码数值/添加长度信息(序列化添加)
     DANEJOE_LOG_TRACE("default", "MessageHandler", "Parse file info");
     ClientFileInfo info;
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.deserialize(body);
     auto file_id_field_opt = serializer.get_parsed_field("file_id");
     auto file_name_field_opt = serializer.get_parsed_field("file_name");
@@ -86,7 +90,7 @@ std::optional<ClientFileInfo> Client::MessageHandler::parse_download_response(co
 std::optional<BlockResponseInfo> Client::MessageHandler::parse_block_response(const std::vector<uint8_t>& body)
 {
     BlockResponseInfo info;
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.deserialize(body);
 
     auto block_id_field_op = serializer.get_parsed_field("block_id");
@@ -153,7 +157,7 @@ std::optional<BlockResponseInfo> Client::MessageHandler::parse_block_response(co
 
 std::string Client::MessageHandler::parse_test_response(const std::vector<uint8_t>& body)
 {
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     auto header_opt = serializer.get_message_header(body);
     DANEJOE_LOG_DEBUG("default", "Client::MessageHandler", "Header: {}", header_opt.has_value() ? header_opt->to_string() : "Invalid header");
     serializer.deserialize(body);
@@ -171,13 +175,13 @@ std::optional<DaneJoe::Protocol::RequestInfo> Client::MessageHandler::parse_resp
     /// @todo 请求和响应格式不应该一致，当前应该是服务端解析逻辑AQS
     /// @todo 区分Http协议和自定义协议
     DaneJoe::Protocol::RequestInfo info;
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.deserialize(data);
     auto parsed_map = serializer.get_parsed_data_map();
-    for(const auto& [key, value]: parsed_map)
+    for (const auto& [key, value] : parsed_map)
     {
         DANEJOE_LOG_TRACE("default", "MessageHandler", "Key: {}, Value: {}", key, DaneJoe::to_string(value));
-        if(key == "type")
+        if (key == "type")
         {
             info.type = DaneJoe::to_request_type(DaneJoe::to_string(value));
         }
@@ -187,7 +191,7 @@ std::optional<DaneJoe::Protocol::RequestInfo> Client::MessageHandler::parse_resp
         }
         else if (key == "protocol")
         {
-            info.url_info.protocol = UrlResolver::to_protocol(DaneJoe::to_string(value));
+            info.url_info.protocol = DaneJoe::UrlResolver::to_protocol(DaneJoe::to_string(value));
         }
         else if (key == "host")
         {
@@ -208,7 +212,7 @@ std::optional<DaneJoe::Protocol::RequestInfo> Client::MessageHandler::parse_resp
         else
         {
             // 其他均作为查询参数
-            info.url_info.query.insert({key, DaneJoe::to_string(value)});
+            info.url_info.query.insert({ key, DaneJoe::to_string(value) });
         }
     }
     return info;
@@ -216,15 +220,15 @@ std::optional<DaneJoe::Protocol::RequestInfo> Client::MessageHandler::parse_resp
 
 std::vector<uint8_t> Client::MessageHandler::build_request(DaneJoe::Protocol::RequestInfo info)
 {
-    if(info.url_info.protocol == UrlResolver::UrlProtocol::Danejoe)
+    if (info.url_info.protocol == DaneJoe::UrlProtocol::Danejoe)
     {
-        DaneJoe::DaneJoeSerializer serializer;
-        std::string type_str =  DaneJoe::to_string(info.type);
+        DaneJoe::SerializeCodec serializer;
+        std::string type_str = DaneJoe::to_string(info.type);
         // 序列化消息类型
         serializer.serialize(type_str, "type");
         // 序列化消息体
         serializer.serialize(info.body, "body");
-        serializer.serialize(UrlResolver::to_string(info.url_info.protocol), "protocol");
+        serializer.serialize(DaneJoe::UrlResolver::to_string(info.url_info.protocol), "protocol");
         serializer.serialize(info.url_info.host, "host");
         serializer.serialize(info.url_info.port, "port");
         serializer.serialize(info.url_info.path, "path");
@@ -233,14 +237,14 @@ std::vector<uint8_t> Client::MessageHandler::build_request(DaneJoe::Protocol::Re
             serializer.serialize(value, key);
         }
         // 序列化Url信息结构体
-        // DaneJoe::DaneJoeSerializer url_info_serializer;
+        // DaneJoe::SerializeCodec url_info_serializer;
         // 序列化Url信息
         // serializer.serialize(url_info_serializer.get_serialized_data_vector_build(), "url_info");
         return serializer.get_serialized_data_vector_build();
     }
-    else if (info.url_info.protocol == UrlResolver::UrlProtocol::Http)
+    else if (info.url_info.protocol == DaneJoe::UrlProtocol::Http)
     {
-        std::string body_str= std::string(info.body.begin(), info.body.end());
+        std::string body_str = std::string(info.body.begin(), info.body.end());
         std::string request_str = "POST / HTTP/1.1\r\nHost: " + info.url_info.host + ":" + std::to_string(info.url_info.port) + "\r\nContent-Length: " + std::to_string(info.body.size()) + "\r\n\r\n" + body_str;
         return std::vector<uint8_t>(request_str.begin(), request_str.end());
     }
@@ -250,10 +254,10 @@ std::vector<uint8_t> Client::MessageHandler::build_request(DaneJoe::Protocol::Re
     }
 }
 
-std::vector<uint8_t> Client::MessageHandler::build_test_request(const UrlResolver::UrlInfo url_info,const std::string& message)
+std::vector<uint8_t> Client::MessageHandler::build_test_request(const DaneJoe::UrlInfo url_info, const std::string& message)
 {
     // 构建消息体
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.serialize(message, "message");
     // 构建消息
     DaneJoe::Protocol::RequestInfo info;
@@ -266,10 +270,10 @@ std::vector<uint8_t> Client::MessageHandler::build_test_request(const UrlResolve
     return build_request(info);
 }
 
-std::vector<uint8_t> Client::MessageHandler::build_block_request(const UrlResolver::UrlInfo url_info,const BlockRequestInfo& block_request_info)
+std::vector<uint8_t> Client::MessageHandler::build_block_request(const DaneJoe::UrlInfo url_info, const BlockRequestInfo& block_request_info)
 {
     DANEJOE_LOG_TRACE("default", "Client::MessageHandler", "Building block request for block: {}", block_request_info.to_string());
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.serialize(block_request_info.block_id, "block_id");
     serializer.serialize(block_request_info.file_id, "file_id");
     serializer.serialize(block_request_info.offset, "offset");
@@ -284,15 +288,15 @@ std::vector<uint8_t> Client::MessageHandler::build_block_request(const UrlResolv
     return build_request(info);
 }
 
-std::vector<uint8_t> Client::MessageHandler::build_download_request(const UrlResolver::UrlInfo url_info, const std::string& account, const std::string& password)
+std::vector<uint8_t> Client::MessageHandler::build_download_request(const DaneJoe::UrlInfo url_info, const std::string& account, const std::string& password)
 {
     DANEJOE_LOG_TRACE("default", "Client::MessageHandler", "Query params: {}", DaneJoe::to_string(url_info.query));
     // 构建消息体
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     /// @todo 解析url,获取文件id
     serializer.serialize(account, "account");
     serializer.serialize(password, "password");
-    for(const auto& [key, value]: url_info.query)
+    for (const auto& [key, value] : url_info.query)
     {
         serializer.serialize(value, key);
     }

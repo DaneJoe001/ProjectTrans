@@ -1,8 +1,9 @@
+#include <danejoe/logger/logger_manager.hpp>
+#include <danejoe/concurrent/container/mpmc_bounded_queue.hpp>
+
+#include "client/connect/message_handler.hpp"
 #include "client/connect/connection_thread.hpp"
 #include "client/connect/connection_manager.hpp"
-#include "common/log/manage_logger.hpp"
-#include "client/connect/message_handler.hpp"
-#include "common/mt_queue/mt_queue.hpp"
 
 ConnectionThread::ConnectionThread(QObject* parent) :QThread(parent)
 {
@@ -40,8 +41,8 @@ bool ConnectionThread::init(const std::string& ip, uint16_t port)
 void ConnectionThread::run()
 {
     // 设置连接标志为true
-    m_is_running = true;
-    while (m_is_running)
+    m_is_running.store(true);
+    while (m_is_running.load())
     {
         // 接收前先判断可用性
         if (m_connection && m_connection->is_connected() && m_connection->is_readable())
@@ -79,7 +80,7 @@ void ConnectionThread::deinit()
 ConnectionThread::~ConnectionThread()
 {
     // 由于需要维持线程运行，故只在析构中更新运行标志
-    m_is_running = false;
+    m_is_running.store(false);
     // 等待线程结束
     wait();
     // 回收连接

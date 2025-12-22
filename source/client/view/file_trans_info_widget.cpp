@@ -4,7 +4,7 @@
 
 #include "client/view/file_trans_info_widget.hpp"
 #include "client/model/file_trans_info_table_model.hpp"
-#include "common/log/manage_logger.hpp"
+#include <danejoe/logger/logger_manager.hpp>
 
 FileTransInfoWidget::FileTransInfoWidget(QWidget* parent) : QWidget(parent)
 {

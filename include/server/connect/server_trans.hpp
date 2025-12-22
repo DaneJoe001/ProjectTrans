@@ -5,13 +5,12 @@
  * @brief 客户端传输
  */
 
-#include <list>
 #include <thread>
 #include <memory>
 #include <unordered_set>
 #include <atomic>
 
-#include "common/network/i_socket_context.hpp"
+#include "danejoe/network/context/i_socket_context.hpp"
 
  /**
   * @class ServerTrans
@@ -28,12 +27,12 @@ public:
      * @brief 注册传输
      * @param trans 传输
      */
-    bool register_trans(std::shared_ptr<ISocketContext> trans);
+    bool register_trans(std::shared_ptr<DaneJoe::ISocketContext> trans);
     /**
      * @brief 注销传输
      * @param trans 传输
      */
-    void unregister_trans(std::shared_ptr<ISocketContext> trans);
+    void unregister_trans(std::shared_ptr<DaneJoe::ISocketContext> trans);
     /**
      * @brief 接收数据处理
      */
@@ -61,7 +60,7 @@ private:
     ~ServerTrans();
 private:
     /// @brief 传输上下文列表
-    std::unordered_set<std::shared_ptr<ISocketContext>> m_trans_set;
+    std::unordered_set<std::shared_ptr<DaneJoe::ISocketContext>> m_trans_set;
     /// @brief 是否运行
     std::atomic<bool> m_is_running = false;
     /// @brief 接收线程

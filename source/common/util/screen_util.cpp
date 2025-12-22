@@ -5,7 +5,7 @@
 #include <QScreen>
 
 #include "common/util/screen_util.hpp"
-#include "common/log/manage_logger.hpp"
+#include <danejoe/logger/logger_manager.hpp>
 
 ScreenUtil::PointInfo::PointInfo() {}
 ScreenUtil::PointInfo::PointInfo(int x, int y)

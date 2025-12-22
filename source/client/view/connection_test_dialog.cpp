@@ -6,18 +6,18 @@
 #include<QWidget>
 #include<QVBoxLayout>
 #include<QTextEdit>
-#include<QMessageBox>
+#include <QMessageBox>
 
-#include "client/view/connection_test_dialog.hpp"
-#include "common/log/manage_logger.hpp"
-#include "client/connect/connection_manager.hpp"
-#include "client/connect/connection_thread.hpp"
+#include <danejoe/logger/logger_manager.hpp>
+
 #include "common/util/screen_util.hpp"
 #include "client/connect/message_handler.hpp"
+#include "client/view/connection_test_dialog.hpp"
+#include "client/connect/connection_thread.hpp"
 
 ConnectionTestDialog::ConnectionTestDialog(QWidget* parent)
-    : QDialog(parent) {
-}
+    : QDialog(parent)
+{}
 
 void ConnectionTestDialog::init()
 {
@@ -92,7 +92,7 @@ void ConnectionTestDialog::on_send_push_button_clicked()
     }
     QString text = m_send_text_edit->toPlainText();
     std::vector<uint8_t> data;
-    data=Client::MessageHandler::build_test_request(m_url_info,text.toStdString());
+    data = Client::MessageHandler::build_test_request(m_url_info, text.toStdString());
     m_send_text_edit->clear();
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_send_push_button_clicked():{}", text.toStdString());
     if (!m_connection_thread)
@@ -112,7 +112,7 @@ void ConnectionTestDialog::on_connect_push_button_clicked()
         return;
     }
     QString url = m_url_line_edit->text();
-    m_url_info = UrlResolver::parse(url.toStdString());
+    m_url_info = DaneJoe::UrlResolver::parse(url.toStdString());
 
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "URL Parsed:{}", m_url_info.to_string());
 
@@ -141,8 +141,8 @@ void ConnectionTestDialog::on_message_received(const std::vector<uint8_t>& data)
     m_recv_text_browser->append(text);
 }
 
-void ConnectionTestDialog::closeEvent(QCloseEvent* event)
-{
+void ConnectionTestDialog::closeEvent(QCloseEvent *event) {
+    QDialog::closeEvent(event);
     if (!m_is_init)
     {
         DANEJOE_LOG_ERROR("default", "ConnectionTestDialog", "ConnectionTestDialog has not been initialized");
@@ -157,5 +157,5 @@ void ConnectionTestDialog::closeEvent(QCloseEvent* event)
 
 void ConnectionTestDialog::timerEvent(QTimerEvent* event)
 {
-
+    QDialog::timerEvent(event);
 }

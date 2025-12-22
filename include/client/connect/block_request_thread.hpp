@@ -12,7 +12,8 @@
 
 #include <QThread>
 
-#include "common/mt_queue/mt_queue.hpp"
+#include <danejoe/concurrent/container/mpmc_bounded_queue.hpp>
+
 #include "common/protocol/frame_assembler.hpp"
 #include "client/model/block_request_info.hpp"
 #include "client/model/client_file_info.hpp"
@@ -41,7 +42,7 @@ public:
      * @brief 初始化
      * @param block_task_queue 块请求队列
      */
-    void init(std::shared_ptr<DaneJoe::MTQueue<BlockRequestInfo>> block_task_queue);
+    void init(std::shared_ptr<DaneJoe::MpmcBoundedQueue<BlockRequestInfo>> block_task_queue);
     /**
      * @brief 初始化
      * @param file_info_map 文件信息映射
@@ -62,7 +63,8 @@ signals:
      * @param file_id 文件ID
      * @param block_id 块ID
      */
-    void block_request_finished(int32_t file_id, int32_t block_id);
+  void block_request_finished(int32_t file_id, int32_t block_id);
+  void update();
 public slots:
     /**
      * @brief 停止
@@ -76,7 +78,7 @@ public slots:
     void on_file_state_changed(int32_t file_id, FileState state);
 private:
     /// @brief 块请求队列,此结构与TransManager共享，由TransManager管理
-    std::shared_ptr<DaneJoe::MTQueue<BlockRequestInfo>> m_block_task_queue = nullptr;
+    std::shared_ptr<DaneJoe::MpmcBoundedQueue<BlockRequestInfo>> m_block_task_queue = nullptr;
     /// @brief 是否运行
     std::atomic<bool> m_is_running = false;
     /// @brief 文件状态映射

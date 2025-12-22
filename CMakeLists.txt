@@ -1,83 +1,48 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(ProjectTrans LANGUAGES CXX)
+# @brief 项目名称
+set(PROJECT_NAME ProjectTrans)
+# @brief 核心库名称
+set(CLIENT_CORE_LIB_NAME ClientCore)
+# @brief 核心库名称
+set(SERVER_CORE_LIB_NAME ServerCore)
+# @brief 可执行文件名称
+set(CLIENT_EXECUTABLE_NAME client)
+# @brief 可执行文件名称
+set(SERVER_EXECUTABLE_NAME server)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+project(${PROJECT_NAME} LANGUAGES CXX)
 
-set(CMAKE_AUTOMOC ON )
-set(CMAKE_AUTORCC ON )
-set(CMAKE_AUTOUIC ON )
+include("${CMAKE_SOURCE_DIR}/cmake/options.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake/project_options.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake/warnings.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake/source_collection.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake/entry_points.cmake")
 
-file(GLOB CLIENT_SOURCES CONFIGURE_DEPENDS
-    "include/common/util/screen_util.hpp"
-    "include/client/view/*.hpp"
-    "include/client/connect/*.hpp"
-    "source/client/connect/*.cpp"
-    "source/client/main/*.cpp"
-    "source/client/model/*.cpp"
-    "source/client/repository/*.cpp"
-    "source/client/service/*.cpp"
-    "source/client/view/*.cpp"
-    "source/common/network/*.cpp"
-    "source/common/database/*.cpp"
-    "source/common/util/*.cpp"
-    "source/common/protocol/*.cpp"
-    "source/common/log/*.cpp"
-    "source/common/mt_queue/*.cpp"
-)
+add_library(${CLIENT_CORE_LIB_NAME} ${CLIENT_CORE_SOURCES})
+target_include_directories(${CLIENT_CORE_LIB_NAME} PUBLIC "include")
+apply_warnings(${CLIENT_CORE_LIB_NAME})
 
-file(GLOB SERVER_SOURCES CONFIGURE_DEPENDS
-    "include/common/util/screen_util.hpp"
-    "include/server/view/*.hpp"
-    "source/server/connect/*.cpp"
-    "source/server/main/*.cpp"
-    "source/server/model/*.cpp"
-    "source/server/repository/*.cpp"
-    "source/server/service/*.cpp"
-    "source/server/view/*.cpp"
-    "source/common/network/*.cpp"
-    "source/common/database/*.cpp"
-    "source/common/util/*.cpp"
-    "source/common/protocol/*.cpp"
-    "source/common/log/*.cpp"
-    "source/common/mt_queue/*.cpp"
-)
+add_library(${SERVER_CORE_LIB_NAME} ${SERVER_CORE_SOURCES})
+target_include_directories(${SERVER_CORE_LIB_NAME} PUBLIC "include")
+apply_warnings(${SERVER_CORE_LIB_NAME})
 
-set(BUILD_CLIENT on)
-set(BUILD_SERVER on)
+add_executable(${CLIENT_EXECUTABLE_NAME} ${CLIENT_EXECUTABLE_SOURCE} ${CLIENT_QRC_SOURCES})
+target_link_libraries(${CLIENT_EXECUTABLE_NAME} PRIVATE ${CLIENT_CORE_LIB_NAME})
+apply_warnings(${CLIENT_EXECUTABLE_NAME})
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
-find_package(OpenSSL REQUIRED)
+add_executable(${SERVER_EXECUTABLE_NAME} ${SERVER_EXECUTABLE_SOURCE} ${CLIENT_QRC_SOURCES})
+target_link_libraries(${SERVER_EXECUTABLE_NAME} PRIVATE ${SERVER_CORE_LIB_NAME})
+apply_warnings(${SERVER_EXECUTABLE_NAME})
 
-# 使用add_subdirectory方式添加SQLiteCpp
-add_subdirectory(/home/danejoe001/develop_environment/environment_database/database_sqlite/SQLiteCpp ${CMAKE_BINARY_DIR}/external/sqlitecpp)
+include("${CMAKE_SOURCE_DIR}/cmake/dependencies.cmake")
 
-
-if(BUILD_CLIENT)
-    add_executable(client ${CLIENT_SOURCES})
-    target_link_libraries(client PRIVATE 
-        Qt6::Core 
-        Qt6::Gui 
-        Qt6::Widgets
-    )
-    target_include_directories(client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(client PRIVATE SQLiteCpp)
-    target_link_libraries(client PRIVATE OpenSSL::SSL)
-    target_link_libraries(client PRIVATE OpenSSL::Crypto)
-endif()
-
-if(BUILD_SERVER)
-    add_executable(server ${SERVER_SOURCES})
-    target_include_directories(server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(server PRIVATE 
-        Qt6::Core 
-        Qt6::Gui 
-        Qt6::Widgets
-    )
-    target_link_libraries(server PRIVATE SQLiteCpp)
-    target_link_libraries(server PRIVATE OpenSSL::SSL)
-    target_link_libraries(server PRIVATE    OpenSSL::Crypto)
+if(BUILD_TEST)
+    # @brief 启用测试
+    include(CTest)
+    enable_testing()
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test/CMakeLists.txt")
+      # @brief 添加测试子目录
+      add_subdirectory(test)
+    endif()
 endif()

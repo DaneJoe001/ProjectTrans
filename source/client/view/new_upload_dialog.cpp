@@ -8,7 +8,7 @@
 #include <QFileDialog>
 
 #include "client/view/new_upload_dialog.hpp"
-#include "common/log/manage_logger.hpp"
+#include <danejoe/logger/logger_manager.hpp>
 #include "common/util/screen_util.hpp"
 
 NewUploadDialog::NewUploadDialog(QWidget* parent) :QDialog(parent)

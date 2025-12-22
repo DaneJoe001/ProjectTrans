@@ -9,12 +9,12 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+ #include <atomic>
 
 #include <QThread>
 #include <QTimer>
 
 #include "client/connect/client_connection.hpp"
-#include "common/network/danejoe_serializer.hpp"
 #include "common/protocol/frame_assembler.hpp"
 
  /**
@@ -76,7 +76,7 @@ private:
     /// @brief 连接
     std::unique_ptr<ClientConnection> m_connection = nullptr;
     /// @brief 是否运行
-    bool m_is_running = false;
+    std::atomic<bool> m_is_running = false;
     /// @brief 定时器
     QTimer m_timer;
     /// @brief 帧组装器

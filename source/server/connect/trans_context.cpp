@@ -1,11 +1,8 @@
 #include <vector>
 #include <string>
-#include <cstring>
-#include <thread>
-#include <queue>
 
-#include "common/log/manage_logger.hpp"
-#include "common/network/danejoe_serializer.hpp"
+#include <danejoe/logger/logger_manager.hpp>
+
 #include "common/protocol/danejoe_protocol.hpp"
 #include "server/connect/trans_context.hpp"
 #include "server/connect/server_trans.hpp"
@@ -13,21 +10,21 @@
 #include "server/connect/message_handler.hpp"
 #include "server/model/block_response_info.hpp"
 
-    /// @todo 客户端处理url，统一序列化，不使用字符串路径传递参数
-    /// @todo 如何处理客户端,区分http协议和自定义协议
-    /// @todo 请求=[类型+消息体]
-    /// @todo 响应=协议信息+[消息体]
-        /// 现在考虑的问题是数据长度放在哪一部分？
-    /// 当前具有的实现是，序列化中含有数据包信息，默认长度为16字节
-    /// 超大数据发送，超出缓冲区长度的解决方案
-    /// 分段发送和接收，直至匹配消息头中的数据长度
-    /// 先计算是否接收到消息头长度，不足则进入下一次接收
-    /// 接收完长度后开始进行消息体接收，消息体接收完成后更新接收长度标志
-    /// 通过消息头确认完整数据帧
-    /// 用同一个缓冲区接收消息头和消息体，只是先接收消息头，再处理消息体
-    /// @todo 添加失步检测
-    /// @todo 记录接收长度
-    /// @todo 独立抽出反序列化器
+/// @todo 客户端处理url，统一序列化，不使用字符串路径传递参数
+/// @todo 如何处理客户端,区分http协议和自定义协议
+/// @todo 请求=[类型+消息体]
+/// @todo 响应=协议信息+[消息体]
+    /// 现在考虑的问题是数据长度放在哪一部分？
+/// 当前具有的实现是，序列化中含有数据包信息，默认长度为16字节
+/// 超大数据发送，超出缓冲区长度的解决方案
+/// 分段发送和接收，直至匹配消息头中的数据长度
+/// 先计算是否接收到消息头长度，不足则进入下一次接收
+/// 接收完长度后开始进行消息体接收，消息体接收完成后更新接收长度标志
+/// 通过消息头确认完整数据帧
+/// 用同一个缓冲区接收消息头和消息体，只是先接收消息头，再处理消息体
+/// @todo 添加失步检测
+/// @todo 记录接收长度
+/// @todo 独立抽出反序列化器
 
 void TransContext::on_recv()
 {
@@ -39,7 +36,7 @@ void TransContext::on_recv()
         return;
     }
     auto request_info_opt = Server::MessageHandler::parse_request(frame_opt.value());
-    if(request_info_opt.has_value())
+    if (request_info_opt.has_value())
     {
         DaneJoe::Protocol::RequestInfo request_info = request_info_opt.value();
         DANEJOE_LOG_TRACE("default", "TransContext", "Received request: {}", request_info.url_info.to_string());
@@ -80,7 +77,7 @@ void TransContext::on_send()
     // DANEJOE_LOG_TRACE("default", "TransContext", "TransContext send: {}", std::string(data.begin(), data.end()));
     // // 解析请求链接
     // auto request_info = parse_request(data);
-    
+
 }
 
 void TransContext::handle_unknown_request(const DaneJoe::Protocol::RequestInfo& request_info)
@@ -89,10 +86,11 @@ void TransContext::handle_unknown_request(const DaneJoe::Protocol::RequestInfo& 
     auto test_response = Server::MessageHandler::build_test_response(response);
     m_send_buffer->push(test_response.begin(), test_response.end());
 }
-void TransContext::handle_download_request(const DaneJoe::Protocol::RequestInfo& request_info)
-{
+void TransContext::handle_download_request(
+    const DaneJoe::Protocol::RequestInfo &request_info) {
+  DANEJOE_LOG_TRACE("default", "TransContext", "Handling download request: {}", request_info.url_info.to_string());
     auto file_info_opt = Server::MessageHandler::parse_download_request(request_info.body);
-    if(!file_info_opt.has_value())
+    if (!file_info_opt.has_value())
     {
         DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle download request: file info not found");
         /// @todo 添加错误响应处理
@@ -111,7 +109,7 @@ void TransContext::handle_upload_request(const DaneJoe::Protocol::RequestInfo& r
 {
     auto file_info_opt = Server::MessageHandler::parse_upload_request(request_info.body);
     // 解析上传请求消息体
-    if(!file_info_opt.has_value())
+    if (!file_info_opt.has_value())
     {
         DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle upload request: file info not found");
         /// @todo 添加错误响应处理
@@ -145,14 +143,14 @@ void TransContext::handle_block_request(const DaneJoe::Protocol::RequestInfo& re
     // 将块响应写入发送缓冲区
     m_send_buffer->push(response.begin(), response.end());
 }
-std::shared_ptr<ISocketContext> TransContextCreator::create()
+std::shared_ptr<DaneJoe::ISocketContext> TransContextCreator::create()
 {
     return std::make_shared<TransContext>();
 }
 
-std::shared_ptr<ISocketContext> TransContextCreator::create(
-    std::shared_ptr<DaneJoe::MTQueue<uint8_t>> recv_buffer,
-    std::shared_ptr<DaneJoe::MTQueue<uint8_t>> send_buffer)
+std::shared_ptr<DaneJoe::ISocketContext> TransContextCreator::create(
+    std::shared_ptr<DaneJoe::MpmcBoundedQueue<uint8_t>> recv_buffer,
+    std::shared_ptr<DaneJoe::MpmcBoundedQueue<uint8_t>> send_buffer)
 {
     auto context = std::make_shared<TransContext>();
     context->set_recv_buffer(recv_buffer);
@@ -161,7 +159,7 @@ std::shared_ptr<ISocketContext> TransContextCreator::create(
     return context;
 }
 
-void TransContextCreator::destroy(std::shared_ptr<ISocketContext> context)
+void TransContextCreator::destroy(std::shared_ptr<DaneJoe::ISocketContext> context)
 {
     auto trans_context = std::dynamic_pointer_cast<TransContext>(context);
     ServerTrans::get_instance().unregister_trans(trans_context);

@@ -1,11 +1,11 @@
 #pragma once
 
+#include <deque>
 #include <vector>
-#include <queue>
 #include <optional>
 #include <cstdint>
 
-#include "common/network/danejoe_serializer.hpp"
+#include "danejoe/network/codec/serialize_header.hpp"
 
 // 多个帧
 //有一个问题，我需要尝试对缓冲区尝试解析消息头
@@ -30,6 +30,6 @@ private:
     std::deque<uint8_t> m_buffer;
     std::vector<uint8_t> m_current_frame;
     uint32_t m_current_frame_index = 0;
-    DaneJoe::DaneJoeSerializer::MessageHeader m_current_header;
+    DaneJoe::SerializeHeader m_current_header;
     bool m_is_got_header = false;
 };

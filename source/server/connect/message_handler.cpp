@@ -1,9 +1,12 @@
 #include <fstream>
 
-#include "server/connect/message_handler.hpp"
-#include "common/log/manage_logger.hpp"
-#include "common/network/danejoe_serializer.hpp"
+#include <danejoe/logger/logger_manager.hpp>
+
+#include "danejoe/network/codec/serialize_codec.hpp"
+#include "danejoe/network/url/url_resolver.hpp"
+
 #include "common/protocol/danejoe_protocol.hpp"
+#include "server/connect/message_handler.hpp"
 
 /// @todo 由type区分转为由path区分
 
@@ -15,7 +18,7 @@ std::vector<uint8_t> Server::MessageHandler::build_response(DaneJoe::Protocol::R
         DaneJoe::to_string(info.status),
         DaneJoe::to_string(info.content_type),
         info.body.size());
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.
         serialize(DaneJoe::to_code(info.status), "status").
         serialize(DaneJoe::to_code(info.content_type), "content_type").
@@ -29,7 +32,7 @@ std::vector<uint8_t> Server::MessageHandler::build_response(DaneJoe::Protocol::R
 std::vector<uint8_t> Server::MessageHandler::build_download_response(const ServerFileInfo& file_info)
 {
     /// @todo 添加协议信息
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.
         serialize("download_response", "response_type").
         serialize(file_info.file_id, "file_id").
@@ -46,11 +49,11 @@ std::vector<uint8_t> Server::MessageHandler::build_download_response(const Serve
 
 std::vector<uint8_t> Server::MessageHandler::build_upload_response(const ServerFileInfo& file_info)
 {
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.
         serialize("upload_response", "response_type").
         serialize("Received Upload request", "message");
-        // 构建响应
+    // 构建响应
     DaneJoe::Protocol::ResponseInfo info;
     info.status = DaneJoe::Protocol::ResponseStatus::Ok;
     info.content_type = DaneJoe::Protocol::ContentType::DaneJoe;
@@ -60,7 +63,7 @@ std::vector<uint8_t> Server::MessageHandler::build_upload_response(const ServerF
 
 std::vector<uint8_t> Server::MessageHandler::build_test_response(const std::string& message)
 {
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.
         serialize("test_response", "response_type").
         serialize(message, "message");
@@ -81,7 +84,7 @@ std::vector<uint8_t> Server::MessageHandler::build_test_response(const std::stri
 
 std::vector<uint8_t> Server::MessageHandler::build_block_response(const BlockResponseInfo& block_response_info)
 {
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.
         serialize("block_response", "response_type").
         serialize(block_response_info.block_id, "block_id").
@@ -99,45 +102,45 @@ std::vector<uint8_t> Server::MessageHandler::build_block_response(const BlockRes
 
 std::optional<DaneJoe::Protocol::RequestInfo> Server::MessageHandler::parse_request(const std::vector<uint8_t>& data)
 {
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     DaneJoe::Protocol::RequestInfo request_info;
     serializer.deserialize(data);
     auto field_map = serializer.get_parsed_data_map();
-    for(const auto& [key, field]: field_map)
+    for (const auto& [key, field] : field_map)
     {
-        DANEJOE_LOG_TRACE("default", "Server::MessageHandler", "Parsed field: {} with length: {}", key, field.value_length);
-        if(key == "type")
+        // DANEJOE_LOG_TRACE("default", "Server::MessageHandler", "Parsed field: {} with length: {}", key, field.value_length);
+        if (key == "type")
         {
             request_info.type = DaneJoe::to_request_type(DaneJoe::to_string(field));
         }
-        else if(key == "body")
+        else if (key == "body")
         {
             request_info.body = DaneJoe::to_array<uint8_t>(field);
         }
-        else if(key == "protocol")
+        else if (key == "protocol")
         {
-            request_info.url_info.protocol = UrlResolver::to_protocol(DaneJoe::to_string(field));
+            request_info.url_info.protocol = DaneJoe::UrlResolver::to_protocol(DaneJoe::to_string(field));
         }
-        else if(key == "host")
+        else if (key == "host")
         {
             request_info.url_info.host = DaneJoe::to_string(field);
         }
-        else if(key == "port")
+        else if (key == "port")
         {
             auto port_op = DaneJoe::to_value<uint16_t>(field);
-            if(port_op.has_value())
+            if (port_op.has_value())
             {
                 request_info.url_info.port = port_op.value();
             }
         }
-        else if(key == "path")
+        else if (key == "path")
         {
             request_info.url_info.path = DaneJoe::to_string(field);
         }
         else
         {
             // 其他均作为查询参数
-            request_info.url_info.query.insert({key, DaneJoe::to_string(field)});
+            request_info.url_info.query.insert({ key, DaneJoe::to_string(field) });
         }
     }
     return request_info;
@@ -152,7 +155,7 @@ std::optional<BlockResponseInfo> Server::MessageHandler::parse_block_request(con
 std::optional<BlockResponseInfo> Server::MessageHandler::parse_block_request(const std::vector<uint8_t>& body)
 {
     BlockResponseInfo block_response_info;
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.deserialize(body);
 
     auto map = serializer.get_parsed_data_map();
@@ -230,7 +233,7 @@ std::optional<BlockResponseInfo> Server::MessageHandler::parse_block_request(con
 std::optional<ServerFileInfo> Server::MessageHandler::parse_download_request(const std::vector<uint8_t>& body)
 {
     ServerFileInfo file_info;
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.deserialize(body);
     // 通过id获取文件信息
     // 注意当前的file_id是以字符串的形式传过来的
@@ -239,18 +242,26 @@ std::optional<ServerFileInfo> Server::MessageHandler::parse_download_request(con
     {
         auto file_id_opt = DaneJoe::to_string(file_id_field_opt.value());
         int32_t file_id = std::stoi(file_id_opt);
-        if(file_id <= 0)
+        // auto file_id_opt =
+        //     DaneJoe::to_value<int32_t>(file_id_field_opt.value());
+        // if (!file_id_opt.has_value()) {
+        //     return std::nullopt;
+        // }
+        // int32_t file_id = file_id_opt.value();
+        if (file_id <= 0)
         {
             DANEJOE_LOG_WARN("default", "Server::MessageHandler", "Failed to handle download request: invalid file id {}", file_id);
             return std::nullopt;
         }
         m_file_info_service.init();
         auto file_info_optional = m_file_info_service.get_by_id(file_id);
+        DANEJOE_LOG_DEBUG("default", "-----------", "File info: {}", file_id);
         if (!file_info_optional.has_value())
         {
             DANEJOE_LOG_WARN("default", "Server::MessageHandler", "Failed to handle download request: file info not found");
             return std::nullopt;
         }
+        DANEJOE_LOG_DEBUG("default", "-----------", "File info: {}", file_info_optional.value().to_string());
         file_info = file_info_optional.value();
     }
     else
@@ -263,7 +274,7 @@ std::optional<ServerFileInfo> Server::MessageHandler::parse_download_request(con
 
 std::string Server::MessageHandler::parse_test_request(const std::vector<uint8_t>& body)
 {
-    DaneJoe::DaneJoeSerializer serializer;
+    DaneJoe::SerializeCodec serializer;
     serializer.deserialize(body);
     auto message_field_opt = serializer.get_parsed_field("message");
     if (!message_field_opt.has_value())

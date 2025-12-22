@@ -8,7 +8,6 @@
 
 #include <string>
 #include <chrono>
-#include <format>
 #include <cstdint>
 
 #include "client/model/common.hpp"

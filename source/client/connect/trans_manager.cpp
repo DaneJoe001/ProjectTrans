@@ -1,6 +1,7 @@
+#include <danejoe/logger/logger_manager.hpp>
+
 #include "client/connect/connection_manager.hpp"
 #include "client/connect/trans_manager.hpp"
-#include "common/log/manage_logger.hpp"
 
 TransManager::TransManager(QObject* parent) :QObject(parent), m_connection_manager(ConnectionManager::get_instance())
 {
@@ -63,7 +64,7 @@ void TransManager::init()
     // 更新文件信息处理线程标志位
     m_is_running.store(true);
     // 初始化文件信息队列
-    m_client_file_info_queue = DaneJoe::MTQueue<ClientFileInfo>(128);
+    m_client_file_info_queue = DaneJoe::MpmcBoundedQueue<ClientFileInfo>(128);
     // 初始化文件信息列表
     m_file_info_map = std::make_shared<std::unordered_map<int32_t, ClientFileInfo>>();
     // 添加默认处理线程
@@ -112,7 +113,7 @@ void TransManager::add_thread()
         return;
     }
     // 块信息任务队列
-    std::shared_ptr<DaneJoe::MTQueue<BlockRequestInfo>> block_task_queue = std::make_shared<DaneJoe::MTQueue<BlockRequestInfo>>(1024);
+    std::shared_ptr<DaneJoe::MpmcBoundedQueue<BlockRequestInfo>> block_task_queue = std::make_shared<DaneJoe::MpmcBoundedQueue<BlockRequestInfo>>(1024);
     m_block_task_queue_list.push_back(block_task_queue);
     BlockRequestThread* block_request_thread = new BlockRequestThread(this);
     m_block_thread_list.push_back(block_request_thread);
@@ -127,4 +128,5 @@ void TransManager::on_block_data_written(int32_t file_id, int32_t block_id)
 {
     DANEJOE_LOG_DEBUG("default", "TransManager", "Block data written: file_id = {}, block_id = {}", file_id, block_id);
     emit block_data_written(file_id, block_id);
+    emit update();
 }

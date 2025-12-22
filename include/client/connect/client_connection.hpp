@@ -6,9 +6,11 @@
  * @author DaneJoe001
  */
 
+#include <string>
+#include <vector>
 #include <cstdint>
 
-#include "common/network/posix_client_socket.hpp"
+#include "danejoe/network/socket/posix_client_socket.hpp"
 
  /**
   * @class ClientConnection
@@ -68,10 +70,10 @@ public:
      * @brief 获取Socket
      * @return Socket
      */
-    PosixClientSocket& get_socket();
+    DaneJoe::PosixClientSocket& get_socket();
 private:
     /// @brief 客户端Socket
-    PosixClientSocket m_socket;
+    DaneJoe::PosixClientSocket m_socket;
     /// @brief 服务器IP地址
     std::string m_ip;
     /// @brief 服务器端口

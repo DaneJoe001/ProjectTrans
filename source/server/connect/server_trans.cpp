@@ -1,7 +1,8 @@
 #include <thread>
 
+#include <danejoe/logger/logger_manager.hpp>
+
 #include "server/connect/server_trans.hpp"
-#include "common/log/manage_logger.hpp"
 
 ServerTrans& ServerTrans::get_instance()
 {
@@ -22,7 +23,7 @@ ServerTrans::~ServerTrans()
     }
 }
 
-bool ServerTrans::register_trans(std::shared_ptr<ISocketContext> trans)
+bool ServerTrans::register_trans(std::shared_ptr<DaneJoe::ISocketContext> trans)
 {
     // 在有效的情况下插入set
     if (!trans)
@@ -34,7 +35,7 @@ bool ServerTrans::register_trans(std::shared_ptr<ISocketContext> trans)
     return true;
 }
 
-void ServerTrans::unregister_trans(std::shared_ptr<ISocketContext> trans)
+void ServerTrans::unregister_trans(std::shared_ptr<DaneJoe::ISocketContext> trans)
 {
     auto it = m_trans_set.find(trans);
     if (it == m_trans_set.end())

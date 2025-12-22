@@ -11,7 +11,7 @@
 #include <functional>
 #include <cstdint>
 
-#include "common/mt_queue/mt_queue.hpp"
+#include <danejoe/concurrent/container/mpmc_bounded_queue.hpp>
 
  /**
   * @class ThreadPool
@@ -52,7 +52,7 @@ private:
     /// @brief 是否运行
     std::atomic<bool> m_is_running = false;
     /// @brief 任务队列
-    DaneJoe::MTQueue<std::function<void()>> m_task_queue;
+    DaneJoe::MpmcBoundedQueue<std::function<void()>> m_task_queue;
     /// @brief 线程
     std::vector<std::thread> m_threads;
 };

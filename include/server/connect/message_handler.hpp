@@ -2,13 +2,11 @@
 
 #include <vector>
 #include <cstdint>
-#include <unordered_map>
 
+#include "common/protocol/danejoe_protocol.hpp"
 #include "server/model/server_file_info.hpp"
 #include "server/model/block_response_info.hpp"
 #include "server/service/server_file_info_service.hpp"
-#include "common/network/danejoe_serializer.hpp"
-#include "common/protocol/danejoe_protocol.hpp"
 
 namespace Server
 {

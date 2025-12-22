@@ -8,8 +8,10 @@
 
 #include <optional>
 
+#include <danejoe/database/sql_database.hpp>
+#include <danejoe/database/sql_query.hpp>
+
 #include "client/model/block_request_info.hpp"
-#include "common/database/i_database.hpp"
 
  /**
   * @class BlockRequestInfoRepository
@@ -88,8 +90,10 @@ public:
      * @brief 是否初始化
      * @return 是否初始化
      */
-    bool is_init()const;
+    bool is_init() const;
+    std::vector<BlockRequestInfo> from_query_data(const std::vector<std::vector<DaneJoe::SqlCell>>& data);
 private:
     /// @brief 数据库
-    std::shared_ptr<IDatabase> m_database;
+    DaneJoe::SqlDatabasePtr m_database;
+    DaneJoe::SqlQueryPtr m_query;
 };

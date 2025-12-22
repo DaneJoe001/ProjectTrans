@@ -1,3 +1,6 @@
+#include "danejoe/network/codec/serialize_codec.hpp"
+#include "danejoe/network/codec/serialize_header.hpp"
+
 #include "common/protocol/frame_assembler.hpp"
 
 void DaneJoe::ensure_capacity(std::vector<uint8_t>& vec, size_t size)
@@ -32,7 +35,7 @@ std::vector<uint8_t> FrameAssembler::pop_data(uint32_t size)
 
 std::optional<std::vector<uint8_t>> FrameAssembler::pop_frame()
 {
-    auto header_size = DaneJoe::DaneJoeSerializer::get_message_header_size();
+    auto header_size = DaneJoe::SerializeCodec::get_message_header_size();
     // 检查是否以获取当前消息头
     if (!m_is_got_header)
     {
@@ -48,7 +51,7 @@ std::optional<std::vector<uint8_t>> FrameAssembler::pop_frame()
         {
             m_current_frame[m_current_frame_index] = header_data[m_current_frame_index];
         }
-        auto header_opt = DaneJoe::DaneJoeSerializer::MessageHeader::from_serialized_byte_array(header_data);
+        auto header_opt = DaneJoe::SerializeHeader::from_serialized_byte_array(header_data);
         if (!header_opt.has_value())
         {
             clear_current_frame();

@@ -8,7 +8,7 @@
 #include <QMessageBox>
 
 #include "client/view/client_main_window.hpp"
-#include "common/log/manage_logger.hpp"
+#include <danejoe/logger/logger_manager.hpp>
 #include "client/view/connection_test_dialog.hpp"
 #include "client/view/new_download_dialog.hpp"
 #include "client/view/new_upload_dialog.hpp"
@@ -139,7 +139,10 @@ void ClientMainWindow::init()
     connect(m_file_trans_info_widget, &FileTransInfoWidget::row_clicked, this, &ClientMainWindow::on_file_trans_selected);
     connect(m_start_task_action, &QAction::triggered, this, &ClientMainWindow::on_start_task_action_triggered);
     connect(m_stop_task_action, &QAction::triggered, this, &ClientMainWindow::on_stop_task_action_triggered);
-    connect(m_trans_manager, &TransManager::block_data_written, m_file_trans_info_widget, &FileTransInfoWidget::update_view);
+    connect(m_trans_manager, &TransManager::block_data_written,
+            m_file_trans_info_widget, &FileTransInfoWidget::update_view);
+    connect(m_trans_manager, &TransManager::update,
+            this, &ClientMainWindow::on_view_update);
 
     startTimer(1000);
     m_is_init = true;
@@ -260,3 +263,12 @@ void ClientMainWindow::on_stop_task_action_triggered()
     DANEJOE_LOG_TRACE("default", "MainWindow", "Task file info: {}", file_info.to_string());
     QMessageBox::information(this, "info", "Task will stop soon.");
 }
+
+void ClientMainWindow::on_view_update() {
+	if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
+        return;
+        }
+        this->update();
+	}

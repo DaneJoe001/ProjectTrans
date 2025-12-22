@@ -10,10 +10,10 @@
 #include <QMessageBox>
 #include <QFileInfo>
 
-#include "client/view/file_info_dialog.hpp"
-#include "common/log/manage_logger.hpp"
+#include <danejoe/logger/logger_manager.hpp>
+
 #include "common/util/screen_util.hpp"
-#include "common/network/danejoe_serializer.hpp"
+#include "client/view/file_info_dialog.hpp"
 #include "client/connect/message_handler.hpp"
 
 FileInfoDialog::FileInfoDialog(QWidget* parent) :QDialog(parent)
@@ -117,7 +117,7 @@ void FileInfoDialog::on_received_raw_file_info(std::vector<uint8_t> info)
     {
         DANEJOE_LOG_ERROR("default", "FileInfoDialog", "Failed to parse file info");
     }
-    m_info_received =file_info_opt.value();
+    m_info_received = file_info_opt.value();
     QString file_info_text = QString(R"(
         <!DOCTYPE html>
         <html lang="zh">

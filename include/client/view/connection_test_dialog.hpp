@@ -7,10 +7,8 @@
  */
 
 #include <QDialog>
-#include <memory>
 
-#include "client/connect/client_connection.hpp"
-#include "common/network/url_resolver.hpp"
+#include "danejoe/network/url/url_resolver.hpp"
 
 class QLineEdit;
 class QPushButton;
@@ -101,5 +99,5 @@ private:
     /// @brief 是否已初始化
     bool m_is_init = false;
     /// @brief URL信息
-    UrlResolver::UrlInfo m_url_info;
+    DaneJoe::UrlInfo m_url_info;
 };

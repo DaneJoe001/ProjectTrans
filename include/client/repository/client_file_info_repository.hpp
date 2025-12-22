@@ -10,14 +10,17 @@
 #include <vector>
 #include <cstdint>
 
-#include "client/model/client_file_info.hpp"
-#include "common/database/i_database.hpp"
+#include <danejoe/database/sql_query.hpp>
+#include <danejoe/database/sql_database.hpp>
 
- /**
-  * @class ClientFileInfoRepository
-  * @brief 客户端文件信息仓库
-  */
-class ClientFileInfoRepository {
+#include "client/model/client_file_info.hpp"
+
+  /**
+   * @class ClientFileInfoRepository
+   * @brief 客户端文件信息仓库
+   */
+class ClientFileInfoRepository
+{
 public:
     /**
      * @brief 构造函数
@@ -85,5 +88,6 @@ public:
     bool is_init()const;
 private:
     /// @brief 数据库
-    std::shared_ptr<IDatabase> m_database;
+    DaneJoe::SqlDatabasePtr m_database;
+    DaneJoe::SqlQueryPtr m_query;
 };

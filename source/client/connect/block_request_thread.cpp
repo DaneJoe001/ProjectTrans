@@ -1,12 +1,13 @@
 #include <fstream>
 
+#include <danejoe/logger/logger_manager.hpp>
+#include "danejoe/network/url/url_resolver.hpp"
+
 #include "client/connect/block_request_thread.hpp"
-#include "common/log/manage_logger.hpp"
 #include "client/connect/connection_manager.hpp"
-#include "common/network/url_resolver.hpp"
 #include "client/connect/message_handler.hpp"
 
-void BlockRequestThread::init(std::shared_ptr<DaneJoe::MTQueue<BlockRequestInfo>> block_task_queue)
+void BlockRequestThread::init(std::shared_ptr<DaneJoe::MpmcBoundedQueue<BlockRequestInfo>> block_task_queue)
 {
     // 检查块队列是否已经初始化，已初始化发出警告，完成替换
     if (m_block_task_queue)
@@ -53,13 +54,13 @@ void BlockRequestThread::run()
             continue;
         }
         // 从文件源路径中提取url信息
-        UrlResolver::UrlInfo url_info = UrlResolver::parse(m_file_info_it->second.source_path);
+        DaneJoe::UrlInfo url_info = DaneJoe::UrlResolver::parse(m_file_info_it->second.source_path);
         // 当前只处理自定义协议
-        if (url_info.protocol != UrlResolver::UrlProtocol::Danejoe)
+        if (url_info.protocol != DaneJoe::UrlProtocol::Danejoe)
         {
             continue;
         }
-        auto block_request_data = Client::MessageHandler::build_block_request(url_info,block_request_info);
+        auto block_request_data = Client::MessageHandler::build_block_request(url_info, block_request_info);
         // 获取连接管理器
         auto& connection_manager = ConnectionManager::get_instance();
         // 添加连接
@@ -76,14 +77,14 @@ void BlockRequestThread::run()
         guard_connection->send(block_request_data);
 
         // 接收数据响应
-        auto frame_opt=m_frame_assembler.pop_frame();
+        auto frame_opt = m_frame_assembler.pop_frame();
         do
         {
             auto response_data = guard_connection->receive();
             m_frame_assembler.push_data(response_data);
             frame_opt = m_frame_assembler.pop_frame();
         } while (!frame_opt.has_value());
-        
+
         auto response_data = frame_opt.value();
         // 检查响应数据是否为空
         if (response_data.empty())
@@ -93,14 +94,14 @@ void BlockRequestThread::run()
         }
         // 从接收的数据构建字符串
         auto info_opt = Client::MessageHandler::parse_response(response_data);
-        if(!info_opt.has_value())
+        if (!info_opt.has_value())
         {
             DANEJOE_LOG_WARN("default", "BlockRequestThread", "Failed to parse response data");
             continue;
         }
         auto info = info_opt.value();
         auto block_info_opt = Client::MessageHandler::parse_block_response(info_opt.value().body);
-        if(!block_info_opt.has_value())
+        if (!block_info_opt.has_value())
         {
             DANEJOE_LOG_WARN("default", "BlockRequestThread", "Failed to parse block response");
             continue;
@@ -157,6 +158,8 @@ void BlockRequestThread::write_block_data(const BlockResponseInfo& block_respons
     block_request_info.state = FileState::Completed;
     block_request_info.end_time = std::chrono::steady_clock::now();
     m_block_request_info_service.update(block_request_info);
+    m_block_request_info_service.remove(block_response_info.block_id);
+    emit update();
     emit block_request_finished(block_request_info.file_id, block_request_info.block_id);
 }
 
