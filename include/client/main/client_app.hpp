@@ -3,6 +3,7 @@
 #include <QObject>
 
 class ClientMainWindow;
+class TransManager;
 
 class ClientApp : public QObject
 {
@@ -21,4 +22,6 @@ private:
 private:
     bool m_is_init = false;
     ClientMainWindow* m_main_window = nullptr;
+    /// @brief 传输管理器
+    TransManager* m_trans_manager = nullptr;
 };

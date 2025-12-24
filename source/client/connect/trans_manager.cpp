@@ -124,6 +124,11 @@ void TransManager::add_thread()
     m_thread_count++;
 }
 
+void TransManager::on_add_trans(const ClientFileInfo& info)
+{
+    add_trans(info);
+}
+
 void TransManager::on_block_data_written(int32_t file_id, int32_t block_id)
 {
     DANEJOE_LOG_DEBUG("default", "TransManager", "Block data written: file_id = {}, block_id = {}", file_id, block_id);

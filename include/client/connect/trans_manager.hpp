@@ -51,10 +51,11 @@ public:
      * @brief 初始化
      */
     void init();
-  signals:
-  void update();
+signals:
+    void update();
     void block_data_written(int32_t file_id, int32_t block_id);
 public slots:
+    void on_add_trans(const ClientFileInfo& info);
     void on_block_data_written(int32_t file_id, int32_t block_id);
 private:
     /// @brief 是否运行

@@ -15,12 +15,15 @@ extern "C"
 #include "danejoe/common/diagnostic/diagnostic_system.hpp"
 #include "danejoe/network/event_loop/epoll_event_loop.hpp"
 #include "danejoe/network/socket/posix_client_socket.hpp"
+#include "danejoe/logger/logger_manager.hpp"
 
 /// @todo 将读写引入线程中，避免顺序执行导致缓冲区满阻塞
 
 #define USE_SERVER_TRANS
 #define MODIFY_SOCKET_EVENT
-DaneJoe::EpollEventLoop::EpollEventLoop(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator)
+DaneJoe::EpollEventLoop::EpollEventLoop() {}
+
+void DaneJoe::EpollEventLoop::init(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator)
 {
     // 先检查服务器套接字是否不为空且有效
     if (!server_socket || !(server_socket->is_valid()))
@@ -67,6 +70,7 @@ DaneJoe::EpollEventLoop::EpollEventLoop(std::unique_ptr<PosixServerSocket> serve
         stop();
         return;
     }
+    m_is_init = true;
 }
 
 DaneJoe::EpollEventLoop::~EpollEventLoop()
@@ -169,6 +173,7 @@ void DaneJoe::EpollEventLoop::run()
     struct epoll_event events[m_max_event_count];
     while (m_is_running.load())
     {
+        DANEJOE_LOG_TRACE("default", "network", "Loop is running!");
         // 等待事件发生
         int32_t ret = ::epoll_wait(m_epoll_fd, events, m_max_event_count, 1000);
         if (ret < 0)
@@ -200,8 +205,7 @@ void DaneJoe::EpollEventLoop::run()
                 continue;
             }
             // 错误或对端关闭：及时回收 fd，避免无意义的后续处理
-            // EPOLLHUP hand up 挂起即连接被关闭
-            if (event & (EPOLLHUP | EPOLLERR))
+            if (event & (EPOLLHUP | EPOLLERR | EPOLLRDHUP))
             {
                 ADD_DIAG_WARN("network", "Handle client event: client socket error or closed");
                 remove_socket(PosixClientSocket::get_id(fd));
@@ -224,7 +228,7 @@ void DaneJoe::EpollEventLoop::run()
 void DaneJoe::EpollEventLoop::stop()
 {
     // 结束事件循环
-    end_loop();
+    m_is_running.store(false);
     // 关闭所有客户端套接字
     for (auto& [socket_id, socket] : m_sockets)
     {
@@ -331,9 +335,9 @@ void DaneJoe::EpollEventLoop::acceptable_event()
             client->close();
             continue;
         }
-        // 确保在处理新连接时仅关注可读事件，而不是可写事件。
-        // if (!add_socket(std::move(client), EventLoopEventType::Readable | EventLoopEventType::Writable | EventLoopEventType::EdgeTriggered | EventLoopEventType::PeerClosed))
-        if (!add_socket(std::move(client), EventLoopEventType::Readable | EventLoopEventType::Writable | EventLoopEventType::EdgeTriggered | EventLoopEventType::PeerClosed))
+        // 新连接默认只监听可读 + 对端关闭 + 边缘触发
+        // 注意：EPOLLOUT 在 TCP 下通常“永远可写”，会造成空转；需要发送数据时再临时打开。
+        if (!add_socket(std::move(client), EventLoopEventType::Readable | EventLoopEventType::EdgeTriggered | EventLoopEventType::PeerClosed))
         {
             ADD_DIAG_WARN("network", "Accept client skipped: add socket failed");
             continue;
@@ -356,7 +360,7 @@ void DaneJoe::EpollEventLoop::readable_event(int32_t socket_id)
     if (socket_iter->second == nullptr)
     {
         ADD_DIAG_ERROR("network", "Handle readable event failed: socket is null");
-        remove_socket(PosixClientSocket::get_id(socket_id));
+        remove_socket(socket_id);
         return;
     }
     // 获取接收缓冲区
@@ -391,19 +395,7 @@ void DaneJoe::EpollEventLoop::readable_event(int32_t socket_id)
     m_contexts.at(PosixClientSocket::get_id(socket_id))->on_recv();
 #endif
 
-#ifdef MODIFY_SOCKET_EVENT
-    // 构建事件结构体
-    struct epoll_event ev = {};
-    // 监听可写事件
-    ev.events = EPOLLOUT | EPOLLIN;
-    ev.data.fd = socket_id;
-    // 检查是否修改成功
-    int ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, socket_id, &ev);
-    if (ret < 0)
-    {
-        ADD_DIAG_ERROR("network", "Modify socket event failed: epoll_ctl mod failed: {}", std::strerror(errno));
-    }
-#endif
+    // 这里不主动开启 EPOLLOUT，避免在没有待发送数据时 busy-loop。
 }
 
 void DaneJoe::EpollEventLoop::writable_event(int32_t socket_id)
@@ -431,11 +423,15 @@ void DaneJoe::EpollEventLoop::writable_event(int32_t socket_id)
     // 获取发送缓存
     auto buffer = m_send_buffers.at(socket_id);
 
-    // 检查发送缓冲区数据的长度
+    // 若没有待发送数据，直接返回（并且不要一直监听 EPOLLOUT，否则会空转）
     uint32_t data_length = buffer->size();
+    if (data_length == 0)
+    {
+        return;
+    }
     auto data_optional = buffer->pop(data_length);
 
-    if (data_optional.has_value())
+    if (data_optional.has_value() && !data_optional.value().empty())
     {
         std::string send_data = std::string(data_optional.value().begin(), data_optional.value().end());
         if (!send_data.empty() && send_data.length() != 4)
@@ -445,17 +441,6 @@ void DaneJoe::EpollEventLoop::writable_event(int32_t socket_id)
         // 发送数据
         m_sockets.at(socket_id)->write_all(data_optional.value());
     }
-#ifdef MODIFY_SOCKET_EVENT
-    // 写完后修改监听事件
-    struct epoll_event ev = {};
-    // 监听可读事件
-    ev.events = EPOLLIN | EPOLLOUT;
-    ev.data.fd = socket_id;
-    if (epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, socket_id, &ev) == -1)
-    {
-        ADD_DIAG_ERROR("network", "Modify socket event failed: epoll_ctl mod failed");
-    }
-#endif
 }
 
 #endif

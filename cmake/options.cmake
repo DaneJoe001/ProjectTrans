@@ -1,7 +1,9 @@
 # @brief 构建测试
 option(BUILD_TEST "Build tests" OFF)
 # @brief 构建 GUI 入口
-option(BUILD_GUI_APP "Build GUI application entry" ON)
+option(BUILD_SERVER_GUI_APP "Build GUI application entry" ON)
+# @brief 构建 GUI 入口
+option(BUILD_CLIENT_GUI_APP "Build GUI application entry" ON)
 # @brief 启用编译器警告
 option(ENABLE_WARNINGS "Enable compiler warnings" ON)
 # @brief 将警告视为错误

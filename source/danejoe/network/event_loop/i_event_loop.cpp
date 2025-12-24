@@ -2,18 +2,10 @@
 
 #include "danejoe/common/enum/enum_flag.hpp"
 
-std::atomic<bool> DaneJoe::IEventLoop::m_is_running = false;
-
 bool DaneJoe::IEventLoop::is_event_valid(EventLoopEventType type)
 {
     // 当事件类型不为空即为有效
     return type != EventLoopEventType::None;
-}
-
-void DaneJoe::IEventLoop::end_loop()
-{
-    // 更新运行状态
-    m_is_running.store(false);
 }
 
 std::string DaneJoe::to_string(EventLoopEventType type)

@@ -19,12 +19,18 @@ include("${CMAKE_SOURCE_DIR}/cmake/warnings.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/source_collection.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/entry_points.cmake")
 
+add_library(DaneJoe ${DANEJOE_SOURCES})
+target_include_directories(DaneJoe PUBLIC "include")
+apply_warnings(DaneJoe)
+
 add_library(${CLIENT_CORE_LIB_NAME} ${CLIENT_CORE_SOURCES})
 target_include_directories(${CLIENT_CORE_LIB_NAME} PUBLIC "include")
+target_link_libraries(${CLIENT_CORE_LIB_NAME} PUBLIC DaneJoe)
 apply_warnings(${CLIENT_CORE_LIB_NAME})
 
 add_library(${SERVER_CORE_LIB_NAME} ${SERVER_CORE_SOURCES})
 target_include_directories(${SERVER_CORE_LIB_NAME} PUBLIC "include")
+target_link_libraries(${SERVER_CORE_LIB_NAME} PUBLIC DaneJoe)
 apply_warnings(${SERVER_CORE_LIB_NAME})
 
 add_executable(${CLIENT_EXECUTABLE_NAME} ${CLIENT_EXECUTABLE_SOURCE} ${CLIENT_QRC_SOURCES})

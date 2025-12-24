@@ -9,6 +9,7 @@
 #include <QDialog>
 
 #include "danejoe/network/url/url_resolver.hpp"
+#include "client/service/trans_service.hpp"
 
 class QLineEdit;
 class QPushButton;
@@ -37,20 +38,6 @@ public:
      * @brief 初始化
      */
     void init();
-    /**
-     * @brief 定时器事件
-     * @param event 定时器事件
-     */
-    void timerEvent(QTimerEvent* event) override;
-    /**
-     * @brief 关闭事件
-     * @param event 关闭事件
-     */
-    void closeEvent(QCloseEvent* event) override;
-    /**
-     * @brief 发送数据信号
-     * @param data 数据
-     */
 signals:
     /**
      * @brief 发送数据信号
@@ -70,7 +57,7 @@ public slots:
      * @brief 消息接收
      * @param data 数据
      */
-    void on_message_received(const std::vector<uint8_t>& data);
+    void on_message_received(const std::string& data);
 private:
     /// @brief URL标签
     QLabel* m_url_label = nullptr;
@@ -94,10 +81,10 @@ private:
     QWidget* m_url_widget = nullptr;
     /// @brief 主布局
     QVBoxLayout* m_main_layout = nullptr;
-    /// @brief 连接线程
-    ConnectionThread* m_connection_thread = nullptr;
     /// @brief 是否已初始化
     bool m_is_init = false;
     /// @brief URL信息
     DaneJoe::UrlInfo m_url_info;
+    /// @todo 仅用作测试
+    TransService m_trans_service;
 };

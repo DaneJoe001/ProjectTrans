@@ -130,6 +130,4 @@ private:
     bool m_is_init = false;
     /// @brief 选中任务索引
     int32_t m_selected_task_index = -1;
-    /// @brief 传输管理器
-    TransManager* m_trans_manager = nullptr;
 };

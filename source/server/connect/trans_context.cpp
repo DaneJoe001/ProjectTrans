@@ -87,8 +87,9 @@ void TransContext::handle_unknown_request(const DaneJoe::Protocol::RequestInfo& 
     m_send_buffer->push(test_response.begin(), test_response.end());
 }
 void TransContext::handle_download_request(
-    const DaneJoe::Protocol::RequestInfo &request_info) {
-  DANEJOE_LOG_TRACE("default", "TransContext", "Handling download request: {}", request_info.url_info.to_string());
+    const DaneJoe::Protocol::RequestInfo& request_info)
+{
+    DANEJOE_LOG_TRACE("default", "TransContext", "Handling download request: {}", request_info.url_info.to_string());
     auto file_info_opt = Server::MessageHandler::parse_download_request(request_info.body);
     if (!file_info_opt.has_value())
     {

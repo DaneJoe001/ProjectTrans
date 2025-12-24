@@ -1,4 +1,6 @@
 #include <thread>
+#include <mutex>
+#include <vector>
 
 #include <danejoe/logger/logger_manager.hpp>
 
@@ -31,12 +33,14 @@ bool ServerTrans::register_trans(std::shared_ptr<DaneJoe::ISocketContext> trans)
         DANEJOE_LOG_ERROR("default", "ServerTrans", "Failed to register trans: trans is null");
         return false;
     }
+    std::lock_guard<std::mutex> lock(m_trans_mutex);
     m_trans_set.insert(trans);
     return true;
 }
 
 void ServerTrans::unregister_trans(std::shared_ptr<DaneJoe::ISocketContext> trans)
 {
+    std::lock_guard<std::mutex> lock(m_trans_mutex);
     auto it = m_trans_set.find(trans);
     if (it == m_trans_set.end())
     {
@@ -50,7 +54,17 @@ void ServerTrans::recv_loop()
 {
     while (m_is_running.load())
     {
-        for (auto& trans : m_trans_set)
+        std::vector<std::shared_ptr<DaneJoe::ISocketContext>> snapshot;
+        {
+            std::lock_guard<std::mutex> lock(m_trans_mutex);
+            snapshot.reserve(m_trans_set.size());
+            for (auto& trans : m_trans_set)
+            {
+                snapshot.push_back(trans);
+            }
+        }
+
+        for (auto& trans : snapshot)
         {
             if (!trans)
             {
@@ -67,7 +81,17 @@ void ServerTrans::send_loop()
 {
     while (m_is_running.load())
     {
-        for (auto& trans : m_trans_set)
+        std::vector<std::shared_ptr<DaneJoe::ISocketContext>> snapshot;
+        {
+            std::lock_guard<std::mutex> lock(m_trans_mutex);
+            snapshot.reserve(m_trans_set.size());
+            for (auto& trans : m_trans_set)
+            {
+                snapshot.push_back(trans);
+            }
+        }
+
+        for (auto& trans : snapshot)
         {
             if (!trans)
             {

@@ -33,15 +33,8 @@ if(ADD_QT_LIB)
 endif()
 
 if(ADD_DANEJOE_LIB)
-    find_package(DaneJoe 0.2.0 CONFIG REQUIRED COMPONENTS Common Logger Database Concurrent Stringify)
-        target_link_libraries(${CLIENT_CORE_LIB_NAME} PUBLIC
-        DaneJoe::Common
-        DaneJoe::Logger
-        DaneJoe::Database
-        DaneJoe::Condition
-        DaneJoe::Concurrent
-        DaneJoe::Stringify
-    )
+    find_package(SQLite3 REQUIRED)
+    target_link_libraries(DaneJoe PRIVATE SQLite::SQLite3)
 endif()
 
 # 服务端依赖处理
@@ -79,15 +72,6 @@ if(ADD_QT_LIB)
 endif()
 
 if(ADD_DANEJOE_LIB)
-    find_package(DaneJoe 0.2.0 CONFIG REQUIRED COMPONENTS Common Logger Database Concurrent Stringify)
-        target_link_libraries(${SERVER_CORE_LIB_NAME} PUBLIC
-        DaneJoe::Common
-        DaneJoe::Logger
-        DaneJoe::Database
-        DaneJoe::Condition
-        DaneJoe::Concurrent
-        DaneJoe::Stringify
-    )
 endif()
 
 find_package(OpenSSL REQUIRED)

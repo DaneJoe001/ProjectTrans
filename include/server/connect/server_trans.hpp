@@ -9,6 +9,7 @@
 #include <memory>
 #include <unordered_set>
 #include <atomic>
+ #include <mutex>
 
 #include "danejoe/network/context/i_socket_context.hpp"
 
@@ -61,6 +62,8 @@ private:
 private:
     /// @brief 传输上下文列表
     std::unordered_set<std::shared_ptr<DaneJoe::ISocketContext>> m_trans_set;
+    /// @brief 保护传输上下文列表的互斥锁（register/unregister 与 recv/send 并发）
+    mutable std::mutex m_trans_mutex;
     /// @brief 是否运行
     std::atomic<bool> m_is_running = false;
     /// @brief 接收线程

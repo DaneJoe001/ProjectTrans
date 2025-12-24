@@ -1,27 +1,17 @@
+#include "danejoe/common/core/memory_util.hpp" 
 #include "danejoe/network/codec/serialize_codec.hpp"
 #include "danejoe/network/codec/serialize_header.hpp"
+#include "danejoe/network/codec/frame_assembler.hpp"
 
-#include "common/protocol/frame_assembler.hpp"
-
-void DaneJoe::ensure_capacity(std::vector<uint8_t>& vec, size_t size)
+void DaneJoe::FrameAssembler::push_data(const std::vector<uint8_t>& data)
 {
-    /// @todo 考虑抛出异常
-    if (vec.size() > size)
-    {
-        return;
-    }
-    vec.resize(size);
-}
-
-void FrameAssembler::push_data(const std::vector<uint8_t>& data)
-{
-    for(const auto& byte : data)
+    for (const auto& byte : data)
     {
         m_buffer.push_back(byte);
     }
 }
 
-std::vector<uint8_t> FrameAssembler::pop_data(uint32_t size)
+std::vector<uint8_t> DaneJoe::FrameAssembler::pop_data(uint32_t size)
 {
     std::vector<uint8_t> data;
     for (uint32_t i = 0; i < size && !m_buffer.empty(); ++i)
@@ -33,7 +23,7 @@ std::vector<uint8_t> FrameAssembler::pop_data(uint32_t size)
 }
 
 
-std::optional<std::vector<uint8_t>> FrameAssembler::pop_frame()
+std::optional<std::vector<uint8_t>> DaneJoe::FrameAssembler::pop_frame()
 {
     auto header_size = DaneJoe::SerializeCodec::get_message_header_size();
     // 检查是否以获取当前消息头
@@ -45,7 +35,7 @@ std::optional<std::vector<uint8_t>> FrameAssembler::pop_frame()
             return std::nullopt;
         }
         auto header_data = pop_data(header_size);
-        DaneJoe::ensure_capacity(m_current_frame, header_size);
+        DaneJoe::ensure_enough_capacity(m_current_frame, header_size);
         // 将消息头数据写入当前帧
         for (;m_current_frame_index < header_size; ++m_current_frame_index)
         {
@@ -68,8 +58,8 @@ std::optional<std::vector<uint8_t>> FrameAssembler::pop_frame()
     auto body_data = pop_data(m_current_header.message_length);
     // 确保当前帧有足够空间写入数据
     auto frame_size = header_size + m_current_header.message_length;
-    DaneJoe::ensure_capacity(m_current_frame, frame_size);
-    for (uint32_t i=0;m_current_frame_index < frame_size; ++m_current_frame_index,i++)
+    DaneJoe::ensure_enough_capacity(m_current_frame, frame_size);
+    for (uint32_t i = 0;m_current_frame_index < frame_size; ++m_current_frame_index, i++)
     {
         m_current_frame[m_current_frame_index] = body_data[i];
     }
@@ -78,7 +68,7 @@ std::optional<std::vector<uint8_t>> FrameAssembler::pop_frame()
     return m_current_frame;
 }
 
-void FrameAssembler::clear_current_frame()
+void DaneJoe::FrameAssembler::clear_current_frame()
 {
     m_current_frame_index = 0;
     m_is_got_header = false;

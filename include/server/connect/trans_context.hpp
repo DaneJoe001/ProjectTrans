@@ -11,7 +11,7 @@
 #include <danejoe/concurrent/container/mpmc_bounded_queue.hpp>
 #include "danejoe/network/context/i_socket_context.hpp"
 
-#include "common/protocol/frame_assembler.hpp"
+#include "danejoe/network/codec/frame_assembler.hpp"
 #include "common/protocol/danejoe_protocol.hpp"
 #include "server/service/server_file_info_service.hpp"
 
@@ -66,7 +66,7 @@ public:
     void handle_block_request(const DaneJoe::Protocol::RequestInfo& request_info);
 private:
     /// @brief 帧组装器
-    FrameAssembler m_frame_assembler;
+    DaneJoe::FrameAssembler m_frame_assembler;
     /// @brief 文件信息服务
     ServerFileInfoService m_file_info_service;
 };

@@ -14,7 +14,7 @@
 
 #include <danejoe/concurrent/container/mpmc_bounded_queue.hpp>
 
-#include "common/protocol/frame_assembler.hpp"
+#include "danejoe/network/codec/frame_assembler.hpp"
 #include "client/model/block_request_info.hpp"
 #include "client/model/client_file_info.hpp"
 #include "client/service/client_file_info_service.hpp"
@@ -25,7 +25,8 @@
   * @details 负责处理块请求的线程
   * @note 该线程负责处理块请求
   */
-class BlockRequestThread : public QThread {
+class BlockRequestThread : public QThread
+{
 public:
     Q_OBJECT
 public:
@@ -63,8 +64,8 @@ signals:
      * @param file_id 文件ID
      * @param block_id 块ID
      */
-  void block_request_finished(int32_t file_id, int32_t block_id);
-  void update();
+    void block_request_finished(int32_t file_id, int32_t block_id);
+    void update();
 public slots:
     /**
      * @brief 停止
@@ -86,7 +87,7 @@ private:
     /// @brief 文件信息映射,此信息与TransManager共享，由TransManager管理
     std::shared_ptr<std::unordered_map<int32_t, ClientFileInfo>> m_file_info_map = nullptr;
     /// @brief 块请求帧组装器
-    FrameAssembler m_frame_assembler;
+    DaneJoe::FrameAssembler m_frame_assembler;
     /// @brief 文件信息服务
     ClientFileInfoService m_file_info_service;
     /// @brief 块请求信息服务

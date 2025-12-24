@@ -69,15 +69,14 @@ void ConnectionTestDialog::init()
     }
     this->setGeometry(screen_rect.pos.x, screen_rect.pos.y, screen_rect.size.x, screen_rect.size.y);
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "Window rect: {}", screen_rect.to_string());
-    m_connection_thread = new ConnectionThread(this);
 
     /// @note 自定义服务端测试链接
     m_url_line_edit->setText(QString::fromStdString("danejoe://127.0.0.1:8080"));
 
-    connect(m_connection_thread, &ConnectionThread::data_received_signal, this, &ConnectionTestDialog::on_message_received);
-    connect(this, &ConnectionTestDialog::send_data_signal, m_connection_thread, &ConnectionThread::data_send_slot);
     connect(m_send_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_send_push_button_clicked);
     connect(m_connect_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_connect_push_button_clicked);
+
+    connect(&m_trans_service, &TransService::test_response_received, this, &ConnectionTestDialog::on_message_received);
 
     startTimer(1000);
     m_is_init = true;
@@ -91,16 +90,18 @@ void ConnectionTestDialog::on_send_push_button_clicked()
         return;
     }
     QString text = m_send_text_edit->toPlainText();
-    std::vector<uint8_t> data;
-    data = Client::MessageHandler::build_test_request(m_url_info, text.toStdString());
-    m_send_text_edit->clear();
-    DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_send_push_button_clicked():{}", text.toStdString());
-    if (!m_connection_thread)
-    {
-        QMessageBox::warning(this, "Error", "Not connected");
-        return;
-    }
-    emit(send_data_signal(std::vector<uint8_t>(data.begin(), data.end())));
+
+    // std::vector<uint8_t> data;
+    // data = Client::MessageHandler::build_test_request(m_url_info, text.toStdString());
+    // m_send_text_edit->clear();
+    // DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_send_push_button_clicked():{}", text.toStdString());
+    // if (!m_connection_thread)
+    // {
+    //     QMessageBox::warning(this, "Error", "Not connected");
+    //     return;
+    // }
+    // emit(send_data_signal(std::vector<uint8_t>(data.begin(), data.end())));
+    m_trans_service.send_test_request({ "127.0.0.1", 8080 }, text.toStdString());
 
 }
 
@@ -116,19 +117,9 @@ void ConnectionTestDialog::on_connect_push_button_clicked()
 
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "URL Parsed:{}", m_url_info.to_string());
 
-    bool is_connect = m_connection_thread->init(m_url_info.host, m_url_info.port);
-    if (is_connect)
-    {
-        m_connection_thread->start();
-        QMessageBox::information(this, "Success", "Connected");
-    }
-    else
-    {
-        QMessageBox::warning(this, "Error", "Failed to connect");
-    }
 }
 
-void ConnectionTestDialog::on_message_received(const std::vector<uint8_t>& data)
+void ConnectionTestDialog::on_message_received(const std::string& data)
 {
     if (!m_is_init)
     {
@@ -136,26 +127,7 @@ void ConnectionTestDialog::on_message_received(const std::vector<uint8_t>& data)
         return;
     }
     DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "on_message_received()");
-    auto message_info = Client::MessageHandler::parse_test_response(data);
-    QString text = QString::fromStdString(message_info);
+    // auto message_info = Client::MessageHandler::parse_test_response(data);
+    QString text = QString::fromStdString(data);
     m_recv_text_browser->append(text);
-}
-
-void ConnectionTestDialog::closeEvent(QCloseEvent *event) {
-    QDialog::closeEvent(event);
-    if (!m_is_init)
-    {
-        DANEJOE_LOG_ERROR("default", "ConnectionTestDialog", "ConnectionTestDialog has not been initialized");
-        return;
-    }
-    DANEJOE_LOG_TRACE("default", "ConnectionTestDialog", "closeEvent()");
-    if (m_connection_thread)
-    {
-        m_connection_thread->deinit();
-    }
-}
-
-void ConnectionTestDialog::timerEvent(QTimerEvent* event)
-{
-    QDialog::timerEvent(event);
 }

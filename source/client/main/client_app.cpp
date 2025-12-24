@@ -10,6 +10,7 @@
 #include "client/repository/block_request_info_repository.hpp"
 #include "client/view/client_main_window.hpp"
 #include "client/main/client_app.hpp"
+#include "client/connect/trans_manager.hpp"
 
 namespace fs = std::filesystem;
 
@@ -34,6 +35,8 @@ void ClientApp::init()
     clear_log();
     m_main_window = new ClientMainWindow();
     m_main_window->init();
+    m_trans_manager = new TransManager(this);
+    m_trans_manager->init();
     m_is_init = true;
 }
 void ClientApp::show_main_window()

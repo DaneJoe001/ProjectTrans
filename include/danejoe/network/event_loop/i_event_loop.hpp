@@ -74,10 +74,6 @@ namespace DaneJoe
     {
     public:
         /**
-         * @brief 停止事件循环
-         */
-        static void end_loop();
-        /**
          * @brief 构造函数
          */
         IEventLoop() = default;
@@ -116,8 +112,6 @@ namespace DaneJoe
          */
         virtual void stop() = 0;
     protected:
-        /// @brief 是否运行
-        static std::atomic<bool> m_is_running;
     };
 }
 

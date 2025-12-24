@@ -9,13 +9,13 @@
 #include <cstdint>
 #include <memory>
 #include <string>
- #include <atomic>
+#include <atomic>
 
 #include <QThread>
 #include <QTimer>
 
 #include "client/connect/client_connection.hpp"
-#include "common/protocol/frame_assembler.hpp"
+#include "danejoe/network/codec/frame_assembler.hpp"
 
  /**
   * @class ConnectionThread
@@ -80,5 +80,5 @@ private:
     /// @brief 定时器
     QTimer m_timer;
     /// @brief 帧组装器
-    FrameAssembler m_frame_assembler;
+    DaneJoe::FrameAssembler m_frame_assembler;
 };

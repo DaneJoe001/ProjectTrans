@@ -8,6 +8,7 @@
 #pragma once
 #if defined(__linux__)
 
+#include <atomic>
 #include <unordered_map>
 
 #include "danejoe/network/event_loop/i_event_loop.hpp"
@@ -33,11 +34,12 @@ namespace DaneJoe
          * @param server_socket 服务器套接字
          * @param context_creator 业务上下文创建器
          */
-        EpollEventLoop(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator);
+        EpollEventLoop();
         /**
          * @brief 析构函数
          */
         ~EpollEventLoop();
+        void init(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator);
         /**
          * @brief 添加套接字
          * @param socket 套接字
@@ -88,6 +90,9 @@ namespace DaneJoe
          */
         void stop()override;
     private:
+        /// @brief 是否运行
+        std::atomic<bool> m_is_running = false;
+        bool m_is_init = false;
         /// @brief 最大事件数
         int32_t m_max_event_count = 1024;
         /// @brief epoll文件描述符
@@ -122,3 +127,4 @@ namespace DaneJoe
 }
 
 #endif
+

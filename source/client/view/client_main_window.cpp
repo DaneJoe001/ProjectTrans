@@ -128,8 +128,7 @@ void ClientMainWindow::init()
     m_file_trans_info_widget->init();
     m_stack_widget->addWidget(m_file_trans_info_widget);
     m_stack_widget->setCurrentIndex(0);
-    m_trans_manager = new TransManager(this);
-    m_trans_manager->init();
+
 
     //连接测试行为
     connect(m_connection_test_action, &QAction::triggered, this, &ClientMainWindow::on_connection_test_action_triggered);
@@ -139,10 +138,6 @@ void ClientMainWindow::init()
     connect(m_file_trans_info_widget, &FileTransInfoWidget::row_clicked, this, &ClientMainWindow::on_file_trans_selected);
     connect(m_start_task_action, &QAction::triggered, this, &ClientMainWindow::on_start_task_action_triggered);
     connect(m_stop_task_action, &QAction::triggered, this, &ClientMainWindow::on_stop_task_action_triggered);
-    connect(m_trans_manager, &TransManager::block_data_written,
-            m_file_trans_info_widget, &FileTransInfoWidget::update_view);
-    connect(m_trans_manager, &TransManager::update,
-            this, &ClientMainWindow::on_view_update);
 
     startTimer(1000);
     m_is_init = true;
@@ -236,7 +231,8 @@ void ClientMainWindow::on_start_task_action_triggered()
         QMessageBox::warning(this, "Warning", "Invalid task selected.");
         return;
     }
-    m_trans_manager->add_trans(file_info);
+    /// @todo 处理调用点
+    // m_trans_manager->add_trans(file_info);
     DANEJOE_LOG_TRACE("default", "MainWindow", "Task file info: {}", file_info.to_string());
     QMessageBox::information(this, "info", "Task will start soon.");
 }
@@ -264,11 +260,12 @@ void ClientMainWindow::on_stop_task_action_triggered()
     QMessageBox::information(this, "info", "Task will stop soon.");
 }
 
-void ClientMainWindow::on_view_update() {
-	if (!m_is_init)
+void ClientMainWindow::on_view_update()
+{
+    if (!m_is_init)
     {
         DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
         return;
-        }
-        this->update();
-	}
+    }
+    this->update();
+}

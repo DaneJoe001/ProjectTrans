@@ -33,16 +33,6 @@ public:
      * @brief 初始化
      */
     void init();
-    /**
-     * @brief 关闭事件
-     * @param event 事件
-     */
-    void closeEvent(QCloseEvent* event) override;
-    /**
-     * @brief 定时器事件
-     * @param event 事件
-     */
-    void timerEvent(QTimerEvent* event) override;
 public slots:
     /**
      * @brief 添加文件动作触发

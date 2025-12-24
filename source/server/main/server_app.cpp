@@ -27,7 +27,7 @@ ServerApp::~ServerApp()
     if (m_server_thread)
     {
         m_server_thread->stop();
-        m_server_thread->quit();
+        m_server_thread->wait();
     }
 }
 
@@ -43,20 +43,22 @@ void ServerApp::init()
     clear_log();
     m_server_main_window = new ServerMainWindow();
     m_server_main_window->init();
-    // std::jthread run_server_thread(::run_server);
     m_server_thread = new ServerThread(this);
+    m_server_thread->init();
     m_server_thread->start();
     m_is_init = true;
 }
 
 bool ServerApp::eventFilter(QObject* watched, QEvent* event)
 {
-    if (event && event->type() == QEvent::KeyPress)
+    if (event && event->type() == QEvent::KeyRelease)
     {
         auto* key_event = static_cast<QKeyEvent*>(event);
         if (!key_event->isAutoRepeat())
         {
-            if (key_event->key() == Qt::Key_F1)
+            if (key_event->key() == Qt::Key_G
+                && (key_event->modifiers() & Qt::ControlModifier)
+                && (key_event->modifiers() & Qt::ShiftModifier))
             {
                 if (m_is_main_window_visible)
                 {
@@ -68,7 +70,9 @@ bool ServerApp::eventFilter(QObject* watched, QEvent* event)
                 }
                 return true;
             }
-            if (key_event->key() == Qt::Key_F12)
+            if (key_event->key() == Qt::Key_D
+                && (key_event->modifiers() & Qt::ControlModifier)
+                && (key_event->modifiers() & Qt::ShiftModifier))
             {
 
                 return true;
@@ -82,8 +86,10 @@ void ServerApp::show_main_window()
 {
     if (!m_is_init)
     {
+        DANEJOE_LOG_WARN("default", "ServerApp", "Failed to show main window: Server is not initialized");
         return;
     }
+    DANEJOE_LOG_INFO("default", "ServerApp", "Show main window");
     m_server_main_window->show();
     m_is_main_window_visible = true;
 }
@@ -91,8 +97,10 @@ void ServerApp::hide_main_window()
 {
     if (!m_is_init)
     {
+        DANEJOE_LOG_WARN("default", "ServerApp", "Failed to hide main window: Server is not initialized");
         return;
     }
+    DANEJOE_LOG_INFO("default", "ServerApp", "Hide main window");
     m_server_main_window->hide();
     m_is_main_window_visible = false;
 }

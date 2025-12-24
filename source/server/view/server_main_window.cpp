@@ -72,12 +72,6 @@ void ServerMainWindow::init()
     m_is_init = true;
 }
 
-void ServerMainWindow::closeEvent(QCloseEvent* event)
-{}
-
-void ServerMainWindow::timerEvent(QTimerEvent* event)
-{}
-
 void ServerMainWindow::on_add_file_action_triggered()
 {
     if (!m_is_init)
