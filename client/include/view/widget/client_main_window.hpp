@@ -11,7 +11,15 @@
 #include <QString>
 #include <QPointer>
 
+#include "danejoe/network/url/url_resolver.hpp"
+
 #include "view/event/view_event_hub.hpp"
+
+#include "controller/block_schedule_controller.hpp"
+
+#include "service/client_file_service.hpp"
+#include "service/task_service.hpp"
+#include "service/block_service.hpp"
 
 class QMenu;
 class QAction;
@@ -21,6 +29,7 @@ class ConnectionTestDialog;
 class NewDownloadDialog;
 class NewUploadDialog;
 class TaskTableWidget;
+class TaskTableModel;
 
 /**
  * @class ClientMainWindow
@@ -35,13 +44,22 @@ public:
      * @param parent 父窗口
      */
     ClientMainWindow(
+        TaskService& task_service,
+        ClientFileService& client_file_service,
+        BlockService& block_service,
         QPointer<ViewEventHub> view_event_hub,
+        QPointer<BlockScheduleController> block_schedule_controller,
         QWidget* parent = nullptr);
     /**
      * @brief 析构函数
      */
     ~ClientMainWindow();
     void init();
+  signals:
+    void task_enqueue(
+        EventContext event_context,
+        NetworkEndpoint endpoint,
+        TaskEntity task_entity);
 public slots:
     /**
      * @brief 连接测试动作触发
@@ -63,7 +81,7 @@ public slots:
      * @brief 文件传输选中
      * @param row 行
      */
-    void on_file_trans_selected(int32_t row);
+    void on_task_selected(int64_t task_id);
     /**
      * @brief 开始任务动作触发
      */
@@ -73,9 +91,14 @@ public slots:
      */
     void on_stop_task_action_triggered();
     void on_view_update();
+    void on_task_completed(int64_t task_id);
 private:
     /// @brief 是否已初始化
     bool m_is_init = false;
+    DaneJoe::UrlResolver m_resolver;
+    TaskService& m_task_service;
+    ClientFileService& m_client_file_service;
+    BlockService& m_block_service;
     /// @brief 窗口标题
     QString m_window_title = "Efficient Transfer Client";
     /// @brief 菜单栏
@@ -112,5 +135,8 @@ private:
     QStackedWidget* m_stack_widget = nullptr;
     /// @brief 文件传输信息窗口
     TaskTableWidget* m_task_table_widget = nullptr;
-    QPointer<ViewEventHub> m_view_event_hub;
+    QPointer<ViewEventHub> m_view_event_hub = nullptr;
+    QPointer<TaskTableModel> m_task_table_model = nullptr;
+    QPointer<BlockScheduleController> m_block_schedule_controller = nullptr;
+    int64_t m_selected_task_id = -1;
 };

@@ -44,32 +44,39 @@ void BlockRepository::init()
     task_id_column.data_type = DaneJoe::DataType::Int64;
     task_id_column.is_not_null = true;
     m_table->add_column(task_id_column);
+
+    DaneJoe::SqlColumnItem file_id_column;
+    file_id_column.column_index = 2;
+    file_id_column.column_name = "file_id";
+    file_id_column.data_type = DaneJoe::DataType::Int64;
+    file_id_column.is_not_null = true;
+    m_table->add_column(file_id_column);
     DaneJoe::SqlColumnItem offset_column;
-    offset_column.column_index = 2;
+    offset_column.column_index = 3;
     offset_column.column_name = "offset";
     offset_column.data_type = DaneJoe::DataType::Int64;
     offset_column.is_not_null = true;
     m_table->add_column(offset_column);
     DaneJoe::SqlColumnItem block_size_column;
-    block_size_column.column_index = 3;
+    block_size_column.column_index = 4;
     block_size_column.column_name = "block_size";
     block_size_column.data_type = DaneJoe::DataType::Int64;
     block_size_column.is_not_null = true;
     m_table->add_column(block_size_column);
     DaneJoe::SqlColumnItem state_column;
-    state_column.column_index = 4;
+    state_column.column_index = 5;
     state_column.column_name = "state";
     state_column.data_type = DaneJoe::DataType::Int64;
     state_column.is_not_null = true;
     m_table->add_column(state_column);
     DaneJoe::SqlColumnItem start_time_column;
-    start_time_column.column_index = 5;
+    start_time_column.column_index = 6;
     start_time_column.column_name = "start_time";
     start_time_column.data_type = DaneJoe::DataType::Int64;
     start_time_column.is_not_null = true;
     m_table->add_column(start_time_column);
     DaneJoe::SqlColumnItem end_time_column;
-    end_time_column.column_index = 6;
+    end_time_column.column_index = 7;
     end_time_column.column_name = "end_time";
     end_time_column.data_type = DaneJoe::DataType::Int64;
     end_time_column.is_not_null = true;
@@ -225,7 +232,13 @@ bool BlockRepository::add(const BlockEntity& block)
         return false;
     }
     auto task_id_column_opt = m_table->get_column_info("task_id");
+    auto file_id_column_opt = m_table->get_column_info("file_id");
     if (!task_id_column_opt.has_value())
+    {
+        DANEJOE_LOG_TRACE("default", "BlockRepository", "Table column not found");
+        return false;
+    }
+    if (!file_id_column_opt.has_value())
     {
         DANEJOE_LOG_TRACE("default", "BlockRepository", "Table column not found");
         return false;
@@ -233,6 +246,10 @@ bool BlockRepository::add(const BlockEntity& block)
     auto task_id_cell =
         task_id_column_opt.value().get_default_cell();
     task_id_cell.data = block.task_id;
+
+    auto file_id_cell =
+        file_id_column_opt.value().get_default_cell();
+    file_id_cell.data = block.file_id;
     auto offset_column_opt =
         m_table->get_column_info("offset");
     if (!offset_column_opt.has_value())
@@ -283,7 +300,7 @@ bool BlockRepository::add(const BlockEntity& block)
     auto end_time_cell =
         end_time_column_opt.value().get_default_cell();
     end_time_cell.data = DaneJoe::to_time_ms(block.end_time);
-    return m_table_query.insert({ task_id_cell, offset_cell, block_size_cell, state_cell, start_time_cell, end_time_cell });
+    return m_table_query.insert({ task_id_cell, file_id_cell, offset_cell, block_size_cell, state_cell, start_time_cell, end_time_cell });
 }
 std::optional<BlockEntity> BlockRepository::get_by_block_id(int64_t block_id)
 {
@@ -326,13 +343,22 @@ bool BlockRepository::update(const BlockEntity& block)
         return false;
     }
     auto task_id_column_opt = m_table->get_column_info("task_id");
+    auto file_id_column_opt = m_table->get_column_info("file_id");
     if (!task_id_column_opt.has_value())
+    {
+        DANEJOE_LOG_TRACE("default", "BlockRepository", "Table column not found");
+        return false;
+    }
+    if (!file_id_column_opt.has_value())
     {
         DANEJOE_LOG_TRACE("default", "BlockRepository", "Table column not found");
         return false;
     }
     auto task_id_cell = task_id_column_opt.value().get_default_cell();
     task_id_cell.data = block.task_id;
+
+    auto file_id_cell = file_id_column_opt.value().get_default_cell();
+    file_id_cell.data = block.file_id;
     auto offset_column_opt = m_table->get_column_info("offset");
     if (!offset_column_opt.has_value())
     {
@@ -388,7 +414,7 @@ bool BlockRepository::update(const BlockEntity& block)
     auto range_condition =
         std::make_shared<DaneJoe::RangeCondition<int64_t>>(block.block_id);
     condition.condition = range_condition;
-    return m_table_query.update({ task_id_cell, offset_cell, block_size_cell, state_cell, start_time_cell, end_time_cell }, { condition });
+    return m_table_query.update({ task_id_cell, file_id_cell, offset_cell, block_size_cell, state_cell, start_time_cell, end_time_cell }, { condition });
 }
 bool BlockRepository::remove(int64_t block_id)
 {
@@ -430,6 +456,10 @@ BlockRepository::from_query_data(const std::vector<std::vector<DaneJoe::SqlCell>
             else if (cell.column_name == "task_id")
             {
                 block.task_id = std::get<int64_t>(cell.data);
+            }
+            else if (cell.column_name == "file_id")
+            {
+                block.file_id = std::get<int64_t>(cell.data);
             }
             else if (cell.column_name == "offset")
             {

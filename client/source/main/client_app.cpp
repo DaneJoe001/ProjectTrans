@@ -1,3 +1,5 @@
+#include <QWaitCondition>
+
 #include <memory>
 #include <filesystem>
 
@@ -12,17 +14,20 @@
 
 namespace fs = std::filesystem;
 
-ClientApp::ClientApp(QObject* parent) :
-    QObject(parent),
-    m_trans_service(TransService::get_instance()),
-    m_block_service(BlockService::get_instance()),
-    m_client_file_service(ClientFileService::get_instance())
-{}
+ClientApp::ClientApp(QObject* parent) :QObject(parent) {}
+
 ClientApp::~ClientApp()
 {
     if (m_main_window)
     {
         m_main_window->deleteLater();
+    }
+    if (m_block_schedule_thread)
+    {
+        m_block_schedule_thread->quit();
+        emit stop_app();
+
+        m_block_schedule_thread->wait();
     }
 }
 
@@ -30,17 +35,34 @@ void ClientApp::init()
 {
     init_logger();
     // 当需要时清理数据库
-    // clear_database();
+    clear_database();
     // 初始化数据库
     init_database();
     // 清理日志
     clear_log();
+    m_trans_service.init();
+    m_block_service.init();
+    m_task_service.init();
+    m_client_file_service.init();
     m_view_event_hub = new ViewEventHub();
     m_view_event_controller = new ViewEventController(
         m_view_event_hub,
         m_trans_service);
-    m_main_window = new ClientMainWindow(m_view_event_hub);
+    m_block_schedule_thread = new QThread(this);
+    m_block_schedule_controller =
+        new BlockScheduleController(m_block_service, m_view_event_hub);
+    m_block_schedule_controller->moveToThread(m_block_schedule_thread);
+
+    m_main_window = new ClientMainWindow(
+        m_task_service,
+        m_client_file_service,
+        m_block_service,
+        m_view_event_hub,
+        m_block_schedule_controller);
     m_main_window->init();
+    connect(m_block_schedule_thread, &QThread::started, m_block_schedule_controller, &BlockScheduleController::init);
+    connect(this, &ClientApp::stop_app, m_block_schedule_thread, &QThread::deleteLater);
+    m_block_schedule_thread->start();
     m_is_init = true;
 }
 void ClientApp::show_main_window()

@@ -28,6 +28,8 @@ public:
     bool update(const TaskEntity& task);
     bool remove(int64_t task_id);
 
+    int64_t get_all_count();
+    int64_t get_max_task_id();
 private:
     std::vector<TaskEntity> from_query_data(const std::vector<std::vector<DaneJoe::SqlCell>>& data);
 

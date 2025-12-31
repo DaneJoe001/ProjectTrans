@@ -65,6 +65,12 @@ void ConnectContext::on_socket_disconnected()
 
 NetworkService::NetworkService() {}
 NetworkService::~NetworkService() {}
+
+void NetworkService::init()
+{
+
+}
+
 void NetworkService::on_write_raw_data(const NetworkEndpoint& endpoint, QByteArray data)
 {
     auto connect_context_it = m_connect_map.find(endpoint);

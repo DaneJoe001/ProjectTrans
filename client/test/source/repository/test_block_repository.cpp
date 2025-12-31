@@ -142,7 +142,7 @@ TEST_F(BlockRepositoryTest, Crud)
     auto by_task = m_repo.get_by_task_id(1);
     ASSERT_EQ(by_task.size(), 2u);
 
-    auto waiting_count = m_repo.get_count_by_task_id_and_task_state(1, BlockState::Waiting);
+    auto waiting_count = m_repo.get_count_by_task_id_and_block_state(1, BlockState::Waiting);
     EXPECT_EQ(waiting_count, 2);
 
     auto found_opt = m_repo.get_by_block_id(all[0].block_id);
@@ -159,12 +159,12 @@ TEST_F(BlockRepositoryTest, Crud)
         FAIL();
     }
 
-    auto waiting_after = m_repo.get_count_by_task_id_and_task_state(1, BlockState::Waiting);
-    auto completed_after = m_repo.get_count_by_task_id_and_task_state(1, BlockState::Completed);
+    auto waiting_after = m_repo.get_count_by_task_id_and_block_state(1, BlockState::Waiting);
+    auto completed_after = m_repo.get_count_by_task_id_and_block_state(1, BlockState::Completed);
     EXPECT_EQ(waiting_after, 1);
     EXPECT_EQ(completed_after, 1);
 
-    auto completed = m_repo.get_by_task_id_and_task_state(1, BlockState::Completed);
+    auto completed = m_repo.get_by_task_id_and_block_state(1, BlockState::Completed);
     ASSERT_EQ(completed.size(), 1u);
     EXPECT_EQ(completed[0].block_id, updated.block_id);
 

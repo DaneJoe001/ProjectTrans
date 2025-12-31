@@ -47,6 +47,14 @@ DaneJoe::UrlProtocol DaneJoe::enum_cast<DaneJoe::UrlProtocol>(const std::string&
     return UrlProtocol::Unknown;
 }
 
+std::optional<std::string> DaneJoe::UrlInfo::get_param(const std::string &key) {
+  auto it = query.find(key);
+  if (it == query.end()) {
+    return std::nullopt;
+  }
+  return it->second;
+}
+
 std::string DaneJoe::UrlInfo::to_string() const
 {
     return std::format(

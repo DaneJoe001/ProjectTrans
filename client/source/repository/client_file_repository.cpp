@@ -37,36 +37,22 @@ void ClientFileRepository::init()
     file_id_column.is_unique = true;
     m_table->add_column(file_id_column);
 
-    DaneJoe::SqlColumnItem saved_name_column;
-    saved_name_column.column_index = 1;
-    saved_name_column.column_name = "saved_name";
-    saved_name_column.data_type = DaneJoe::DataType::String;
-    saved_name_column.is_not_null = true;
-    m_table->add_column(saved_name_column);
-
-    DaneJoe::SqlColumnItem source_path_column;
-    source_path_column.column_index = 2;
-    source_path_column.column_name = "source_path";
-    source_path_column.data_type = DaneJoe::DataType::String;
-    source_path_column.is_not_null = true;
-    m_table->add_column(source_path_column);
-
-    DaneJoe::SqlColumnItem saved_path_column;
-    saved_path_column.column_index = 3;
-    saved_path_column.column_name = "saved_path";
-    saved_path_column.data_type = DaneJoe::DataType::String;
-    saved_path_column.is_not_null = true;
-    m_table->add_column(saved_path_column);
+    DaneJoe::SqlColumnItem file_name_column;
+    file_name_column.column_index = 1;
+    file_name_column.column_name = "file_name";
+    file_name_column.data_type = DaneJoe::DataType::String;
+    file_name_column.is_not_null = true;
+    m_table->add_column(file_name_column);
 
     DaneJoe::SqlColumnItem file_size_column;
-    file_size_column.column_index = 4;
+    file_size_column.column_index = 2;
     file_size_column.column_name = "file_size";
     file_size_column.data_type = DaneJoe::DataType::Int64;
     file_size_column.is_not_null = true;
     m_table->add_column(file_size_column);
 
     DaneJoe::SqlColumnItem md5_code_column;
-    md5_code_column.column_index = 5;
+    md5_code_column.column_index = 3;
     md5_code_column.column_name = "md5_code";
     md5_code_column.data_type = DaneJoe::DataType::String;
     md5_code_column.is_not_null = true;
@@ -110,12 +96,10 @@ bool ClientFileRepository::add(const ClientFileEntity& file_info)
     }
 
     auto file_id_column_opt = m_table->get_column_info("file_id");
-    auto saved_name_column_opt = m_table->get_column_info("saved_name");
-    auto source_path_column_opt = m_table->get_column_info("source_path");
-    auto saved_path_column_opt = m_table->get_column_info("saved_path");
+    auto file_name_column_opt = m_table->get_column_info("file_name");
     auto file_size_column_opt = m_table->get_column_info("file_size");
     auto md5_code_column_opt = m_table->get_column_info("md5_code");
-    if (!file_id_column_opt || !saved_name_column_opt || !source_path_column_opt || !saved_path_column_opt || !file_size_column_opt || !md5_code_column_opt)
+    if (!file_id_column_opt || !file_name_column_opt || !file_size_column_opt || !md5_code_column_opt)
     {
         DANEJOE_LOG_TRACE("default", "ClientFileRepository", "Table column not found");
         return false;
@@ -124,14 +108,8 @@ bool ClientFileRepository::add(const ClientFileEntity& file_info)
     auto file_id_cell = file_id_column_opt->get_default_cell();
     file_id_cell.data = file_info.file_id;
 
-    auto saved_name_cell = saved_name_column_opt->get_default_cell();
-    saved_name_cell.data = file_info.saved_name;
-
-    auto source_path_cell = source_path_column_opt->get_default_cell();
-    source_path_cell.data = file_info.source_path;
-
-    auto saved_path_cell = saved_path_column_opt->get_default_cell();
-    saved_path_cell.data = file_info.saved_path;
+    auto file_name_cell = file_name_column_opt->get_default_cell();
+    file_name_cell.data = file_info.file_name;
 
     auto file_size_cell = file_size_column_opt->get_default_cell();
     file_size_cell.data = file_info.file_size;
@@ -139,7 +117,7 @@ bool ClientFileRepository::add(const ClientFileEntity& file_info)
     auto md5_code_cell = md5_code_column_opt->get_default_cell();
     md5_code_cell.data = file_info.md5_code;
 
-    return m_table_query.insert({ file_id_cell, saved_name_cell, source_path_cell, saved_path_cell, file_size_cell, md5_code_cell });
+    return m_table_query.insert({ file_id_cell, file_name_cell, file_size_cell, md5_code_cell });
 }
 
 std::optional<ClientFileEntity> ClientFileRepository::get_by_id(int64_t file_id)
@@ -188,9 +166,9 @@ std::optional<ClientFileEntity> ClientFileRepository::get_by_md5(const std::stri
     }
 
     DaneJoe::SqlQuery query(database);
-    query.prepare("SELECT file_id, saved_name, source_path, saved_path, file_size, md5_code FROM file_info WHERE md5_code = ?;");
-    query.bind(1, md5_code);
+    query.prepare("SELECT file_id, file_name, file_size, md5_code FROM file_info WHERE md5_code = ?;");
     query.reset();
+    query.bind(1, md5_code);
     auto data = query.execute_query();
 
     auto result = from_query_data(data);
@@ -210,25 +188,17 @@ bool ClientFileRepository::update(const ClientFileEntity& file_info)
     }
 
     auto file_id_column_opt = m_table->get_column_info("file_id");
-    auto saved_name_column_opt = m_table->get_column_info("saved_name");
-    auto source_path_column_opt = m_table->get_column_info("source_path");
-    auto saved_path_column_opt = m_table->get_column_info("saved_path");
+    auto file_name_column_opt = m_table->get_column_info("file_name");
     auto file_size_column_opt = m_table->get_column_info("file_size");
     auto md5_code_column_opt = m_table->get_column_info("md5_code");
-    if (!file_id_column_opt || !saved_name_column_opt || !source_path_column_opt || !saved_path_column_opt || !file_size_column_opt || !md5_code_column_opt)
+    if (!file_id_column_opt || !file_name_column_opt || !file_size_column_opt || !md5_code_column_opt)
     {
         DANEJOE_LOG_TRACE("default", "ClientFileRepository", "Table column not found");
         return false;
     }
 
-    auto saved_name_cell = saved_name_column_opt->get_default_cell();
-    saved_name_cell.data = file_info.saved_name;
-
-    auto source_path_cell = source_path_column_opt->get_default_cell();
-    source_path_cell.data = file_info.source_path;
-
-    auto saved_path_cell = saved_path_column_opt->get_default_cell();
-    saved_path_cell.data = file_info.saved_path;
+    auto file_name_cell = file_name_column_opt->get_default_cell();
+    file_name_cell.data = file_info.file_name;
 
     auto file_size_cell = file_size_column_opt->get_default_cell();
     file_size_cell.data = file_info.file_size;
@@ -242,7 +212,7 @@ bool ClientFileRepository::update(const ClientFileEntity& file_info)
     condition.is_desc_order = std::nullopt;
     condition.condition = std::make_shared<DaneJoe::RangeCondition<int64_t>>(file_info.file_id);
 
-    return m_table_query.update({ saved_name_cell, source_path_cell, saved_path_cell, file_size_cell, md5_code_cell }, { condition });
+    return m_table_query.update({ file_name_cell, file_size_cell, md5_code_cell }, { condition });
 }
 
 bool ClientFileRepository::remove(int64_t file_id)
@@ -269,6 +239,16 @@ bool ClientFileRepository::remove(int64_t file_id)
     return m_table_query.remove({ condition });
 }
 
+int64_t ClientFileRepository::get_all_count()
+{
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_TRACE("default", "ClientFileRepository", "Database not initialized");
+        return -1;
+    }
+    return m_table_query.count({});
+}
+
 std::vector<ClientFileEntity> ClientFileRepository::from_query_data(const std::vector<std::vector<DaneJoe::SqlCell>>& data)
 {
     std::vector<ClientFileEntity> result;
@@ -281,17 +261,9 @@ std::vector<ClientFileEntity> ClientFileRepository::from_query_data(const std::v
             {
                 info.file_id = std::get<int64_t>(cell.data);
             }
-            else if (cell.column_name == "saved_name")
+            else if (cell.column_name == "file_name")
             {
-                info.saved_name = std::get<std::string>(cell.data);
-            }
-            else if (cell.column_name == "source_path")
-            {
-                info.source_path = std::get<std::string>(cell.data);
-            }
-            else if (cell.column_name == "saved_path")
-            {
-                info.saved_path = std::get<std::string>(cell.data);
+                info.file_name = std::get<std::string>(cell.data);
             }
             else if (cell.column_name == "file_size")
             {

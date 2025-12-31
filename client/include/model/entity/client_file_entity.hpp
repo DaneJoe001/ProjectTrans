@@ -1,10 +1,9 @@
-#pragma once
-
 /**
  * @file client_file_info.hpp
  * @brief 客户端文件信息
  * @author DaneJoe001
  */
+#pragma once
 
 #include <string>
 #include <cstdint>
@@ -17,12 +16,10 @@ struct ClientFileEntity
 {
   /// @brief 文件ID
   int64_t file_id = -1;
-  /// @brief 保存名称
-  std::string saved_name;
-  /// @brief 源路径
-  std::string source_path;
-  /// @brief 保存路径
-  std::string saved_path;
+  /// @brief 文件名称
+  /// @note 源自服务器，可作为默认文件名
+  std::string file_name;
+  
   /// @brief 文件大小
   int64_t file_size = 0;
   /// @brief MD5码

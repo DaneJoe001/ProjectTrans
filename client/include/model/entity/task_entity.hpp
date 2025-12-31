@@ -1,8 +1,9 @@
+
 #pragma once
 
 #include <cstdint>
 #include <chrono>
- #include <string>
+#include <string>
 
 /**
  * @enum TaskState
@@ -55,6 +56,11 @@ struct TaskEntity
     int64_t task_id = -1;
     /// @brief 文件ID
     int64_t file_id = -1;
+    /// @brief 保存路径
+    /// @note full_path
+    std::string saved_path;
+    /// @brief 源链接
+    std::string source_url;
     /// @brief 操作
     Operation operation = Operation::Unknown;
     /// @brief 任务状态

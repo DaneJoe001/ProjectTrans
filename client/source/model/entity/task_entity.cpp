@@ -37,10 +37,12 @@ std::string to_string(Operation operation)
 
 std::string TaskEntity::to_string() const
 {
-    return std::format("end_time={} | file_id={} | operation={} | start_time={} | state={} | task_id={}",
+    return std::format("end_time={} | file_id={} | operation={} | saved_path={} | source_url={} | start_time={} | state={} | task_id={}",
         end_time.time_since_epoch().count(),
         file_id,
         ::to_string(operation),
+        saved_path,
+        source_url,
         start_time.time_since_epoch().count(),
         ::to_string(state),
         task_id);

@@ -1,10 +1,10 @@
-#pragma once
-
 /**
  * @file thread_pool.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 线程池
- * @author DaneJoe001
+ * @date 2025-12-28
  */
+#pragma once
 
 #include <thread>
 #include <vector>

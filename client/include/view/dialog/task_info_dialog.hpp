@@ -9,7 +9,7 @@
 #include <QPointer>
 #include <QPushButton>
 
-#include "service/task_view_service.hpp"
+#include "view/event/view_event_hub.hpp"
 
 class QPushButton;
 class QTextBrowser;
@@ -33,21 +33,20 @@ public:
      * @brief 构造函数
      * @param parent 父窗口
      */
-    TaskInfoDialog(QWidget* parent = nullptr);
+    TaskInfoDialog(QPointer<ViewEventHub> view_event_hub, QWidget* parent = nullptr);
     /**
      * @brief 初始化
      */
     void init();
-    /**
-     * @brief 设置任务视图模型
-     * @param task_view_model 任务视图模型
-     */
-    void set_task_view_model(const TaskViewModel& task_view_model);
-    QPointer<QPushButton> get_waiting_cancel_button();
-    QPointer<QPushButton> get_info_ok_button();
-    QPointer<QPushButton> get_info_cancel_button();
-    QPointer<QPushButton> get_info_saved_path_button();
+    void switch_to_waiting_panel();
+    void switch_to_info_panel();
+    void on_download_response(
+        EventEnvelope event_envelope, TransContext trans_context,
+        DownloadResponseTransfer response);
+
 private:
+    /// @brief 是否已初始化
+    bool m_is_init = false;
     /// @brief 主布局
     QVBoxLayout* m_main_layout = nullptr;
     /// @brief 堆栈小部件
@@ -95,6 +94,5 @@ private:
     QWidget* m_error_widget = nullptr;
     /// @brief 错误布局
     QVBoxLayout* m_error_layout = nullptr;
-    /// @brief 是否已初始化
-    bool m_is_init = false;
+    QPointer<ViewEventHub> m_view_event_hub;
 };

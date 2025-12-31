@@ -51,18 +51,14 @@ TEST_F(ClientFileRepositoryTest, Crud)
 
     ClientFileEntity a;
     a.file_id = 1;
-    a.saved_name = "a.bin";
-    a.source_path = "/tmp/a.bin";
-    a.saved_path = "/tmp/saved/a.bin";
+    a.file_name = "a.bin";
     a.file_size = 123;
     a.md5_code = "md5_a";
     ASSERT_TRUE(m_repo.add(a));
 
     ClientFileEntity b;
     b.file_id = 2;
-    b.saved_name = "b.bin";
-    b.source_path = "/tmp/b.bin";
-    b.saved_path = "/tmp/saved/b.bin";
+    b.file_name = "b.bin";
     b.file_size = 456;
     b.md5_code = "md5_b";
     ASSERT_TRUE(m_repo.add(b));
@@ -80,13 +76,13 @@ TEST_F(ClientFileRepositoryTest, Crud)
 
     auto updated = *by_id;
     updated.file_size = 999;
-    updated.saved_path = "/tmp/saved/a2.bin";
+    updated.file_name = "a2.bin";
     ASSERT_TRUE(m_repo.update(updated));
 
     auto by_id2 = m_repo.get_by_id(1);
     ASSERT_TRUE(by_id2.has_value());
     EXPECT_EQ(by_id2->file_size, 999);
-    EXPECT_EQ(by_id2->saved_path, "/tmp/saved/a2.bin");
+    EXPECT_EQ(by_id2->file_name, "a2.bin");
 
     ASSERT_TRUE(m_repo.remove(2));
     EXPECT_FALSE(m_repo.get_by_id(2).has_value());

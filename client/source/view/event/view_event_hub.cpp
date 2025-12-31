@@ -47,3 +47,29 @@ void ViewEventHub::publish_test_response(
 {
     emit test_response(event_envelope, trans_context, response);
 }
+
+void ViewEventHub::publish_download_response(
+    EventEnvelope event_envelope,
+    TransContext trans_context,
+    DownloadResponseTransfer response)
+{
+    emit download_response(event_envelope, trans_context, response);
+}
+
+void ViewEventHub::publish_block_response(
+    EventEnvelope event_envelope,
+    TransContext trans_context,
+    BlockResponseTransfer response)
+{
+    emit block_response(event_envelope, trans_context, response);
+}
+
+void ViewEventHub::publish_task_entity_update(int64_t task_id)
+{
+    emit task_entity_update(task_id);
+}
+
+void ViewEventHub::publish_task_entity_add(TaskEntity task_entity)
+{
+    emit task_entity_add(task_entity);
+}

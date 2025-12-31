@@ -28,7 +28,7 @@ public:
     std::optional<ClientFileEntity> get_by_md5(const std::string& md5_code);
     bool update(const ClientFileEntity& file_info);
     bool remove(int64_t file_id);
-
+	int64_t get_all_count();
 private:
     std::vector<ClientFileEntity> from_query_data(const std::vector<std::vector<DaneJoe::SqlCell>>& data);
 

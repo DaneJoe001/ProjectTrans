@@ -11,7 +11,7 @@
 #include <QAbstractTableModel>
 #include <QList>
 
-#include "service/task_view_service.hpp"
+#include "service/task_service.hpp"
 
  /**
   * @class FileTransInfoTableModel
@@ -22,10 +22,16 @@ class TaskTableModel : public QAbstractTableModel
 {
 public:
     /**
-     * @brief 获取实例
-     * @return 实例
-     */
-    static TaskTableModel* get_instance();
+    * @brief 构造函数
+    * @param parent 父对象
+    */
+    TaskTableModel(
+        TaskService& task_view_service,
+        QObject* parent = nullptr);
+    /**
+    * @brief 析构函数
+    */
+    ~TaskTableModel();
     /**
      * @brief 初始化
      */
@@ -54,14 +60,6 @@ public:
      */
     QVariant data(const QModelIndex& index, int32_t role = Qt::DisplayRole) const override;
     /**
-     * @brief 设置数据
-     * @param index 索引
-     * @param value 值
-     * @param role 角色
-     * @return 是否成功
-     */
-    bool setData(const QModelIndex& index, const QVariant& value, int32_t role = Qt::EditRole)override;
-    /**
      * @brief 头部数据
      * @param section 节
      * @param orientation 方向
@@ -73,25 +71,15 @@ public:
      * @brief 添加
      * @param trans_info 传输信息
      */
-    void add(const TaskViewModel& task_info);
+    void add(const TaskEntity& task_info);
     /**
      * @brief 删除
      * @param trans_info 传输信息
      */
-    void remove(const TaskViewModel& task_info);
-    TaskViewModel get_task_info(int32_t index);
+    void remove(const TaskEntity& task_info);
+    std::optional<TaskEntity> get_task_by_row(int64_t row);
 private:
-    /**
-     * @brief 构造函数
-     * @param parent 父对象
-     */
-    TaskTableModel(QObject* parent = nullptr);
-    /**
-     * @brief 析构函数
-     */
-    ~TaskTableModel();
-private:
-    TaskViewService& m_task_service;
+    TaskService& m_task_service;
     /// @brief 传输信息列表
-    QList<TaskViewModel> m_task_list;
+    QList<TaskEntity> m_task_list;
 };

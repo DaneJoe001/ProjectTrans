@@ -9,6 +9,7 @@
 
 #include <string>
 #include <cstdint>
+#include <optional>
 #include <unordered_map>
 
 #include "danejoe/common/enum/enum_convert.hpp"
@@ -65,6 +66,7 @@ namespace DaneJoe
         std::string path;
         /// @brief 查询参数
         std::unordered_multimap<std::string, std::string> query;
+        std::optional<std::string> get_param(const std::string& key);
         /**
          * @brief 将结构体字符串化，便于调试输出
          * @return 返回字符串化结果

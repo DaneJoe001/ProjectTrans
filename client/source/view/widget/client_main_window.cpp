@@ -18,9 +18,18 @@
 #include "view/widget/client_main_window.hpp"
 
 ClientMainWindow::ClientMainWindow(
+    TaskService& task_service,
+    ClientFileService& client_file_service,
+    BlockService& block_service,
     QPointer<ViewEventHub> view_event_hub,
+    QPointer<BlockScheduleController> block_schedule_controller,
     QWidget* parent) :
-    QMainWindow(parent), m_view_event_hub(view_event_hub)
+    QMainWindow(parent),
+    m_task_service(task_service),
+    m_client_file_service(client_file_service),
+    m_block_service(block_service),
+    m_view_event_hub(view_event_hub),
+    m_block_schedule_controller(block_schedule_controller)
 {}
 
 void ClientMainWindow::init()
@@ -115,17 +124,19 @@ void ClientMainWindow::init()
     /// @brief 连接测试对话框
     m_connection_test_dialog = new ConnectionTestDialog(m_view_event_hub, this);
     /// @brief 新任务对话框
-    m_new_download_dialog = new NewDownloadDialog(this);
+    m_new_download_dialog = new NewDownloadDialog(m_task_service, m_client_file_service, m_block_service, m_view_event_hub, this);
     m_new_download_dialog->init();
     m_new_upload_dialog = new NewUploadDialog(this);
     m_new_upload_dialog->init();
 
     m_connection_test_dialog->init();
 
+    m_task_table_model = new TaskTableModel (m_task_service, this);
+
     /// @brief 主界面堆栈窗口
     m_stack_widget = new QStackedWidget(this);
     this->setCentralWidget(m_stack_widget);
-    m_task_table_widget = new TaskTableWidget(this);
+    m_task_table_widget = new TaskTableWidget(m_task_service, m_view_event_hub, m_task_table_model, this);
     m_task_table_widget->init();
     m_stack_widget->addWidget(m_task_table_widget);
     m_stack_widget->setCurrentIndex(0);
@@ -136,18 +147,15 @@ void ClientMainWindow::init()
     connect(m_new_download_action, &QAction::triggered, this, &ClientMainWindow::on_new_download_action_triggered);
     connect(m_new_upload_action, &QAction::triggered, this, &ClientMainWindow::on_new_upload_action_triggered);
     connect(m_connection_test_dialog, &QDialog::finished, this, &ClientMainWindow::on_connection_test_dialog_closed);
-    connect(m_task_table_widget, &TaskTableWidget::row_clicked, this, &ClientMainWindow::on_file_trans_selected);
+    connect(m_task_table_widget, &TaskTableWidget::task_selected, this, &ClientMainWindow::on_task_selected);
     connect(m_start_task_action, &QAction::triggered, this, &ClientMainWindow::on_start_task_action_triggered);
     connect(m_stop_task_action, &QAction::triggered, this, &ClientMainWindow::on_stop_task_action_triggered);
-
-    startTimer(1000);
+    connect(this, &ClientMainWindow::task_enqueue, m_block_schedule_controller, &BlockScheduleController::on_task_enqueue);
     m_is_init = true;
+    connect(m_block_schedule_controller, &BlockScheduleController::task_completed, this, &ClientMainWindow::on_task_completed);
 }
 
-ClientMainWindow::~ClientMainWindow()
-{
-
-}
+ClientMainWindow::~ClientMainWindow() {}
 
 void ClientMainWindow::on_connection_test_action_triggered()
 {
@@ -192,18 +200,20 @@ void ClientMainWindow::on_new_download_action_triggered()
     m_new_download_dialog->show();
 }
 
-void ClientMainWindow::on_file_trans_selected(int32_t row)
+void ClientMainWindow::on_task_selected(int64_t task_id)
 {
     if (!m_is_init)
     {
         DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
         return;
     }
-    DANEJOE_LOG_TRACE("default", "MainWindow", "on_file_trans_selected");
-    if (row < 0)
+    DANEJOE_LOG_TRACE("default", "MainWindow", "Task selected: {}", task_id);
+    if (task_id < 0)
     {
+        DANEJOE_LOG_WARN("default", "ClientMainWindow", "Invalid task id");
         return;
     }
+    m_selected_task_id = task_id;
 }
 
 void ClientMainWindow::on_start_task_action_triggered()
@@ -213,8 +223,27 @@ void ClientMainWindow::on_start_task_action_triggered()
         DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
         return;
     }
-
-    QMessageBox::information(this, "info", "Task will start soon.");
+    if (m_selected_task_id < 0)
+    {
+        DANEJOE_LOG_WARN("default", "ClientMainWindow", "Have not select task!");
+        QMessageBox::warning(this, "warn", "Have not select task!");
+        return;
+    }
+    auto task_entity_opt = m_task_service.get_by_task_id(m_selected_task_id);
+    if (!task_entity_opt.has_value())
+    {
+        DANEJOE_LOG_WARN("default", "ClientMainWindow", "No mathced task");
+        QMessageBox::warning(this, "warn", "Task is not exist!");
+        return;
+    }
+    EventContext event_context;
+    event_context.m_object_name = "ClientMainWindow";
+    NetworkEndpoint endpoint;
+    auto url_info = m_resolver.parse(task_entity_opt->source_url);
+    endpoint.ip = url_info.host;
+    endpoint.port = url_info.port;
+    emit task_enqueue(event_context, endpoint, task_entity_opt.value());
+    QMessageBox::information(this, "info", QString("Task %1 will start soon.").arg(m_selected_task_id));
 }
 
 void ClientMainWindow::on_stop_task_action_triggered()
@@ -236,4 +265,14 @@ void ClientMainWindow::on_view_update()
         return;
     }
     this->update();
+}
+
+void ClientMainWindow::on_task_completed(int64_t task_id)
+{
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
+        return;
+    }
+    QMessageBox::information(this, "Info", QString("Task %1 is finished!").arg(task_id));
 }

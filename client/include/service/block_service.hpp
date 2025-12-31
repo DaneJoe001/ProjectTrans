@@ -1,16 +1,28 @@
+/**
+ * @file block_request_info_service.hpp
+ * @brief 块请求信息服务
+ * @author DaneJoe001
+ */
 #pragma once
 
 #include "model/entity/block_entity.hpp"
 #include "repository/block_repository.hpp"
+#include "model/entity/client_file_entity.hpp"
 
- /**
-  * @class BlockService
-  * @brief 块请求信息服务
-  */
+struct BlockParam
+{
+    int64_t block_bytes = 10 * 1024 * 1024;
+};
+
+/**
+ * @class BlockService
+ * @brief 块请求信息服务
+ */
 class BlockService
 {
 public:
-    static BlockService& get_instance();
+    BlockService();
+    ~BlockService();
     /**
      * @brief 初始化
      */
@@ -46,6 +58,7 @@ public:
      * @return 是否成功
      */
     bool add(const BlockEntity& block_entity);
+    bool add(const ClientFileEntity& file_entity, int64_t task_id, const BlockParam& param);
     /**
      * @brief 获取块请求信息
      * @param block_id 块ID

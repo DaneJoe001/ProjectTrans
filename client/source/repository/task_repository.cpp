@@ -44,29 +44,43 @@ void TaskRepository::init()
     file_id_column.is_not_null = true;
     m_table->add_column(file_id_column);
 
+    DaneJoe::SqlColumnItem saved_path_column;
+    saved_path_column.column_index = 2;
+    saved_path_column.column_name = "saved_path";
+    saved_path_column.data_type = DaneJoe::DataType::String;
+    saved_path_column.is_not_null = true;
+    m_table->add_column(saved_path_column);
+
+    DaneJoe::SqlColumnItem source_url_column;
+    source_url_column.column_index = 3;
+    source_url_column.column_name = "source_url";
+    source_url_column.data_type = DaneJoe::DataType::String;
+    source_url_column.is_not_null = true;
+    m_table->add_column(source_url_column);
+
     DaneJoe::SqlColumnItem operation_column;
-    operation_column.column_index = 2;
+    operation_column.column_index = 4;
     operation_column.column_name = "operation";
     operation_column.data_type = DaneJoe::DataType::Int64;
     operation_column.is_not_null = true;
     m_table->add_column(operation_column);
 
     DaneJoe::SqlColumnItem state_column;
-    state_column.column_index = 3;
+    state_column.column_index = 5;
     state_column.column_name = "state";
     state_column.data_type = DaneJoe::DataType::Int64;
     state_column.is_not_null = true;
     m_table->add_column(state_column);
 
     DaneJoe::SqlColumnItem start_time_column;
-    start_time_column.column_index = 4;
+    start_time_column.column_index = 6;
     start_time_column.column_name = "start_time";
     start_time_column.data_type = DaneJoe::DataType::Int64;
     start_time_column.is_not_null = true;
     m_table->add_column(start_time_column);
 
     DaneJoe::SqlColumnItem end_time_column;
-    end_time_column.column_index = 5;
+    end_time_column.column_index = 7;
     end_time_column.column_name = "end_time";
     end_time_column.data_type = DaneJoe::DataType::Int64;
     end_time_column.is_not_null = true;
@@ -164,13 +178,21 @@ bool TaskRepository::add(const TaskEntity& task)
         return false;
     }
 
+    if (task.task_id <= 0)
+    {
+        DANEJOE_LOG_TRACE("default", "TaskRepository", "Invalid task_id (must be > 0)");
+        return false;
+    }
+
     auto task_id_column_opt = m_table->get_column_info("task_id");
     auto file_id_column_opt = m_table->get_column_info("file_id");
+    auto saved_path_column_opt = m_table->get_column_info("saved_path");
+    auto source_url_column_opt = m_table->get_column_info("source_url");
     auto operation_column_opt = m_table->get_column_info("operation");
     auto state_column_opt = m_table->get_column_info("state");
     auto start_time_column_opt = m_table->get_column_info("start_time");
     auto end_time_column_opt = m_table->get_column_info("end_time");
-    if (!task_id_column_opt || !file_id_column_opt || !operation_column_opt || !state_column_opt || !start_time_column_opt || !end_time_column_opt)
+    if (!task_id_column_opt || !file_id_column_opt || !saved_path_column_opt || !source_url_column_opt || !operation_column_opt || !state_column_opt || !start_time_column_opt || !end_time_column_opt)
     {
         DANEJOE_LOG_TRACE("default", "TaskRepository", "Table column not found");
         return false;
@@ -181,6 +203,12 @@ bool TaskRepository::add(const TaskEntity& task)
 
     auto file_id_cell = file_id_column_opt->get_default_cell();
     file_id_cell.data = task.file_id;
+
+    auto saved_path_cell = saved_path_column_opt->get_default_cell();
+    saved_path_cell.data = task.saved_path;
+
+    auto source_url_cell = source_url_column_opt->get_default_cell();
+    source_url_cell.data = task.source_url;
 
     auto operation_cell = operation_column_opt->get_default_cell();
     operation_cell.data = static_cast<int64_t>(task.operation);
@@ -194,7 +222,7 @@ bool TaskRepository::add(const TaskEntity& task)
     auto end_time_cell = end_time_column_opt->get_default_cell();
     end_time_cell.data = DaneJoe::to_time_ms(task.end_time);
 
-    return m_table_query.insert({ task_id_cell, file_id_cell, operation_cell, state_cell, start_time_cell, end_time_cell });
+    return m_table_query.insert({ task_id_cell, file_id_cell, saved_path_cell, source_url_cell, operation_cell, state_cell, start_time_cell, end_time_cell });
 }
 
 bool TaskRepository::update(const TaskEntity& task)
@@ -207,11 +235,13 @@ bool TaskRepository::update(const TaskEntity& task)
 
     auto task_id_column_opt = m_table->get_column_info("task_id");
     auto file_id_column_opt = m_table->get_column_info("file_id");
+    auto saved_path_column_opt = m_table->get_column_info("saved_path");
+    auto source_url_column_opt = m_table->get_column_info("source_url");
     auto operation_column_opt = m_table->get_column_info("operation");
     auto state_column_opt = m_table->get_column_info("state");
     auto start_time_column_opt = m_table->get_column_info("start_time");
     auto end_time_column_opt = m_table->get_column_info("end_time");
-    if (!task_id_column_opt || !file_id_column_opt || !operation_column_opt || !state_column_opt || !start_time_column_opt || !end_time_column_opt)
+    if (!task_id_column_opt || !file_id_column_opt || !saved_path_column_opt || !source_url_column_opt || !operation_column_opt || !state_column_opt || !start_time_column_opt || !end_time_column_opt)
     {
         DANEJOE_LOG_TRACE("default", "TaskRepository", "Table column not found");
         return false;
@@ -219,6 +249,12 @@ bool TaskRepository::update(const TaskEntity& task)
 
     auto file_id_cell = file_id_column_opt->get_default_cell();
     file_id_cell.data = task.file_id;
+
+    auto saved_path_cell = saved_path_column_opt->get_default_cell();
+    saved_path_cell.data = task.saved_path;
+
+    auto source_url_cell = source_url_column_opt->get_default_cell();
+    source_url_cell.data = task.source_url;
 
     auto operation_cell = operation_column_opt->get_default_cell();
     operation_cell.data = static_cast<int64_t>(task.operation);
@@ -238,7 +274,7 @@ bool TaskRepository::update(const TaskEntity& task)
     condition.is_desc_order = std::nullopt;
     condition.condition = std::make_shared<DaneJoe::RangeCondition<int64_t>>(task.task_id);
 
-    return m_table_query.update({ file_id_cell, operation_cell, state_cell, start_time_cell, end_time_cell }, { condition });
+    return m_table_query.update({ file_id_cell, saved_path_cell, source_url_cell, operation_cell, state_cell, start_time_cell, end_time_cell }, { condition });
 }
 
 bool TaskRepository::remove(int64_t task_id)
@@ -265,6 +301,41 @@ bool TaskRepository::remove(int64_t task_id)
     return m_table_query.remove({ condition });
 }
 
+int64_t TaskRepository::get_all_count()
+{
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_TRACE("default", "TaskRepository", "Database not initialized");
+        return -1;
+    }
+    return m_table_query.count({});
+}
+
+int64_t TaskRepository::get_max_task_id()
+{
+    if (!m_is_init)
+    {
+        DANEJOE_LOG_TRACE("default", "TaskRepository", "Database not initialized");
+        return -1;
+    }
+    auto database = DaneJoe::SqlDatabaseManager::get_instance().get_database("client_database");
+    if (!database)
+    {
+        DANEJOE_LOG_TRACE("default", "TaskRepository", "Database not found");
+        return -1;
+    }
+
+    DaneJoe::SqlQuery query(database);
+    query.prepare("SELECT COALESCE(MAX(task_id), 0) FROM task;");
+    query.reset();
+    auto data = query.execute_query();
+    if (data.size() < 1 || data[0].size() < 1)
+    {
+        return -1;
+    }
+    return std::get<int64_t>(data[0][0].data);
+}
+
 std::vector<TaskEntity> TaskRepository::from_query_data(const std::vector<std::vector<DaneJoe::SqlCell>>& data)
 {
     std::vector<TaskEntity> result;
@@ -280,6 +351,14 @@ std::vector<TaskEntity> TaskRepository::from_query_data(const std::vector<std::v
             else if (cell.column_name == "file_id")
             {
                 task.file_id = std::get<int64_t>(cell.data);
+            }
+            else if (cell.column_name == "saved_path")
+            {
+                task.saved_path = std::get<std::string>(cell.data);
+            }
+            else if (cell.column_name == "source_url")
+            {
+                task.source_url = std::get<std::string>(cell.data);
             }
             else if (cell.column_name == "operation")
             {

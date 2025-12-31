@@ -1,10 +1,10 @@
-#pragma once
-
 /**
  * @file screen_util.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 屏幕工具类
- * @author DaneJoe001
+ * @date 2025-12-28
  */
+#pragma once
 
 #include <cstdint>
 #include <string>

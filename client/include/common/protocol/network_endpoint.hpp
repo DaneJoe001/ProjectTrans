@@ -1,23 +1,51 @@
+/**
+ * @file network_endpoint.hpp
+ * @author DaneJoe001 (danejoe001.github)
+ * @brief 网络端点
+ * @date 2025-12-28
+ */
 #pragma once
 
 #include <string>
 #include <cstdint>
 
+/**
+ * @brief 网络端点
+ */
 struct NetworkEndpoint
 {
+    /// @brief IP地址
     std::string ip;
+    /// @brief 端口号
     uint16_t port;
+    /**
+     * @brief 判断两个网络端点是否相等
+     * @param other 另一个网络端点
+     * @return 是否相等
+     */
     bool operator==(const NetworkEndpoint& other) const
     {
         return ip == other.ip && port == other.port;
     }
 };
 
+/**
+ * @namespace std
+ * @brief std命名空间
+ */
 namespace std
 {
+    /**
+     * @brief 网络端点哈希
+     */
     template<>
     struct hash<NetworkEndpoint>
     {
+        /**
+         * @brief 哈希函数
+         * @param endpoint 网络端点
+         * @return 哈希值
+         */
         std::size_t operator()(const NetworkEndpoint& endpoint) const noexcept
         {
             std::size_t h1 = std::hash<std::string>{}(endpoint.ip);

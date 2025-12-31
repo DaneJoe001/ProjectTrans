@@ -1,10 +1,9 @@
-#pragma once
-
 /**
  * @file client_file_info_service.hpp
  * @brief 客户端文件信息服务
  * @author DaneJoe001
  */
+#pragma once
 
 #include <cstdint>
 
@@ -18,7 +17,8 @@
 class ClientFileService
 {
 public:
-    static ClientFileService& get_instance();
+    ClientFileService();
+    ~ClientFileService();
     /**
      * @brief 初始化
      */

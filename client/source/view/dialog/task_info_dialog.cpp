@@ -15,7 +15,7 @@
 #include "common/util/screen_util.hpp"
 #include "view/dialog/task_info_dialog.hpp"
 
-TaskInfoDialog::TaskInfoDialog(QWidget* parent) :QDialog(parent) {}
+TaskInfoDialog::TaskInfoDialog(QPointer<ViewEventHub> view_event_hub, QWidget* parent) :QDialog(parent), m_view_event_hub(view_event_hub) {}
 
 void TaskInfoDialog::init()
 {
@@ -95,4 +95,20 @@ void TaskInfoDialog::init()
 
     m_stack_widget->setCurrentIndex(0);
     m_is_init = true;
+}
+
+void TaskInfoDialog::switch_to_waiting_panel()
+{
+    m_stack_widget->setCurrentIndex(0);
+}
+void TaskInfoDialog::switch_to_info_panel()
+{
+    m_stack_widget->setCurrentIndex(1);
+}
+
+void TaskInfoDialog::on_download_response(EventEnvelope event_envelope,
+    TransContext trans_context,
+    DownloadResponseTransfer response)
+{
+
 }

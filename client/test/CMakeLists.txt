@@ -20,9 +20,13 @@ add_executable(ProjectTransClientTests
     source/repository/test_client_file_repository.cpp
     source/repository/test_task_repository.cpp
 
+    source/service/test_task_service.cpp
+
     ../source/repository/block_repository.cpp
     ../source/repository/client_file_repository.cpp
     ../source/repository/task_repository.cpp
+
+    ../source/service/task_service.cpp
     ../source/model/entity/block_entity.cpp
 
     ../../server/source/danejoe/common/core/data_type.cpp

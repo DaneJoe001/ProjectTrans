@@ -1,10 +1,11 @@
 #include "danejoe/logger/logger_manager.hpp"
 #include "danejoe/network/codec/serialize_codec.hpp"
 #include <danejoe/stringify//stringify_to_string.hpp>
+#include <string>
 
 #include "protocol/client_message_codec.hpp"
 
-std::optional<EnvelopeResponseTransfer> ClientMessageCodec::try_parse_response(const std::vector<uint8_t>& data)
+std::optional<EnvelopeResponseTransfer> ClientMessageCodec::try_parse_byte_array_response(const std::vector<uint8_t>& data)
 {
     DANEJOE_LOG_TRACE("default", "ClientMessageCodec", "Parsing envelope response");
     EnvelopeResponseTransfer envelope;
@@ -81,18 +82,31 @@ std::optional<EnvelopeResponseTransfer> ClientMessageCodec::try_parse_response(c
     return envelope;
 }
 
-std::optional<DownloadResponseTransfer> ClientMessageCodec::try_parse_download_response(const std::vector<uint8_t>& body)
+std::optional<DownloadResponseTransfer> ClientMessageCodec::try_parse_byte_array_download_response(const std::vector<uint8_t>& body)
 {
     DANEJOE_LOG_TRACE("default", "ClientMessageCodec", "Parse download response");
     DownloadResponseTransfer info;
     DaneJoe::SerializeCodec serializer;
     serializer.deserialize(body);
 
+    auto task_id_field_opt = serializer.get_parsed_field("task_id");
     auto file_id_field_opt = serializer.get_parsed_field("file_id");
     auto file_name_field_opt = serializer.get_parsed_field("file_name");
-    auto source_path_field_opt = serializer.get_parsed_field("source_path");
     auto file_size_field_opt = serializer.get_parsed_field("file_size");
     auto md5_code_field_opt = serializer.get_parsed_field("md5_code");
+
+    if (task_id_field_opt.has_value())
+    {
+        auto task_id_op = DaneJoe::to_value<int64_t>(task_id_field_opt.value());
+        if (task_id_op.has_value())
+        {
+            info.task_id = task_id_op.value();
+        }
+        else
+        {
+            DANEJOE_LOG_WARN("default", "ClientMessageCodec", "Task id parse failed");
+        }
+    }
 
     if (file_id_field_opt.has_value())
     {
@@ -110,12 +124,7 @@ std::optional<DownloadResponseTransfer> ClientMessageCodec::try_parse_download_r
 
     if (file_name_field_opt.has_value())
     {
-        info.saved_name = DaneJoe::to_string(file_name_field_opt.value());
-    }
-
-    if (source_path_field_opt.has_value())
-    {
-        info.source_path = DaneJoe::to_string(source_path_field_opt.value());
+        info.file_name = DaneJoe::to_string(file_name_field_opt.value());
     }
 
     if (file_size_field_opt.has_value())
@@ -140,7 +149,7 @@ std::optional<DownloadResponseTransfer> ClientMessageCodec::try_parse_download_r
     return info;
 }
 
-std::optional<BlockResponseTransfer> ClientMessageCodec::try_parse_block_response(const std::vector<uint8_t>& body)
+std::optional<BlockResponseTransfer> ClientMessageCodec::try_parse_byte_array_block_response(const std::vector<uint8_t>& body)
 {
     BlockResponseTransfer info;
     DaneJoe::SerializeCodec serializer;
@@ -148,6 +157,7 @@ std::optional<BlockResponseTransfer> ClientMessageCodec::try_parse_block_respons
 
     auto block_id_field_op = serializer.get_parsed_field("block_id");
     auto file_id_field_op = serializer.get_parsed_field("file_id");
+    auto task_id_field_op = serializer.get_parsed_field("task_id");
     auto offset_field_op = serializer.get_parsed_field("offset");
     auto block_size_field_op = serializer.get_parsed_field("block_size");
     auto data_field_op = serializer.get_parsed_field("data");
@@ -177,6 +187,15 @@ std::optional<BlockResponseTransfer> ClientMessageCodec::try_parse_block_respons
         return std::nullopt;
     }
     info.file_id = file_id_op.value();
+
+    if (task_id_field_op.has_value())
+    {
+        auto task_id_op = DaneJoe::to_value<int64_t>(task_id_field_op.value());
+        if (task_id_op.has_value())
+        {
+            info.task_id = task_id_op.value();
+        }
+    }
 
     if (!offset_field_op.has_value())
     {
@@ -214,7 +233,7 @@ std::optional<BlockResponseTransfer> ClientMessageCodec::try_parse_block_respons
     return info;
 }
 
-std::optional<TestResponseTransfer> ClientMessageCodec::try_parse_test_response(const std::vector<uint8_t>& body)
+std::optional<TestResponseTransfer> ClientMessageCodec::try_parse_byte_array_test_response(const std::vector<uint8_t>& body)
 {
     DaneJoe::SerializeCodec serializer;
     auto header_opt = serializer.get_message_header(body);
@@ -233,7 +252,7 @@ std::optional<TestResponseTransfer> ClientMessageCodec::try_parse_test_response(
     return info;
 }
 
-std::vector<uint8_t> ClientMessageCodec::build_request(EnvelopeRequestTransfer info)
+std::vector<uint8_t> ClientMessageCodec::build_request_byte_array(EnvelopeRequestTransfer info)
 {
     DaneJoe::SerializeCodec serializer;
     serializer.serialize(info.version, "version");
@@ -245,7 +264,7 @@ std::vector<uint8_t> ClientMessageCodec::build_request(EnvelopeRequestTransfer i
     return serializer.get_serialized_data_vector_build();
 }
 
-std::vector<uint8_t> ClientMessageCodec::build_test_request(const TestRequestTransfer& test_request, int64_t request_id)
+std::vector<uint8_t> ClientMessageCodec::build_test_request_byte_array(const TestRequestTransfer& test_request, int64_t request_id)
 {
     // 构建消息体
     DaneJoe::SerializeCodec body_serializer;
@@ -261,15 +280,16 @@ std::vector<uint8_t> ClientMessageCodec::build_test_request(const TestRequestTra
     envelope.content_type = ContentType::DaneJoe;
     envelope.body = body;
 
-    return build_request(envelope);
+    return build_request_byte_array(envelope);
 }
 
-std::vector<uint8_t> ClientMessageCodec::build_download_request(const DownloadRequestTransfer& download_request, int64_t request_id)
+std::vector<uint8_t> ClientMessageCodec::build_download_request_byte_array(const DownloadRequestTransfer& download_request, int64_t request_id)
 {
     DANEJOE_LOG_TRACE("default", "ClientMessageCodec", "Building download request for file_id: {}", download_request.file_id);
     // 构建消息体
     DaneJoe::SerializeCodec body_serializer;
     body_serializer.serialize(download_request.file_id, "file_id");
+    body_serializer.serialize(download_request.task_id, "task_id");
     std::vector<uint8_t> body = body_serializer.get_serialized_data_vector_build();
 
     // 构建Envelope请求
@@ -281,16 +301,17 @@ std::vector<uint8_t> ClientMessageCodec::build_download_request(const DownloadRe
     envelope.content_type = ContentType::DaneJoe;
     envelope.body = body;
 
-    return build_request(envelope);
+    return build_request_byte_array(envelope);
 }
 
-std::vector<uint8_t> ClientMessageCodec::build_block_request(const BlockRequestTransfer& block_request, int64_t request_id)
+std::vector<uint8_t> ClientMessageCodec::build_block_request_byte_array(const BlockRequestTransfer& block_request, int64_t request_id)
 {
     DANEJOE_LOG_TRACE("default", "ClientMessageCodec", "Building block request for block: {}", block_request.to_string());
     // 构建消息体
     DaneJoe::SerializeCodec body_serializer;
     body_serializer.serialize(block_request.block_id, "block_id");
     body_serializer.serialize(block_request.file_id, "file_id");
+    body_serializer.serialize(block_request.task_id, "task_id");
     body_serializer.serialize(block_request.offset, "offset");
     body_serializer.serialize(block_request.block_size, "block_size");
     std::vector<uint8_t> body = body_serializer.get_serialized_data_vector_build();
@@ -304,5 +325,5 @@ std::vector<uint8_t> ClientMessageCodec::build_block_request(const BlockRequestT
     envelope.content_type = ContentType::DaneJoe;
     envelope.body = body;
 
-    return build_request(envelope);
+    return build_request_byte_array(envelope);
 }

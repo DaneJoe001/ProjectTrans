@@ -23,6 +23,13 @@ std::string to_string(BlockState state)
 
 std::string BlockEntity::to_string() const
 {
-    return std::format("block_id={} | block_size={} | end_time={} | offset={} | start_time={} | state={} | task_id={}",
-        block_id, block_size, end_time.time_since_epoch().count(), offset, start_time.time_since_epoch().count(), ::to_string(state), task_id);
+    return std::format("block_id={} | task_id={} | file_id={} | offset={} | block_size={} | state={} | start_time={} | end_time={}",
+        block_id,
+        task_id,
+        file_id,
+        offset,
+        block_size,
+        ::to_string(state),
+        start_time.time_since_epoch().count(),
+        end_time.time_since_epoch().count());
 }

@@ -9,6 +9,7 @@ file(GLOB CLIENT_DANEJOE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/../server/source/danejoe/common/diagnostic/*.cpp"
     "${CMAKE_SOURCE_DIR}/../server/source/danejoe/common/system/*.cpp"
     "${CMAKE_SOURCE_DIR}/../server/source/danejoe/concurrent/*.cpp"
+    "${CMAKE_SOURCE_DIR}/../server/source/danejoe/concurrent/timer/*.cpp"
     "${CMAKE_SOURCE_DIR}/../server/source/danejoe/condition/*.cpp"
     "${CMAKE_SOURCE_DIR}/../server/source/danejoe/database/*.cpp"
     "${CMAKE_SOURCE_DIR}/../server/source/danejoe/logger/*.cpp"
@@ -36,6 +37,7 @@ file(GLOB CLIENT_NORMAL_DIR_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/source/model/view/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/repository/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/service/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/controller/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/common/util/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/common/protocol/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/protocol/*.cpp"
@@ -44,9 +46,11 @@ file(GLOB CLIENT_NORMAL_DIR_SOURCES CONFIGURE_DEPENDS
 # 客户端QObject对象系统头文件
 file(GLOB CLIENT_QOBJECT_DIR_HEADERS CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/include/main/*.hpp"
+    "${CMAKE_SOURCE_DIR}/include/controller/*.hpp"
     "${CMAKE_SOURCE_DIR}/include/view/**/*.hpp"
     "${CMAKE_SOURCE_DIR}/include/service/*.hpp"
     "${CMAKE_SOURCE_DIR}/include/connect/*.hpp"
+    "${CMAKE_SOURCE_DIR}/include/context/*.hpp"
     "${CMAKE_SOURCE_DIR}/include/common/util/*.hpp"
 )
 
@@ -54,6 +58,7 @@ file(GLOB CLIENT_QOBJECT_DIR_HEADERS CONFIGURE_DEPENDS
 file(GLOB CLIENT_QOBJECT_DIR_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/source/main/client_app.cpp"
     "${CMAKE_SOURCE_DIR}/source/view/**/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/controller/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/connect/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/common/util/*.cpp"
 )

@@ -19,6 +19,8 @@ ConnectionTestDialog::ConnectionTestDialog(QPointer<ViewEventHub> view_event_hub
     : QDialog(parent), m_view_event_hub(view_event_hub)
 {}
 
+ConnectionTestDialog::~ConnectionTestDialog() {}
+
 void ConnectionTestDialog::init()
 {
     if (m_is_init)
@@ -73,6 +75,7 @@ void ConnectionTestDialog::init()
 
     connect(m_view_event_hub, &ViewEventHub::test_response, this, &ConnectionTestDialog::on_test_reponse);
     m_is_init = true;
+    connect(m_send_push_button, &QPushButton::clicked, this, &ConnectionTestDialog::on_send_push_button_clicked);
 }
 
 void ConnectionTestDialog::on_send_push_button_clicked()
@@ -90,6 +93,7 @@ void ConnectionTestDialog::on_send_push_button_clicked()
         return;
     }
     m_view_event_hub->publish_test_request(event_context, endpoint, request);
+    m_send_text_edit->clear();
 }
 
 void ConnectionTestDialog::on_test_reponse(
@@ -99,4 +103,12 @@ void ConnectionTestDialog::on_test_reponse(
 {
 
     set_recevied_text(response.message);
+}
+
+void ConnectionTestDialog::set_recevied_text(const std::string& text)
+{
+    if (m_recv_text_browser)
+    {
+        m_recv_text_browser->append(QString::fromStdString(text));
+    }
 }

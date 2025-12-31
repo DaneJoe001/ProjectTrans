@@ -5,6 +5,10 @@
 #include "danejoe/common/diagnostic/diagnostic_system.hpp"
 #include "danejoe/stringify/stringify_to_string.hpp"
 
+DaneJoe::UrlResolver::UrlResolver() {}
+
+DaneJoe::UrlResolver::~UrlResolver() {}
+
 DaneJoe::UrlInfo DaneJoe::UrlResolver::parse(const std::string& url)
 {
     /// @todo URL转义解码
