@@ -117,6 +117,7 @@ void ClientApp::init_logger()
 {
     DaneJoe::LoggerConfig logger_config;
     logger_config.log_path = "./log/client.log";
+    logger_config.console_level=DaneJoe::LogLevel::DEBUG;
     DaneJoe::LogOutputSetting output_setting;
     output_setting.enable_function_name = true;
     output_setting.enable_line_num = true;

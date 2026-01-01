@@ -5,7 +5,7 @@
 #include <danejoe/logger/logger_manager.hpp>
 
 #include "view/widget/resource_info_widget.hpp"
-#include "model/server_file_info_table_model.hpp"
+#include "model/view/server_file_info_table_model.hpp"
 
 ResourceInfoWidget::ResourceInfoWidget(QWidget* parent) : QWidget(parent) {}
 void ResourceInfoWidget::init()

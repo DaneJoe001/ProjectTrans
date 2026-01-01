@@ -7,9 +7,6 @@
 
 #include "danejoe/network/codec/serialize_header.hpp"
 
-// 多个帧
-//有一个问题，我需要尝试对缓冲区尝试解析消息头
-
 namespace DaneJoe
 {
     void ensure_capacity(std::vector<uint8_t>& vec, size_t size);

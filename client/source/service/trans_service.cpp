@@ -51,10 +51,19 @@ TransContext TransService::send_test_request(
     m_timer_manager.add_task_for(m_time_out_interval,
         [this, request_id]()
         {
-            if (m_trans_correlations.find(request_id) != m_trans_correlations.end())
+            bool erased = false;
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                auto it = m_trans_correlations.find(request_id);
+                if (it != m_trans_correlations.end())
+                {
+                    m_trans_correlations.erase(it);
+                    erased = true;
+                }
+            }
+            if (erased)
             {
                 DANEJOE_LOG_WARN("default", "TransService", "Timeout for request id {}", request_id);
-                this->remove_response_handler(request_id);
             }
         });
     {
@@ -79,10 +88,19 @@ TransContext TransService::send_download_request(
     m_timer_manager.add_task_for(m_time_out_interval,
         [this, request_id]()
         {
-            if (m_trans_correlations.find(request_id) != m_trans_correlations.end())
+            bool erased = false;
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                auto it = m_trans_correlations.find(request_id);
+                if (it != m_trans_correlations.end())
+                {
+                    m_trans_correlations.erase(it);
+                    erased = true;
+                }
+            }
+            if (erased)
             {
                 DANEJOE_LOG_WARN("default", "TransService", "Timeout for request id {}", request_id);
-                this->remove_response_handler(request_id);
             }
         }
     );
@@ -108,10 +126,19 @@ TransContext TransService::send_block_request(
     m_timer_manager.add_task_for(m_time_out_interval,
         [this, request_id]()
         {
-            if (m_trans_correlations.find(request_id) != m_trans_correlations.end())
+            bool erased = false;
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                auto it = m_trans_correlations.find(request_id);
+                if (it != m_trans_correlations.end())
+                {
+                    m_trans_correlations.erase(it);
+                    erased = true;
+                }
+            }
+            if (erased)
             {
                 DANEJOE_LOG_WARN("default", "TransService", "Timeout for request id {}", request_id);
-                this->remove_response_handler(request_id);
             }
         }
     );
@@ -188,18 +215,23 @@ void TransService::on_received_frame_ready(QByteArray data)
         DANEJOE_LOG_ERROR("default", "TransService", "Failed to parse response");
         return;
     }
-    auto response =
-        std::move(response_opt.value());
-    auto handler_it =
-        m_trans_correlations.find(response.request_id);
-    if (handler_it == m_trans_correlations.end())
+    auto response = std::move(response_opt.value());
+    DANEJOE_LOG_DEBUG("default","TransService","Response: {}",response.to_string());
+
+    std::function<void(std::vector<uint8_t>)> handler;
     {
-        DANEJOE_LOG_WARN("default", "TransService", "No handler found for request id {}", response.request_id);
-        return;
+        std::lock_guard<std::mutex> lock(m_mutex);
+        auto handler_it = m_trans_correlations.find(response.request_id);
+        if (handler_it == m_trans_correlations.end())
+        {
+            DANEJOE_LOG_WARN("default", "TransService", "No handler found for request id {}", response.request_id);
+            return;
+        }
+        handler = std::move(handler_it->second.callback);
+        m_trans_correlations.erase(handler_it);
     }
-    auto handler = std::move(handler_it->second.callback);
-    remove_response_handler(response.request_id);
-    handler(response.body);
+
+    handler(std::move(response.body));
 }
 
 void TransService::remove_response_handler(uint64_t request_id)

@@ -27,8 +27,11 @@ set(SERVER_CORE_SOURCES
 )
 
 file(GLOB SERVER_NORMAL_DIR_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/source/protocol/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/connect/*.cpp"
-    "${CMAKE_SOURCE_DIR}/source/model/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/model/entity/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/model/transfer/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/model/view/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/repository/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/service/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/common/protocol/*.cpp"

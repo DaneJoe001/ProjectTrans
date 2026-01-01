@@ -4,6 +4,7 @@
 #include <QKeyEvent>
 
 #include <danejoe/logger/logger_manager.hpp>
+#include <danejoe/logger/logger_config.hpp>
 #include <danejoe/database/sql_database_manager.hpp>
 #include <danejoe/database/sql_config.hpp>
 #include <danejoe/database/sqlite_driver.hpp>
@@ -114,6 +115,7 @@ void ServerApp::init_logger()
 {
     DaneJoe::LoggerConfig logger_config;
     logger_config.log_path = "./log/server.log";
+    logger_config.console_level=DaneJoe::LogLevel::DEBUG;
     DaneJoe::LogOutputSetting output_setting;
     output_setting.enable_function_name = true;
     output_setting.enable_line_num = true;

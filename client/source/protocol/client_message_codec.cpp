@@ -261,6 +261,7 @@ std::vector<uint8_t> ClientMessageCodec::build_request_byte_array(EnvelopeReques
     serializer.serialize(info.path, "path");
     serializer.serialize(static_cast<uint8_t>(info.content_type), "content_type");
     serializer.serialize(info.body, "body");
+    DANEJOE_LOG_DEBUG("default","ClientMessageCodec","--------Request------:{}",info.to_string());
     return serializer.get_serialized_data_vector_build();
 }
 

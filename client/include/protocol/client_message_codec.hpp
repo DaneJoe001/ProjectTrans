@@ -4,9 +4,6 @@
 #include <cstdint>
 #include <optional>
 
-#include "danejoe/network/url/url_info.hpp"
-
-#include "model/entity/block_entity.hpp"
 #include "model/transfer/envelope_transfer.hpp"
 #include "model/transfer/download_transfer.hpp"
 #include "model/transfer/block_transfer.hpp"
@@ -65,6 +62,6 @@ public:
      * @return 构建后的块请求
      */
     std::vector<uint8_t>
-    build_block_request_byte_array(const BlockRequestTransfer &block_request,
-                                   int64_t request_id);
+        build_block_request_byte_array(const BlockRequestTransfer& block_request,
+        int64_t request_id);
 };

@@ -173,7 +173,7 @@ void DaneJoe::EpollEventLoop::run()
     struct epoll_event events[m_max_event_count];
     while (m_is_running.load())
     {
-        DANEJOE_LOG_TRACE("default", "network", "Loop is running!");
+        // DANEJOE_LOG_TRACE("default", "network", "Loop is running!");
         // 等待事件发生
         int32_t ret = ::epoll_wait(m_epoll_fd, events, m_max_event_count, 1000);
         if (ret < 0)
@@ -211,6 +211,7 @@ void DaneJoe::EpollEventLoop::run()
                 remove_socket(PosixClientSocket::get_id(fd));
                 continue;
             }
+
             // 客户端读事件
             if (event & EPOLLIN)
             {
@@ -337,7 +338,11 @@ void DaneJoe::EpollEventLoop::acceptable_event()
         }
         // 新连接默认只监听可读 + 对端关闭 + 边缘触发
         // 注意：EPOLLOUT 在 TCP 下通常“永远可写”，会造成空转；需要发送数据时再临时打开。
-        if (!add_socket(std::move(client), EventLoopEventType::Readable | EventLoopEventType::EdgeTriggered | EventLoopEventType::PeerClosed))
+        if (!add_socket(std::move(client),
+            EventLoopEventType::Readable |
+   //         EventLoopEventType::EdgeTriggered |
+            EventLoopEventType::Writable |
+            EventLoopEventType::PeerClosed))
         {
             ADD_DIAG_WARN("network", "Accept client skipped: add socket failed");
             continue;
@@ -400,6 +405,7 @@ void DaneJoe::EpollEventLoop::readable_event(int32_t socket_id)
 
 void DaneJoe::EpollEventLoop::writable_event(int32_t socket_id)
 {
+    DANEJOE_LOG_TRACE("default", "EpollEventLoop", "On writable event");
     /// @brief 当前posix实现下，socket_map的键就是(int)fd
     auto client_iter = m_sockets.find(socket_id);
     // 检查当前映射表中是否存在记录

@@ -2,6 +2,7 @@
 #include <thread>
 
 #include "danejoe/common/diagnostic/diagnostic_system.hpp"
+#include "danejoe/logger/logger_manager.hpp"
 
 DaneJoe::DiagnosticSystem& DaneJoe::DiagnosticSystem::get_instance()
 {
@@ -34,6 +35,37 @@ void DaneJoe::DiagnosticSystem::add_event(DiagnosticEventLevel level,
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_events.push_back(event);
+    }
+    /// @todo 临时转接到log
+    auto default_logger = DaneJoe::LoggerManager::get_instance().get_logger("default");
+    if (!default_logger)
+    {
+        return;
+    }
+    switch (level)
+    {
+        case DiagnosticEventLevel::Trace:
+            default_logger->trace(module_name, file_name, function_name, line_number, "{}", message);
+            break;
+        case DiagnosticEventLevel::Debug:
+            default_logger->debug(module_name, file_name, function_name, line_number, "{}", message);
+            break;
+        case DiagnosticEventLevel::Info:
+            default_logger->info(module_name, file_name, function_name, line_number, "{}", message);
+            break;
+        case DiagnosticEventLevel::Warn:
+            default_logger->warn(module_name, file_name, function_name, line_number, "{}", message);
+            break;
+        case DiagnosticEventLevel::Error:
+            default_logger->error(module_name, file_name, function_name, line_number, "{}", message);
+            break;
+        case DiagnosticEventLevel::Critical:
+            default_logger->fatal(module_name, file_name, function_name, line_number, "{}", message);
+            break;
+        case DiagnosticEventLevel::Unknown:
+        default:
+            default_logger->warn(module_name, file_name, function_name, line_number, "{}", message);
+            break;
     }
 }
 void DaneJoe::DiagnosticSystem::add_event(const DiagnosticEvent& event)

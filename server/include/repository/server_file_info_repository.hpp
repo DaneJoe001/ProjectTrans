@@ -14,7 +14,7 @@
 #include <danejoe/database/sql_query.hpp>
 #include <danejoe/database/sql_database.hpp>
 
-#include "model/server_file_info.hpp"
+#include "model/entity/server_file_entity.hpp"
 
  /**
   * @class ServerFileInfoRepository

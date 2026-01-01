@@ -1,4 +1,4 @@
-#include "model/server_file_info_table_model.hpp"
+#include "model/view/server_file_info_table_model.hpp"
 
 ServerFileInfoTableModel* ServerFileInfoTableModel::get_instance()
 {
@@ -6,10 +6,7 @@ ServerFileInfoTableModel* ServerFileInfoTableModel::get_instance()
     static ServerFileInfoTableModel instance;
     return &instance;
 }
-ServerFileInfoTableModel::ServerFileInfoTableModel(QObject* parent)
-{
-
-}
+ServerFileInfoTableModel::ServerFileInfoTableModel(QObject* parent) :QAbstractTableModel(parent) {}
 
 void ServerFileInfoTableModel::init()
 {
@@ -50,18 +47,18 @@ QVariant ServerFileInfoTableModel::data(const QModelIndex& index, int32_t role) 
     {
         switch (column)
         {
-        case 0:
-            return m_file_info_list[row].file_id;
-        case 1:
-            return QString::fromStdString(m_file_info_list[row].file_name);
-        case 2:
-            return QString::fromStdString(m_file_info_list[row].resource_path);
-        case 3:
-            return quint64(m_file_info_list[row].file_size);
-        case 4:
-            return QString::fromStdString(m_file_info_list[row].md5_code);
-        default:
-            return QVariant();
+            case 0:
+                return m_file_info_list[row].file_id;
+            case 1:
+                return QString::fromStdString(m_file_info_list[row].file_name);
+            case 2:
+                return QString::fromStdString(m_file_info_list[row].resource_path);
+            case 3:
+                return quint64(m_file_info_list[row].file_size);
+            case 4:
+                return QString::fromStdString(m_file_info_list[row].md5_code);
+            default:
+                return QVariant();
         }
     }
     return QVariant();
@@ -83,23 +80,23 @@ bool ServerFileInfoTableModel::setData(const QModelIndex& index, const QVariant&
         }
         switch (column)
         {
-        case 0:
-            m_file_info_list[row].file_id = value.toInt();
-            break;
-        case 1:
-            m_file_info_list[row].file_name = value.toString().toStdString();
-            break;
-        case 2:
-            m_file_info_list[row].resource_path = value.toString().toStdString();
-            break;
-        case 3:
-            m_file_info_list[row].file_size = value.toUInt();
-            break;
-        case 4:
-            m_file_info_list[row].md5_code = value.toString().toStdString();
-            break;
-        default:
-            return false;
+            case 0:
+                m_file_info_list[row].file_id = value.toInt();
+                break;
+            case 1:
+                m_file_info_list[row].file_name = value.toString().toStdString();
+                break;
+            case 2:
+                m_file_info_list[row].resource_path = value.toString().toStdString();
+                break;
+            case 3:
+                m_file_info_list[row].file_size = value.toUInt();
+                break;
+            case 4:
+                m_file_info_list[row].md5_code = value.toString().toStdString();
+                break;
+            default:
+                return false;
         }
         emit dataChanged(index, index, { role });
         return true;
@@ -117,18 +114,18 @@ QVariant ServerFileInfoTableModel::headerData(int32_t section, Qt::Orientation o
         {
             switch (section)
             {
-            case 0:
-                return QStringLiteral("ID");
-            case 1:
-                return QStringLiteral("文件名");
-            case 2:
-                return QStringLiteral("资源路径");
-            case 3:
-                return QStringLiteral("文件大小");
-            case 4:
-                return QStringLiteral("MD5校验");
-            default:
-                return QStringLiteral("未知");
+                case 0:
+                    return QStringLiteral("ID");
+                case 1:
+                    return QStringLiteral("文件名");
+                case 2:
+                    return QStringLiteral("资源路径");
+                case 3:
+                    return QStringLiteral("文件大小");
+                case 4:
+                    return QStringLiteral("MD5校验");
+                default:
+                    return QStringLiteral("未知");
             }
         }
         /// @brief 设置行标题

@@ -11,15 +11,14 @@
 #include <QAbstractTableModel>
 #include <cstdint>
 
-#include "model/server_file_info.hpp"
+#include "model/entity/server_file_entity.hpp"
 #include "service/server_file_info_service.hpp"
-#include "repository/server_file_info_repository.hpp"
 
-/**
- * @class ServerFileInfoTableModel
- * @brief 服务器文件信息表模型
- */
-class ServerFileInfoTableModel : public QAbstractTableModel 
+ /**
+  * @class ServerFileInfoTableModel
+  * @brief 服务器文件信息表模型
+  */
+class ServerFileInfoTableModel : public QAbstractTableModel
 {
 public:
     /**

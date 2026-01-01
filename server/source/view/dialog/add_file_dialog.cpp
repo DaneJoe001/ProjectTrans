@@ -12,8 +12,8 @@
 #include <danejoe/database/sql_database_manager.hpp>
 
 #include "view/dialog/add_file_dialog.hpp"
-#include "model/server_file_info.hpp"
-#include "model/server_file_info_table_model.hpp"
+#include "model/entity/server_file_entity.hpp"
+#include "model/view/server_file_info_table_model.hpp"
 #include "common/util/screen_util.hpp"
 
 AddFileDialog::AddFileDialog(QWidget* parent) :QDialog(parent)

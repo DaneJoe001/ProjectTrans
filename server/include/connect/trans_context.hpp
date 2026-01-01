@@ -10,9 +10,12 @@
 
 #include <danejoe/concurrent/container/mpmc_bounded_queue.hpp>
 #include "danejoe/network/context/i_socket_context.hpp"
-
 #include "danejoe/network/codec/frame_assembler.hpp"
-#include "common/protocol/danejoe_protocol.hpp"
+
+#include "model/transfer/block_transfer.hpp"
+#include "model/transfer/download_transfer.hpp"
+#include "model/transfer/test_transfer.hpp"
+#include "protocol/server_message_codec.hpp"
 #include "service/server_file_info_service.hpp"
 
  /**
@@ -40,31 +43,31 @@ public:
      * @brief 销毁传输上下文，当前仅执行解注册
      */
     void destroy(std::shared_ptr<ISocketContext> context);
+    void handle_request(const std::vector<uint8_t>& data);
     /**
      * @brief 处理未知请求
      * @param request_info 请求信息
      */
-    void handle_unknown_request(const DaneJoe::Protocol::RequestInfo& request_info);
+    void handle_unknown_request();
     /**
      * @brief 处理下载请求
      * @param request_info 请求信息
      */
-    void handle_download_request(const DaneJoe::Protocol::RequestInfo& request_info);
-    /**
-     * @brief 处理上传请求
-     */
-    void handle_upload_request(const DaneJoe::Protocol::RequestInfo& request_info);
+    void handle_download_request(
+        const DownloadRequestTransfer& download_request,
+        int64_t request_id);
     /**
      * @brief 处理测试请求
      * @param request_info 请求信息
      */
-    void handle_test_request(const DaneJoe::Protocol::RequestInfo& request_info);
+    void handle_test_request(const TestRequestTransfer& test_request, int64_t request);
     /**
      * @brief 处理块请求
      * @param request_info 请求信息
      */
-    void handle_block_request(const DaneJoe::Protocol::RequestInfo& request_info);
+    void handle_block_request(const BlockRequestTransfer& block_request, int64_t request_id);
 private:
+    ServerMessageCodec m_message_codec;
     /// @brief 帧组装器
     DaneJoe::FrameAssembler m_frame_assembler;
     /// @brief 文件信息服务

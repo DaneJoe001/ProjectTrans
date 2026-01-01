@@ -1,30 +1,12 @@
 #include <vector>
 #include <string>
+#include <fstream>
 
 #include <danejoe/logger/logger_manager.hpp>
 
-#include "common/protocol/danejoe_protocol.hpp"
+#include "model/entity/server_file_entity.hpp"
 #include "connect/trans_context.hpp"
 #include "connect/server_trans.hpp"
-#include "model/server_file_info.hpp"
-#include "connect/message_handler.hpp"
-#include "model/block_response_info.hpp"
-
-/// @todo 客户端处理url，统一序列化，不使用字符串路径传递参数
-/// @todo 如何处理客户端,区分http协议和自定义协议
-/// @todo 请求=[类型+消息体]
-/// @todo 响应=协议信息+[消息体]
-    /// 现在考虑的问题是数据长度放在哪一部分？
-/// 当前具有的实现是，序列化中含有数据包信息，默认长度为16字节
-/// 超大数据发送，超出缓冲区长度的解决方案
-/// 分段发送和接收，直至匹配消息头中的数据长度
-/// 先计算是否接收到消息头长度，不足则进入下一次接收
-/// 接收完长度后开始进行消息体接收，消息体接收完成后更新接收长度标志
-/// 通过消息头确认完整数据帧
-/// 用同一个缓冲区接收消息头和消息体，只是先接收消息头，再处理消息体
-/// @todo 添加失步检测
-/// @todo 记录接收长度
-/// @todo 独立抽出反序列化器
 
 void TransContext::on_recv()
 {
@@ -35,36 +17,48 @@ void TransContext::on_recv()
     {
         return;
     }
-    auto request_info_opt = Server::MessageHandler::parse_request(frame_opt.value());
-    if (request_info_opt.has_value())
+    handle_request(frame_opt.value());
+}
+
+void TransContext::handle_request(const std::vector<uint8_t>& frame_data)
+{
+    auto request_opt = m_message_codec.try_parse_byte_array_request(frame_data);
+    if (!request_opt.has_value())
     {
-        DaneJoe::Protocol::RequestInfo request_info = request_info_opt.value();
-        DANEJOE_LOG_TRACE("default", "TransContext", "Received request: {}", request_info.url_info.to_string());
-        if (request_info.url_info.path == "/download")
+        return;
+    }
+    EnvelopeRequestTransfer request_transfer = request_opt.value();
+    DANEJOE_LOG_DEBUG("default", "TransContext", "Received request: {}", request_transfer.to_string());
+    if (request_transfer.path == "/download")
+    {
+        auto download_request_opt = m_message_codec.try_parse_byte_array_download_request(request_transfer.body);
+        if (!download_request_opt.has_value())
         {
-            DANEJOE_LOG_TRACE("default", "TransContext", "Received download request");
-            handle_download_request(request_info);
+            return;
         }
-        else if (request_info.url_info.path == "/upload")
+        handle_download_request(download_request_opt.value(), request_transfer.request_id);
+    }
+    else if (request_transfer.path == "/test")
+    {
+        auto test_request_opt = m_message_codec.try_parse_byte_array_test_request(request_transfer.body);
+        if (!test_request_opt.has_value())
         {
-            DANEJOE_LOG_TRACE("default", "TransContext", "Received upload request");
-            handle_upload_request(request_info);
+            return;
         }
-        else if (request_info.url_info.path == "/test")
+        handle_test_request(test_request_opt.value(), request_transfer.request_id);
+    }
+    else if (request_transfer.path == "/block")
+    {
+        auto block_request_opt = m_message_codec.try_parse_byte_array_block_request(request_transfer.body);
+        if (!block_request_opt.has_value())
         {
-            DANEJOE_LOG_TRACE("default", "TransContext", "Received test request");
-            handle_test_request(request_info);
+            return;
         }
-        else if (request_info.url_info.path == "/block")
-        {
-            DANEJOE_LOG_TRACE("default", "TransContext", "Received block request");
-            handle_block_request(request_info);
-        }
-        else
-        {
-            DANEJOE_LOG_TRACE("default", "TransContext", "Received unknown request");
-            handle_unknown_request(request_info);
-        }
+        handle_block_request(block_request_opt.value(), request_transfer.request_id);
+    }
+    else
+    {
+        handle_unknown_request();
     }
 }
 
@@ -77,72 +71,74 @@ void TransContext::on_send()
     // DANEJOE_LOG_TRACE("default", "TransContext", "TransContext send: {}", std::string(data.begin(), data.end()));
     // // 解析请求链接
     // auto request_info = parse_request(data);
-
 }
 
-void TransContext::handle_unknown_request(const DaneJoe::Protocol::RequestInfo& request_info)
-{
-    std::string response = "Recieved unknown request";
-    auto test_response = Server::MessageHandler::build_test_response(response);
-    m_send_buffer->push(test_response.begin(), test_response.end());
-}
+void TransContext::handle_unknown_request()
+{}
 void TransContext::handle_download_request(
-    const DaneJoe::Protocol::RequestInfo& request_info)
+    const DownloadRequestTransfer& download_request,
+    int64_t request_id)
 {
-    DANEJOE_LOG_TRACE("default", "TransContext", "Handling download request: {}", request_info.url_info.to_string());
-    auto file_info_opt = Server::MessageHandler::parse_download_request(request_info.body);
-    if (!file_info_opt.has_value())
+    auto file_entity_opt = m_file_info_service.get_by_id(download_request.file_id);
+    if (!file_entity_opt.has_value())
     {
-        DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle download request: file info not found");
-        /// @todo 添加错误响应处理
         return;
     }
-    // 解析下载请求消息体
-    ServerFileInfo file_info = file_info_opt.value();
-    DANEJOE_LOG_TRACE("default", "TransContext", "Handling download request for file: {}", file_info.to_string());
-    // 构建下载响应
-    std::vector<uint8_t> response = Server::MessageHandler::build_download_response(file_info);
+    ServerFileInfo file_entity = file_entity_opt.value();
+    DANEJOE_LOG_TRACE("default", "TransContext", "Handling download request for file: {}", file_entity.to_string());
+    DownloadResponseTransfer response;
+    response.file_id = file_entity.file_id;
+    response.task_id = download_request.task_id;
+    response.file_name = file_entity.file_name;
+    response.file_size = file_entity.file_size;
+    response.md5_code = file_entity.md5_code;
+    auto data = m_message_codec.build_download_response_byte_array(response, request_id);
     // 将下载响应写入发送缓冲区
-    m_send_buffer->push(response.begin(), response.end());
+    m_send_buffer->push(data.begin(), data.end());
 }
 
-void TransContext::handle_upload_request(const DaneJoe::Protocol::RequestInfo& request_info)
-{
-    auto file_info_opt = Server::MessageHandler::parse_upload_request(request_info.body);
-    // 解析上传请求消息体
-    if (!file_info_opt.has_value())
-    {
-        DANEJOE_LOG_WARN("default", "TransContext", "Failed to handle upload request: file info not found");
-        /// @todo 添加错误响应处理
-        return;
-    }
-    ServerFileInfo file_info = file_info_opt.value();
-    /// @todo 添加文件信息到数据库
-    /// @todo 上传还需要分信息和数据块
-    // 构建上传响应
-    auto response = Server::MessageHandler::build_upload_response(file_info);
-    m_send_buffer->push(response.begin(), response.end());
-}
-
-void TransContext::handle_test_request(const DaneJoe::Protocol::RequestInfo& request_info)
+void TransContext::handle_test_request(
+    const TestRequestTransfer& test_request,
+    int64_t request_id)
 {
     // 解析测试请求消息体
-    std::string test_message = Server::MessageHandler::parse_test_request(request_info.body);
-    DANEJOE_LOG_TRACE("default", "TransContext", "Received test request: {}", test_message);
+    auto message = test_request.message;
+    DANEJOE_LOG_TRACE("default", "TransContext", "Received test request: {}", message);
+    TestResponseTransfer response;
+    response.message = "Echo: " + message;
     // 构建测试响应,当前仅做回显
-    std::vector<uint8_t> response = Server::MessageHandler::build_test_response(test_message);
-    m_send_buffer->push(response.begin(), response.end());
+    std::vector<uint8_t> data = m_message_codec.build_test_response_byte_array(response, request_id);
+    m_send_buffer->push(data.begin(), data.end());
 }
 
-void TransContext::handle_block_request(const DaneJoe::Protocol::RequestInfo& request_info)
+void TransContext::handle_block_request(
+    const BlockRequestTransfer& block_request,
+    int64_t request_id)
 {
-    // 解析块请求消息体
-    auto block_info_opt = Server::MessageHandler::parse_block_request(request_info.body);
-    BlockResponseInfo info = block_info_opt.value();
-    // 构建块响应
-    auto response = Server::MessageHandler::build_block_response(info);
+    auto file_entity = m_file_info_service.get_by_id(block_request.file_id);
+    if (!file_entity.has_value())
+    {
+        return;
+    }
+    BlockResponseTransfer response;
+    response.block_id = block_request.block_id;
+    response.file_id = block_request.file_id;
+    response.task_id = block_request.task_id;
+    response.offset = block_request.offset;
+    response.block_size = block_request.block_size;
+    response.data = std::vector<uint8_t>(block_request.block_size);
+
+    std::ifstream fin(file_entity->resource_path, std::ios::in);
+    if (!fin.is_open())
+    {
+        return;
+    }
+    fin.seekg(block_request.offset);
+    fin.read(reinterpret_cast<char*>(response.data.data()), block_request.block_size);
+
+    auto data = m_message_codec.build_block_response_byte_array(response, request_id);
     // 将块响应写入发送缓冲区
-    m_send_buffer->push(response.begin(), response.end());
+    m_send_buffer->push(data.begin(), data.end());
 }
 std::shared_ptr<DaneJoe::ISocketContext> TransContextCreator::create()
 {
