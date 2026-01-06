@@ -7,6 +7,7 @@
 
 extern "C"
 {
+#include <sys/eventfd.h>
 #include <sys/epoll.h>
 #include <unistd.h>
 }
@@ -22,6 +23,35 @@ extern "C"
 #define USE_SERVER_TRANS
 #define MODIFY_SOCKET_EVENT
 DaneJoe::EpollEventLoop::EpollEventLoop() {}
+
+void DaneJoe::EpollEventLoop::notify()
+{
+    uint64_t value = 1;
+    if (m_event_fd < 0)
+    {
+        return;
+    }
+    int32_t ret = ::write(m_event_fd, reinterpret_cast<const void*>(&value), sizeof(value));
+    if (ret < 0)
+    {
+        ADD_DIAG_ERROR("EpollEventLoop", "Failed to notify");
+        return;
+    }
+}
+
+void DaneJoe::EpollEventLoop::reset_sign()
+{
+    if (m_event_fd < 0)
+    {
+        return;
+    }
+    uint64_t value = 0;
+    int32_t ret = ::read(m_event_fd, reinterpret_cast<void*>(&value), sizeof(value));
+    if (ret < 0)
+    {
+        ADD_DIAG_WARN("EpollEventLoop", "Failed to reset event fd");
+    }
+}
 
 void DaneJoe::EpollEventLoop::init(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator)
 {
@@ -67,6 +97,23 @@ void DaneJoe::EpollEventLoop::init(std::unique_ptr<PosixServerSocket> server_soc
     if (ret < 0)
     {
         ADD_DIAG_ERROR("network", "Create epoll failed: add server socket to epoll failed: {}", std::strerror(errno));
+        stop();
+        return;
+    }
+    m_event_fd = ::eventfd(0, EFD_NONBLOCK);
+    if (m_event_fd < 0)
+    {
+        ADD_DIAG_ERROR("EpollEventLoop", "Failed to create event fd!");
+        stop();
+        return;
+    }
+    struct epoll_event event_2;
+    event_2.data.fd = m_event_fd;
+    event_2.events = EPOLLIN;
+    int32_t ret_2 = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, m_event_fd, &event_2);
+    if (ret_2 < 0)
+    {
+        ADD_DIAG_ERROR("EpollEventLoop", "Failed to add event fd!");
         stop();
         return;
     }
@@ -176,6 +223,7 @@ void DaneJoe::EpollEventLoop::run()
         // DANEJOE_LOG_TRACE("default", "network", "Loop is running!");
         // 等待事件发生
         int32_t ret = ::epoll_wait(m_epoll_fd, events, m_max_event_count, 1000);
+        reset_sign();
         if (ret < 0)
         {
             // 忽略 EINTR 错误
@@ -340,7 +388,7 @@ void DaneJoe::EpollEventLoop::acceptable_event()
         // 注意：EPOLLOUT 在 TCP 下通常“永远可写”，会造成空转；需要发送数据时再临时打开。
         if (!add_socket(std::move(client),
             EventLoopEventType::Readable |
-   //         EventLoopEventType::EdgeTriggered |
+            //         EventLoopEventType::EdgeTriggered |
             EventLoopEventType::Writable |
             EventLoopEventType::PeerClosed))
         {

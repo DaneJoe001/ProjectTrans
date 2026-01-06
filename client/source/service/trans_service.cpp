@@ -6,7 +6,7 @@
 using namespace std::chrono_literals;
 
 TransService::TransService() :
-    m_time_out_interval(10s),
+    m_time_out_interval(600s),
     m_timer_manager(DaneJoe::TimerManager::get_instance())
 {
     m_network_thread = new QThread(this);

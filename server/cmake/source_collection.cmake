@@ -2,6 +2,8 @@ file(GLOB DANEJOE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/source/danejoe/common/binary/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/common/core/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/common/diagnostic/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/danejoe/common/handle/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/danejoe/common/status/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/common/system/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/concurrent/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/condition/*.cpp"
@@ -10,8 +12,11 @@ file(GLOB DANEJOE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/source/danejoe/network/codec/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/network/context/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/network/event_loop/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/danejoe/network/handle/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/network/monitor/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/danejoe/network/runtime/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/network/socket/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/danejoe/network/status/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/network/url/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/danejoe/stringify/*.cpp"
 )
@@ -35,6 +40,7 @@ file(GLOB SERVER_NORMAL_DIR_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/source/repository/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/service/*.cpp"
     "${CMAKE_SOURCE_DIR}/source/common/protocol/*.cpp"
+    "${CMAKE_SOURCE_DIR}/source/runtime/*.cpp"
 )
 
 file(GLOB SERVER_QOBJECT_DIR_HEADERS CONFIGURE_DEPENDS

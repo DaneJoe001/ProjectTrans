@@ -11,24 +11,23 @@
 
 #include "repository/server_file_info_repository.hpp"
 #include "main/server_app.hpp"
-#include "main/server_thread.hpp"
 #include "view/widget/server_main_window.hpp"
+#include "runtime/business_runtime.hpp"
+#include "runtime/network_runtime.hpp"
 
 namespace fs = std::filesystem;
 
 ServerApp::ServerApp(QObject* parent) : QObject(parent)
-{}
+{
+
+}
 
 ServerApp::~ServerApp()
 {
+    stop();
     if (m_server_main_window)
     {
         m_server_main_window->deleteLater();
-    }
-    if (m_server_thread)
-    {
-        m_server_thread->stop();
-        m_server_thread->wait();
     }
 }
 
@@ -44,10 +43,62 @@ void ServerApp::init()
     clear_log();
     m_server_main_window = new ServerMainWindow();
     m_server_main_window->init();
-    m_server_thread = new ServerThread(this);
-    m_server_thread->init();
-    m_server_thread->start();
+
+    m_reactor_mail_box =
+        std::make_shared<DaneJoe::ReactorMailBox>();
+    auto reactor_mail_box = m_reactor_mail_box;
+    m_network_runtime =
+        std::make_shared<NetworkRuntime>(m_reactor_mail_box);
+    m_network_runtime->init();
+    m_bussiness_runtime =
+        std::make_shared<BusinessRuntime>(m_reactor_mail_box);
+    m_bussiness_runtime->init();
+
+    auto network_runtime = m_network_runtime;
+    auto bussiness_runtime = m_bussiness_runtime;
+
+    m_business_thread = std::thread([bussiness_runtime]()
+        {
+            if (bussiness_runtime)
+            {
+                bussiness_runtime->run();
+            }
+        });
+    if (m_network_runtime && m_network_runtime->is_init())
+    {
+        m_network_thread = std::thread([network_runtime]()
+            {
+                if (network_runtime)
+                {
+                    network_runtime->run();
+                }
+            });
+    }
+    else
+    {
+        DANEJOE_LOG_ERROR("default", "ServerApp", "Network runtime init failed: network thread not started");
+    }
     m_is_init = true;
+}
+
+void ServerApp::stop()
+{
+    if (m_network_runtime)
+    {
+        m_network_runtime->stop();
+    }
+    if (m_bussiness_runtime)
+    {
+        m_bussiness_runtime->stop();
+    }
+    if (m_business_thread.joinable())
+    {
+        m_business_thread.join();
+    }
+    if (m_network_thread.joinable())
+    {
+        m_network_thread.join();
+    }
 }
 
 bool ServerApp::eventFilter(QObject* watched, QEvent* event)
@@ -115,7 +166,7 @@ void ServerApp::init_logger()
 {
     DaneJoe::LoggerConfig logger_config;
     logger_config.log_path = "./log/server.log";
-    logger_config.console_level=DaneJoe::LogLevel::DEBUG;
+    logger_config.console_level = DaneJoe::LogLevel::DEBUG;
     DaneJoe::LogOutputSetting output_setting;
     output_setting.enable_function_name = true;
     output_setting.enable_line_num = true;

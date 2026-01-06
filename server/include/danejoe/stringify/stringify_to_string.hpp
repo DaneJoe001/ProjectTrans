@@ -385,6 +385,7 @@ namespace DaneJoe
     template<class T>
     std::string from_fallback(const T& value)
     {
+        UNUSED_VARIABLE(value);
         return StringifyConfigManager::get_config().unsupported_type_place_holder;
     }
     /**

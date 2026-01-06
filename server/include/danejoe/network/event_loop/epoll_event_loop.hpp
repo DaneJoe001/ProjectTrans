@@ -39,6 +39,7 @@ namespace DaneJoe
          * @brief 析构函数
          */
         ~EpollEventLoop();
+        void notify();
         void init(std::unique_ptr<PosixServerSocket> server_socket, std::unique_ptr<ISocketContextCreator> context_creator);
         /**
          * @brief 添加套接字
@@ -90,6 +91,8 @@ namespace DaneJoe
          */
         void stop()override;
     private:
+        void reset_sign();
+    private:
         /// @brief 是否运行
         std::atomic<bool> m_is_running = false;
         bool m_is_init = false;
@@ -97,6 +100,7 @@ namespace DaneJoe
         int32_t m_max_event_count = 1024;
         /// @brief epoll文件描述符
         int32_t m_epoll_fd = -1;
+        int32_t m_event_fd = -1;
         /// @brief 服务器套接字
         std::unique_ptr<PosixServerSocket> m_server_socket;
         /// @brief 接收缓存

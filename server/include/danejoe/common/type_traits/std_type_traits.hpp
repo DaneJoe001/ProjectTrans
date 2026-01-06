@@ -12,6 +12,9 @@
 #include <string_view>
 #include <type_traits>
 
+ /// @brief 未使用宏
+#define UNUSED_VARIABLE(x) (void)(x)
+
  /**
   * @namespace DaneJoe
   * @brief DaneJoe 命名空间
