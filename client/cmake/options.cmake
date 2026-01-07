@@ -10,5 +10,3 @@ option(WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
 option(ADD_QT_LIB "Enable Qt6 integration" ON)
 # @brief 启用 DaneJoe 集成
 option(ADD_DANEJOE_LIB "Enable DaneJoe integration" ON)
-# @brief 启用 SQLiteCpp 集成
-option(USE_SQLITECPP "Enable SQLiteCpp integration" OFF)

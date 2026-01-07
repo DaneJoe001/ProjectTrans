@@ -39,13 +39,5 @@ endif()
 
 find_package(OpenSSL REQUIRED)
 
-if(USE_SQLITECPP)
-    if(TARGET SQLite::SQLite3)
-        set(SQLITECPP_INTERNAL_SQLITE OFF CACHE BOOL "Add the internal SQLite3 source to the project." FORCE)
-    endif()
-    add_subdirectory(/home/danejoe001/develop_environment/environment_database/database_sqlite/SQLiteCpp ${CMAKE_BINARY_DIR}/external/sqlitecpp)
-    target_link_libraries(${SERVER_CORE_LIB_NAME} PRIVATE SQLiteCpp)
-endif()
-
 target_link_libraries(${SERVER_CORE_LIB_NAME} PRIVATE OpenSSL::SSL)
 target_link_libraries(${SERVER_CORE_LIB_NAME} PRIVATE OpenSSL::Crypto)
