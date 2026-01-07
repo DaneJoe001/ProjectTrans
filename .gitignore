@@ -25,11 +25,11 @@ out/
 # ==============================
 # 资源（默认不进仓库；仅白名单提交确认的资源）
 # ==============================
-resource/**
-!resource/
-!resource/resource.qrc
-!resource/image/
-!resource/image/app_icon.png
+**/resource/**
+!**/resource/
+!**/resource/*.qrc
+!**/resource/image/
+!**/resource/image/app_icon.png
 
 # ==============================
 # Visual Studio / MSVC 生成物（可能出现在源码目录）
