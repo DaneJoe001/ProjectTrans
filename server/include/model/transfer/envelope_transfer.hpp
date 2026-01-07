@@ -1,9 +1,20 @@
+/**
+ * @file envelope_transfer.hpp
+ * @author DaneJoe001 (danejoe001.github)
+ * @brief 信封传输模型
+ * @date 2026-01-06
+ */
+
 #pragma once
 
 #include <cstdint>
 #include <string>
 #include <vector>
 
+/**
+ * @enum ContentType
+ * @brief 内容类型
+ */
 enum class ContentType :uint8_t
 {
     /// @brief application/json
@@ -14,6 +25,10 @@ enum class ContentType :uint8_t
     Unknown,
 };
 
+/**
+ * @enum ResponseStatus
+ * @brief 响应状态
+ */
 enum class ResponseStatus :uint16_t
 {
     ///< 未知状态
@@ -48,10 +63,24 @@ enum class ResponseStatus :uint16_t
     ServiceUnavailable = 503
 };
 
+/**
+ * @brief 将内容类型转换为字符串
+ * @param content_type 内容类型
+ * @return 字符串
+ */
 std::string to_string(ContentType content_type);
 
+/**
+ * @brief 将响应状态转换为字符串
+ * @param status 响应状态
+ * @return 字符串
+ */
 std::string to_string(ResponseStatus status);
 
+/**
+ * @struct EnvelopeRequestTransfer
+ * @brief 信封请求传输模型
+ */
 struct EnvelopeRequestTransfer
 {
     /// @brief 协议版本
@@ -73,6 +102,10 @@ struct EnvelopeRequestTransfer
     std::string to_string() const;
 };
 
+/**
+ * @struct EnvelopeResponseTransfer
+ * @brief 信封响应传输模型
+ */
 struct EnvelopeResponseTransfer
 {
     /// @brief 协议版本

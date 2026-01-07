@@ -1,10 +1,10 @@
-#pragma once
-
 /**
  * @file new_upload_dialog.hpp
  * @brief 新上传对话框
  * @author DaneJoe001
+ * @date 2026-01-06
  */
+#pragma once
 
 #include <QDialog>
 
@@ -20,6 +20,7 @@ class QFileDialog;
 /**
  * @class NewUploadDialog
  * @brief 新上传对话框
+ * @details 提供创建上传任务的界面：选择本地文件、填写 URL 与账号信息，并展示上传进度与日志。
  */
 class NewUploadDialog : public QDialog
 {

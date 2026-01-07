@@ -52,6 +52,9 @@ public:
      */
     void show_main_window();
 signals:
+    /**
+     * @brief 停止应用程序信号
+     */
     void stop_app();
 private:
     /**
@@ -84,10 +87,13 @@ private:
     ClientMainWindow* m_main_window = nullptr;
     /// @brief 视图事件控制器指针，处理视图层事件
     ViewEventController* m_view_event_controller = nullptr;
+    /// @brief 块调度控制器指针，负责块请求/响应调度
     QPointer<BlockScheduleController> m_block_schedule_controller = nullptr;
+    /// @brief 块调度线程指针，块调度控制器运行在该线程中
     QThread* m_block_schedule_thread = nullptr;
     /// @brief 传输服务引用，处理网络传输
     TransService m_trans_service;
+    /// @brief 任务服务，处理任务的增删改查与计数
     TaskService m_task_service;
     /// @brief 块服务引用，处理数据块操作
     BlockService m_block_service;

@@ -2,6 +2,7 @@
  * @file block_entity.hpp
  * @brief 块实体
  * @author DaneJoe001
+ * @date 2026-01-06
  */
 #pragma once
 
@@ -9,10 +10,11 @@
 #include <chrono>
 #include <string>
 
-/**
- * @class BlockState
- * @brief 块状态
- */
+ /**
+  * @class BlockState
+  * @brief 块状态
+  * @details 描述块在请求/传输/落盘过程中的生命周期状态。
+  */
 enum class BlockState
 {
     /// @brief 完成
@@ -27,11 +29,17 @@ enum class BlockState
     Unknown
 };
 
+/**
+ * @brief 将块状态转换为字符串
+ * @param state 块状态
+ * @return 状态对应的字符串
+ */
 std::string to_string(BlockState state);
 
 /**
  * @struct BlockEntity
  * @brief 块信息实体
+ * @details 描述一个任务下的单个块的元信息（偏移、大小、状态与时间戳等）。
  */
 struct BlockEntity
 {
@@ -54,6 +62,7 @@ struct BlockEntity
     /**
      * @brief 转换为字符串
      * @return 字符串
+     * @details 将块信息实体的各个字段转换为字符串描述。
      */
     std::string to_string() const;
 };

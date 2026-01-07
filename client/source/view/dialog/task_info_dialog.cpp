@@ -11,6 +11,7 @@
 #include <QFileInfo>
 
 #include "danejoe/logger/logger_manager.hpp"
+#include "danejoe/common/core/variable_util.hpp"
 
 #include "common/util/screen_util.hpp"
 #include "view/dialog/task_info_dialog.hpp"
@@ -110,5 +111,8 @@ void TaskInfoDialog::on_download_response(EventEnvelope event_envelope,
     TransContext trans_context,
     DownloadResponseTransfer response)
 {
+    DANEJOE_UNUSED(event_envelope)
+    DANEJOE_UNUSED(trans_context)
+    DANEJOE_UNUSED(response)
 
 }

@@ -1,7 +1,8 @@
 /**
- * @file client_file_info_service.hpp
+ * @file client_file_service.hpp
  * @brief 客户端文件信息服务
  * @author DaneJoe001
+ * @date 2026-01-06
  */
 #pragma once
 
@@ -11,13 +12,20 @@
 #include "repository/client_file_repository.hpp"
 
  /**
-  * @class FileInfoService
+  * @class ClientFileService
   * @brief 客户端文件信息服务
+  * @details 封装对 ClientFileRepository 的访问，提供客户端文件信息的增删改查接口。
   */
 class ClientFileService
 {
 public:
+    /**
+     * @brief 构造函数
+     */
     ClientFileService();
+    /**
+     * @brief 析构函数
+     */
     ~ClientFileService();
     /**
      * @brief 初始化
@@ -30,24 +38,22 @@ public:
     std::vector<ClientFileEntity> get_all();
     /**
      * @brief 添加客户端文件信息
-     * @param file_info 客户端文件信息
+     * @param client_file_entity 客户端文件信息
      * @return 是否成功
      */
     bool add(const ClientFileEntity& client_file_entity);
     /**
      * @brief 获取客户端文件信息
      * @param file_id 文件ID
-     * @return 客户端文件信息
+     * @return 客户端文件信息（不存在时返回空）
      */
-    std::optional<ClientFileEntity> get_by_file_id(
-        int32_t file_id);
+    std::optional<ClientFileEntity> get_by_file_id(int32_t file_id);
     /**
      * @brief 获取客户端文件信息
      * @param md5_code MD5码
-     * @return 客户端文件信息
+     * @return 客户端文件信息（不存在时返回空）
      */
-    std::optional<ClientFileEntity> get_by_md5(
-        const std::string& md5_code);
+    std::optional<ClientFileEntity> get_by_md5(const std::string& md5_code);
     /**
      * @brief 更新客户端文件信息
      * @param client_file_entity 客户端文件信息

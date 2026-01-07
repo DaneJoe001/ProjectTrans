@@ -274,5 +274,6 @@ void ClientMainWindow::on_task_completed(int64_t task_id)
         DANEJOE_LOG_ERROR("default", "MainWindow", "init", "client main window has not been initialized");
         return;
     }
+    m_task_table_widget->on_task_update(task_id);
     QMessageBox::information(this, "Info", QString("Task %1 is finished!").arg(task_id));
 }

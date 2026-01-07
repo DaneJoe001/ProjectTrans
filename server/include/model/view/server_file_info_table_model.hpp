@@ -1,10 +1,11 @@
-#pragma once
-
 /**
  * @file server_file_info_table_model.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 服务器文件信息表模型
- * @author DaneJoe001
+ * @date 2026-01-06
  */
+
+#pragma once
 
 #include <QList>
 #include <QModelIndex>
@@ -14,10 +15,10 @@
 #include "model/entity/server_file_entity.hpp"
 #include "service/server_file_info_service.hpp"
 
- /**
-  * @class ServerFileInfoTableModel
-  * @brief 服务器文件信息表模型
-  */
+/**
+ * @class ServerFileInfoTableModel
+ * @brief 服务器文件信息表模型
+ */
 class ServerFileInfoTableModel : public QAbstractTableModel
 {
 public:
@@ -31,21 +32,22 @@ public:
      */
     void init();
     /**
-     * @brief 返回模型中行的数量，用于确定视图中有多少行可以显示
-     * @param parent 父索引
-     * @return int32_t 行数
-     */
-    int32_t columnCount(const QModelIndex& parent = QModelIndex()) const override;
-    /**
      * @brief 返回模型中列的数量，用于确定视图中有多少列可以显示
      * @param parent 父索引
      * @return int32_t 列数
+     */
+    int32_t columnCount(const QModelIndex& parent = QModelIndex()) const override;
+    /**
+     * @brief 返回模型中行的数量，用于确定视图中有多少行可以显示
+     * @param parent 父索引
+     * @return int32_t 行数
      */
     int32_t rowCount(const QModelIndex& parent = QModelIndex()) const override;
     /**
      * @brief 获取指定索引处的数据
      * @param index 索引
      * @param role 角色
+     * @return 对应的数据
      */
     QVariant data(const QModelIndex& index, int32_t role = Qt::DisplayRole) const override;
     /**
@@ -53,6 +55,7 @@ public:
      * @param index 索引
      * @param value 数据
      * @param role 角色
+     * @return 是否设置成功
      */
     bool setData(const QModelIndex& index, const QVariant& value, int32_t role = Qt::EditRole)override;
     /**
@@ -60,6 +63,7 @@ public:
      * @param section 索引
      * @param orientation 方向
      * @param role 角色
+     * @return 表头数据
      */
     QVariant headerData(int32_t section, Qt::Orientation orientation, int32_t role = Qt::DisplayRole) const override;
     /**

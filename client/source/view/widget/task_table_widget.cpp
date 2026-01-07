@@ -61,3 +61,8 @@ void TaskTableWidget::on_task_entity_add(TaskEntity task_entity)
     DANEJOE_LOG_TRACE("default", "TaskTableWidget", "On task entity add!");
     m_table_model->add(task_entity);
 }
+
+void TaskTableWidget::on_task_update(int64_t task_id)
+{
+    m_table_model->update(task_id);
+}

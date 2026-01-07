@@ -1,7 +1,8 @@
 /**
- * @file file_info_dialog.hpp
- * @brief 文件信息对话框
+ * @file task_info_dialog.hpp
+ * @brief 任务信息对话框
  * @author DaneJoe001
+ * @date 2026-01-06
  */
 #pragma once
 
@@ -23,6 +24,7 @@ class QFileDialog;
 /**
  * @class TaskInfoDialog
  * @brief 任务信息对话框
+ * @details 用于展示任务相关信息，并在等待/信息等不同面板间切换。
  */
 class TaskInfoDialog : public QDialog
 {
@@ -31,6 +33,7 @@ public:
 public:
     /**
      * @brief 构造函数
+     * @param view_event_hub 视图事件中心
      * @param parent 父窗口
      */
     TaskInfoDialog(QPointer<ViewEventHub> view_event_hub, QWidget* parent = nullptr);
@@ -38,8 +41,20 @@ public:
      * @brief 初始化
      */
     void init();
+    /**
+     * @brief 切换到等待面板
+     */
     void switch_to_waiting_panel();
+    /**
+     * @brief 切换到信息面板
+     */
     void switch_to_info_panel();
+    /**
+     * @brief 处理下载响应
+     * @param event_envelope 事件封包
+     * @param trans_context 传输上下文
+     * @param response 下载响应
+     */
     void on_download_response(
         EventEnvelope event_envelope, TransContext trans_context,
         DownloadResponseTransfer response);
@@ -66,8 +81,8 @@ private:
     QWidget* m_info_button_widget = nullptr;
     /// @brief 信息按钮布局
     QHBoxLayout* m_info_button_layout = nullptr;
-    /// @brief 信息保存路径标签
-
+    /// @brief 信息保存路径相关控件
+    
     /// @brief 信息保存路径标签
     QLabel* m_info_saved_path_label = nullptr;
     /// @brief 信息保存路径编辑框
@@ -94,5 +109,6 @@ private:
     QWidget* m_error_widget = nullptr;
     /// @brief 错误布局
     QVBoxLayout* m_error_layout = nullptr;
+    /// @brief 视图事件中心
     QPointer<ViewEventHub> m_view_event_hub;
 };

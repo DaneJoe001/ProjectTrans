@@ -1,11 +1,11 @@
-#pragma once
-
 /**
  * @file add_file_dialog.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 添加文件对话框
- * @author DaneJoe001
+ * @date 2026-01-06
  */
 
+#pragma once
 
 #include <QDialog>
 

@@ -1,10 +1,11 @@
-#pragma once
-
 /**
  * @file resource_info_widget.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 资源信息小部件
- * @author DaneJoe001
+ * @date 2026-01-06
  */
+
+#pragma once
 
 #include <QWidget>
 

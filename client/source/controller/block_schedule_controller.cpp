@@ -12,11 +12,13 @@ using namespace std::literals;
 
 BlockScheduleController::BlockScheduleController(
     BlockService& block_service,
+    TaskService& task_service,
     QPointer<ViewEventHub> view_event_hub,
     QObject* parent) :
     QObject(parent),
     m_view_event_hub(view_event_hub),
-    m_block_service(block_service)
+    m_block_service(block_service),
+    m_task_service(task_service)
 
 {}
 
@@ -41,7 +43,7 @@ void BlockScheduleController::on_task_enqueue(
 {
     auto blocks =
         m_block_service.get_by_task_id(task_entity.task_id);
-    TaskPendding task_pendding;
+    TaskPending task_pendding;
     task_pendding.endpoint = endpoint;
     task_pendding.event_source = event_source;
     task_pendding.task_entity = task_entity;
@@ -194,6 +196,15 @@ void BlockScheduleController::on_block_response(
         m_block_service.get_count_by_task_id_and_block_state(task_pendding_it->second.task_entity.task_id, BlockState::Waiting);
     if (rest_block_count == 0)
     {
+        auto task_entity_opt = m_task_service.get_by_task_id(task_pendding_it->second.task_entity.task_id);
+        if (task_entity_opt.has_value())
+        {
+            auto task_entity = task_entity_opt.value();
+            task_entity.end_time = std::chrono::system_clock::now();
+            task_entity.state = TaskState::Completed;
+            bool is_updated = m_task_service.update(task_entity);
+            DANEJOE_LOG_DEBUG("default", "BlockScheduleController", "Updated:{}", is_updated);
+        }
         /// @todo 后续再考虑其他处理
         emit task_completed(task_pendding_it->second.task_entity.task_id);
     }

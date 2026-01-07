@@ -31,6 +31,10 @@ public:
      * @brief 析构函数
      */
     ~NetworkService();
+    /**
+     * @brief 初始化网络服务
+     * @details 建立内部信号槽连接并准备连接上下文映射表。
+     */
     void init();
 signals:
     /**

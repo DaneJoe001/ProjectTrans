@@ -12,16 +12,19 @@
 #include <QPoint>
 #include <QRect>
 
-/**
- * @class ScreenUtil
- * @brief 屏幕工具类
- */
+ /**
+  * @class ScreenUtil
+  * @brief 屏幕工具类
+  * @details 提供与屏幕/窗口几何信息相关的静态工具方法。
+  *          该类仅包含工具结构与静态函数，不维护状态。
+  */
 class ScreenUtil
 {
 public:
     /**
      * @struct PointInfo
      * @brief 点信息
+     * @details 使用整数坐标表示点位置。
      */
     struct PointInfo
     {
@@ -42,6 +45,7 @@ public:
         /**
          * @brief 构造函数
          * @param point 点
+         * @details 从 QPoint 提取坐标。
          */
         PointInfo(QPoint point);
         /**
@@ -52,12 +56,14 @@ public:
         /**
          * @brief 转换为QPoint
          * @return QPoint
+         * @details 将 PointInfo 中的坐标转换为 QPoint。
          */
         QPoint to_qpoint() const;
     };
     /**
      * @struct RectInfo
      * @brief 矩形信息
+     * @details 通过位置与大小描述矩形。
      */
     struct RectInfo
     {
@@ -86,6 +92,7 @@ public:
         /**
          * @brief 构造函数
          * @param rect 矩形
+         * @details 从 QRect 提取位置与大小。
          */
         RectInfo(QRect rect);
         /**
@@ -96,12 +103,14 @@ public:
         /**
          * @brief 转换为QRect
          * @return QRect
+         * @details 将 RectInfo 转换为 QRect。
          */
         QRect to_qrect() const;
     };
     /**
      * @enum RealativePosition
      * @brief 相对位置
+     * @details 用于描述目标窗口相对父窗口的放置位置。
      */
     enum class RealativePosition
     {
@@ -116,11 +125,12 @@ public:
         /// @brief 右下
         BottomRight
     };
-public:   
+public:
     /**
      * @brief 获取屏幕矩形
      * @param screen_index 屏幕索引
      * @return 屏幕矩形
+     * @details 返回指定屏幕在桌面坐标系下的矩形信息。
      */
     static RectInfo get_screen_rect(uint32_t screen_index = 0);
     /**
@@ -129,6 +139,10 @@ public:
      * @param window_rect 窗口矩形
      * @param position 相对位置
      * @return 目标点
+     * @details 根据父窗口矩形与目标窗口矩形，计算目标窗口在指定相对位置时的左上角坐标。
      */
-    static PointInfo get_destination_point(const RectInfo& parent_window_rect, const RectInfo& window_rect, RealativePosition position);
+    static PointInfo get_destination_point(
+        const RectInfo& parent_window_rect,
+        const RectInfo& window_rect,
+        RealativePosition position);
 };

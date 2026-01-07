@@ -8,7 +8,8 @@
 #include<QTextEdit>
 #include <QMessageBox>
 
-#include <danejoe/logger/logger_manager.hpp>
+#include "danejoe/logger/logger_manager.hpp"	
+#include "danejoe/common/core/variable_util.hpp"
 
 #include "common/protocol/network_endpoint.hpp"
 #include "common/util/screen_util.hpp"
@@ -101,6 +102,8 @@ void ConnectionTestDialog::on_test_reponse(
     TransContext trans_context,
     TestResponseTransfer response)
 {
+    DANEJOE_UNUSED(event_envelope)
+    DANEJOE_UNUSED(trans_context)
 
     set_recevied_text(response.message);
 }

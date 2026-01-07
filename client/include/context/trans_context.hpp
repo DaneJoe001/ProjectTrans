@@ -10,9 +10,9 @@
 
 #include "common/protocol/network_endpoint.hpp"
 
-/**
- * @brief 传输上下文
- */
+ /**
+  * @brief 传输上下文
+  */
 struct TransContext
 {
     /// @brief 请求ID

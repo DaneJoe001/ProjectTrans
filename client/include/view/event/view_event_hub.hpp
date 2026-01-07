@@ -96,10 +96,28 @@ public:
     void publish_block_response(EventEnvelope event_envelope,
         TransContext trans_context,
         BlockResponseTransfer response);
+    /**
+     * @brief 发布任务更新事件
+     * @param task_id 任务ID
+     * @details 通知外部任务实体已更新，可用于触发表格/界面刷新。
+     */
     void publish_task_entity_update(int64_t task_id);
+    /**
+     * @brief 发布任务添加事件
+     * @param task_entity 任务实体
+     * @details 通知外部新增任务实体，可用于在界面中追加显示。
+     */
     void publish_task_entity_add(TaskEntity task_entity);
 signals:
+    /**
+     * @brief 任务更新信号
+     * @param task_id 任务ID
+     */
     void task_entity_update(int64_t task_id);
+    /**
+     * @brief 任务添加信号
+     * @param task_entity 任务实体
+     */
     void task_entity_add(TaskEntity task_entity);
     /**
      * @brief 测试请求信号

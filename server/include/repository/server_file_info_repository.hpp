@@ -1,11 +1,11 @@
-#pragma once
-
 /**
  * @file server_file_info_repository.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 服务器文件信息仓库
- * @author DaneJoe001
+ * @date 2026-01-06
  */
 
+#pragma once
 
 #include <optional>
 #include <vector>
@@ -16,10 +16,10 @@
 
 #include "model/entity/server_file_entity.hpp"
 
- /**
-  * @class ServerFileInfoRepository
-  * @brief 服务器文件信息仓库
-  */
+/**
+ * @class ServerFileInfoRepository
+ * @brief 服务器文件信息仓库
+ */
 class ServerFileInfoRepository
 {
 public:
@@ -33,7 +33,7 @@ public:
     ~ServerFileInfoRepository();
     /**
      * @brief 确保表存在
-     * @return 是否存在
+     * @return 是否创建/确认成功
      */
     bool ensure_table_exists();
     /**
@@ -88,5 +88,6 @@ public:
 private:
     /// @brief 数据库
     DaneJoe::SqlDatabasePtr m_database;
+    /// @brief SQL查询对象
     DaneJoe::SqlQueryPtr m_query;
 };

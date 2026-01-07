@@ -2,6 +2,7 @@
  * @file new_download_dialog.hpp
  * @brief 新下载对话框
  * @author DaneJoe001
+ * @date 2026-01-06
  */
 #pragma once
 
@@ -31,6 +32,7 @@ class TaskInfoDialog;
 /**
  * @class NewDownloadDialog
  * @brief 新下载对话框
+ * @details 提供创建下载任务的界面：输入 URL/保存路径等信息，触发下载请求并处理下载响应。
  */
 class NewDownloadDialog : public QDialog
 {
@@ -38,6 +40,10 @@ class NewDownloadDialog : public QDialog
 public:
     /**
      * @brief 构造函数
+     * @param task_service 任务服务
+     * @param client_file_service 客户端文件服务
+     * @param block_service 块服务
+     * @param view_event_hub 视图事件中心
      * @param parent 父窗口
      */
     NewDownloadDialog(
@@ -55,19 +61,39 @@ public:
      */
     void init();
 public slots:
+    /**
+     * @brief 点击“添加下载”按钮
+     */
     void on_add_download_push_button_clicked();
+    /**
+     * @brief 点击“确认添加文件”按钮
+     */
     void on_ok_to_add_file_button_clicked();
+    /**
+     * @brief 点击“选择路径”按钮
+     */
     void on_path_button_clicked();
+    /**
+     * @brief 处理下载响应
+     * @param event_envelope 事件封包
+     * @param trans_context 传输上下文
+     * @param response 下载响应
+     */
     void on_download_response(
         EventEnvelope event_envelope, TransContext trans_context,
         DownloadResponseTransfer response);
 private:
     /// @brief 是否已初始化
     bool m_is_init = false;
+    /// @brief 视图事件中心
     QPointer<ViewEventHub> m_view_event_hub;
+    /// @brief URL解析器
     DaneJoe::UrlResolver m_url_resolver;
+    /// @brief 任务服务
     TaskService& m_task_service;
+    /// @brief 客户端文件服务
     ClientFileService& m_client_file_service;
+    /// @brief 块服务
     BlockService& m_block_service;
 
     /// @brief 主布局
@@ -113,7 +139,9 @@ private:
     /// @brief 文件信息对话框
     TaskInfoDialog* m_task_info_dialog = nullptr;
 
+    /// @brief 提示消息框
     QMessageBox* m_message_box = nullptr;
+    /// @brief 路径校验消息框
     QMessageBox* m_path_check_message_box = nullptr;
 
 };

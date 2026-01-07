@@ -11,6 +11,8 @@
 
 /**
  * @brief 网络端点
+ * @details 用于标识网络连接目标（ip:port）。
+ *          支持相等比较，并提供 std::hash 特化以便作为 unordered_map/unordered_set 的键。
  */
 struct NetworkEndpoint
 {
@@ -32,11 +34,13 @@ struct NetworkEndpoint
 /**
  * @namespace std
  * @brief std命名空间
+ * @details 此处提供 std::hash<NetworkEndpoint> 的模板特化，便于 NetworkEndpoint 作为哈希容器键。
  */
 namespace std
 {
     /**
      * @brief 网络端点哈希
+     * @details 通过组合 ip 与 port 的哈希值生成结果，用于容器键值散列。
      */
     template<>
     struct hash<NetworkEndpoint>

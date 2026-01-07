@@ -1,18 +1,19 @@
-#pragma once
-
 /**
- * @file server_file_info.hpp
+ * @file server_file_entity.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 服务器文件信息
- * @author DaneJoe001
+ * @date 2026-01-06
  */
+
+#pragma once
 
 #include <string>
 #include <cstdint>
 
- /**
-  * @class ServerFileInfo
-  * @brief 服务器文件信息
-  */
+/**
+ * @struct ServerFileInfo
+ * @brief 服务器文件信息
+ */
 struct ServerFileInfo
 {
     /// @brief 文件ID

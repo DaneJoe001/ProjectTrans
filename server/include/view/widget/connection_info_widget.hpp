@@ -1,17 +1,18 @@
-#pragma once
-
 /**
  * @file connection_info_widget.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 连接信息小部件
- * @author DaneJoe001
+ * @date 2026-01-06
  */
+
+#pragma once
 
 #include <QWidget>
 
- /**
-  * @class ConnectionInfoWidget
-  * @brief 连接信息小部件
-  */
+/**
+ * @class ConnectionInfoWidget
+ * @brief 连接信息小部件
+ */
 class ConnectionInfoWidget : public QWidget {
     Q_OBJECT
 public:

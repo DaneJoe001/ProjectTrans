@@ -1,10 +1,11 @@
-#pragma once
-
 /**
  * @file server_main_window.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 服务器主窗口
- * @author DaneJoe001
+ * @date 2026-01-06
  */
+
+#pragma once
 
 #include <QMainWindow>
 

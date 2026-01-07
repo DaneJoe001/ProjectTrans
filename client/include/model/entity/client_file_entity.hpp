@@ -1,17 +1,19 @@
 /**
- * @file client_file_info.hpp
+ * @file client_file_entity.hpp
  * @brief 客户端文件信息
  * @author DaneJoe001
+ * @date 2026-01-06
  */
 #pragma once
 
 #include <string>
 #include <cstdint>
 
- /**
-  * @class ClientFileInfo
-  * @brief 客户端文件信息
-  */
+/**
+ * @struct ClientFileEntity
+ * @brief 客户端文件信息
+ * @details 描述客户端侧文件元信息（文件ID、文件名、大小与校验信息）。
+ */
 struct ClientFileEntity
 {
   /// @brief 文件ID
@@ -27,6 +29,7 @@ struct ClientFileEntity
   /**
    * @brief 转换为字符串
    * @return 字符串
+   * @details 将文件元信息转换为字符串描述。
    */
   std::string to_string() const;
 };

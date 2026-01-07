@@ -7,8 +7,6 @@ set(PROJECT_NAME ProjectTransClient)
 set(CLIENT_CORE_LIB_NAME ${PROJECT_NAME}Core)
 # @brief 可执行文件名称（避免与其他子工程 target 重名）
 set(CLIENT_EXECUTABLE_NAME ${PROJECT_NAME}App)
-# @brief DaneJoe 源码库名称（client 侧本地编译，含网络模块）
-set(CLIENT_DANEJOE_LIB_NAME ${PROJECT_NAME}DaneJoe)
 
 project(${PROJECT_NAME} LANGUAGES CXX)
 
@@ -31,14 +29,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/warnings.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/source_collection.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/entry_points.cmake")
 
-add_library(${CLIENT_DANEJOE_LIB_NAME} ${CLIENT_DANEJOE_SOURCES})
-target_include_directories(${CLIENT_DANEJOE_LIB_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../server/include")
-apply_warnings(${CLIENT_DANEJOE_LIB_NAME})
+if(NOT TARGET ProjectTransCommonDaneJoe)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../common" "${CMAKE_BINARY_DIR}/ProjectTransCommon")
+endif()
+apply_warnings(ProjectTransCommonDaneJoe)
 
 add_library(${CLIENT_CORE_LIB_NAME} ${CLIENT_CORE_SOURCES})
 
 target_include_directories(${CLIENT_CORE_LIB_NAME} PUBLIC "include")
-target_link_libraries(${CLIENT_CORE_LIB_NAME} PUBLIC ${CLIENT_DANEJOE_LIB_NAME})
+target_link_libraries(${CLIENT_CORE_LIB_NAME} PUBLIC ProjectTransCommonDaneJoe)
 apply_warnings(${CLIENT_CORE_LIB_NAME})
 
 add_executable(${CLIENT_EXECUTABLE_NAME} ${CLIENT_EXECUTABLE_SOURCE} ${CLIENT_QRC_SOURCES})

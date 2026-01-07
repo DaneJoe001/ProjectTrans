@@ -15,6 +15,10 @@ endif()
 
 find_package(SQLite3 REQUIRED)
 
+if(NOT TARGET ProjectTransCommonDaneJoe)
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/../../common" "${CMAKE_BINARY_DIR}/ProjectTransCommon")
+endif()
+
 add_executable(ProjectTransClientTests
     source/repository/test_block_repository.cpp
     source/repository/test_client_file_repository.cpp
@@ -28,35 +32,15 @@ add_executable(ProjectTransClientTests
 
     ../source/service/task_service.cpp
     ../source/model/entity/block_entity.cpp
-
-    ../../server/source/danejoe/common/core/data_type.cpp
-    ../../server/source/danejoe/common/diagnostic/diagnostic_event.cpp
-    ../../server/source/danejoe/common/diagnostic/diagnostic_system.cpp
-    ../../server/source/danejoe/common/system/system_info.cpp
-
-    ../../server/source/danejoe/database/i_sql_stringify.cpp
-    ../../server/source/danejoe/database/sql_builder.cpp
-    ../../server/source/danejoe/database/sql_database.cpp
-    ../../server/source/danejoe/database/sql_database_manager.cpp
-    ../../server/source/danejoe/database/sql_query.cpp
-    ../../server/source/danejoe/database/sql_schema.cpp
-    ../../server/source/danejoe/database/sql_table_query.cpp
-    ../../server/source/danejoe/database/sqlite_driver.cpp
-    ../../server/source/danejoe/database/sqlite_stringify.cpp
-
-    ../../server/source/danejoe/logger/async_logger.cpp
-    ../../server/source/danejoe/logger/i_logger.cpp
-    ../../server/source/danejoe/logger/logger_config.cpp
-    ../../server/source/danejoe/logger/logger_manager.cpp
 )
 
 target_include_directories(ProjectTransClientTests PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/../include
-    ${CMAKE_CURRENT_LIST_DIR}/../../server/include
 )
 
 target_link_libraries(ProjectTransClientTests PRIVATE
     GTest::gtest_main
+    ProjectTransCommonDaneJoe
     SQLite::SQLite3
 )
 

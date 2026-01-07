@@ -45,6 +45,8 @@ void TaskTableModel::update(int64_t task_id)
             break;
         }
     }
+    // m_task_list[row].state = TaskState::Completed;
+    // m_task_list[row].end_time = std::chrono::system_clock::now();
     emit dataChanged(index(row, 0), index(row, columnCount()));
 }
 

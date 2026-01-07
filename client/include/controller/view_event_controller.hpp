@@ -22,6 +22,10 @@
  /**
   * @class ViewEventController
   * @brief 事件控制器
+  * @details 负责在 ViewEventHub 与 TransService 之间建立桥接：
+  *          - 接收来自视图层的请求事件并转发为网络请求
+  *          - 接收来自传输层的响应信号并回投到事件中心
+  *          - 维护 request_id -> EventEnvelope 的关联，用于请求-响应匹配
   */
 class ViewEventController : public QObject
 {
@@ -33,8 +37,10 @@ public:
      * @param trans_service 传输服务
      * @param parent 父对象
      */
-    ViewEventController(QPointer<ViewEventHub> event_hub,
-        TransService& trans_service, QObject* parent = nullptr);
+    ViewEventController(
+        QPointer<ViewEventHub> event_hub,
+        TransService& trans_service,
+        QObject* parent = nullptr);
     /**
      * @brief 初始化控制器
      * @details 执行控制器的初始化操作，建立事件中心与传输服务之间的连接
@@ -109,7 +115,10 @@ public slots:
         TransContext trans_context,
         BlockResponseTransfer response);
 private:
+    /// @brief 事件中心（用于订阅请求事件与发布响应事件）
     QPointer<ViewEventHub> m_view_event_hub;
+    /// @brief 传输服务引用（用于发送请求/接收响应）
     TransService& m_trans_service;
+    /// @brief 请求ID到事件封包的映射（用于响应到来时匹配原始事件）
     std::unordered_map<uint64_t, EventEnvelope> m_event_envelopes;
 };

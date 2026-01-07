@@ -9,7 +9,10 @@
         {
             "name": "linux-gcc",
             "hidden": true,
-            "generator": "Unix Makefiles"
+            "generator": "Unix Makefiles",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
         },
         {
             "name": "linux-gcc-debug",

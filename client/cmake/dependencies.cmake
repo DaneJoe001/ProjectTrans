@@ -34,7 +34,7 @@ endif()
 
 if(ADD_DANEJOE_LIB)
     find_package(SQLite3 REQUIRED)
-    target_link_libraries(${CLIENT_DANEJOE_LIB_NAME} PRIVATE SQLite::SQLite3)
+    target_link_libraries(ProjectTransCommonDaneJoe PRIVATE SQLite::SQLite3)
 endif()
 
 find_package(OpenSSL REQUIRED)

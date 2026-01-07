@@ -1,9 +1,20 @@
+/**
+  * @file envelope_transfer.hpp
+  * @brief 信封请求/响应传输模型
+  * @author DaneJoe001
+  * @date 2026-01-06
+  */
 #pragma once
 
 #include <cstdint>
 #include <string>
 #include <vector>
 
+/**
+ * @enum ContentType
+ * @brief 内容类型
+ * @details 描述信封 body 的编码方式。
+ */
 enum class ContentType :uint8_t
 {
     /// @brief application/json
@@ -14,9 +25,14 @@ enum class ContentType :uint8_t
     Unknown,
 };
 
+/**
+ * @enum ResponseStatus
+ * @brief 响应状态
+ * @details 类 HTTP 状态码，用于描述请求处理结果。
+ */
 enum class ResponseStatus :uint16_t
 {
-    ///< 未知状态
+    /// @brief 未知状态
     Unknown = 0,
     /// @brief 请求成功
     Ok = 200,
@@ -48,10 +64,25 @@ enum class ResponseStatus :uint16_t
     ServiceUnavailable = 503
 };
 
+/**
+ * @brief 将内容类型转换为字符串
+ * @param content_type 内容类型
+ * @return 内容类型对应的字符串
+ */
 std::string to_string(ContentType content_type);
 
+/**
+ * @brief 将响应状态转换为字符串
+ * @param status 响应状态
+ * @return 响应状态对应的字符串
+ */
 std::string to_string(ResponseStatus status);
 
+/**
+ * @struct EnvelopeRequestTransfer
+ * @brief 信封请求传输对象
+ * @details 用于描述一次请求的基础信息与 body 数据。
+ */
 struct EnvelopeRequestTransfer
 {
     /// @brief 协议版本
@@ -69,10 +100,16 @@ struct EnvelopeRequestTransfer
     /**
      * @brief 转换为字符串
      * @return 字符串
+     * @details 将信封请求传输对象的各字段转换为字符串描述。
      */
     std::string to_string() const;
 };
 
+/**
+ * @struct EnvelopeResponseTransfer
+ * @brief 信封响应传输对象
+ * @details 服务端对请求的响应，包含状态码与 body 数据。
+ */
 struct EnvelopeResponseTransfer
 {
     /// @brief 协议版本

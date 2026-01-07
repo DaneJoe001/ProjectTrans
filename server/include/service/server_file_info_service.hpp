@@ -1,11 +1,11 @@
-#pragma once
-
 /**
  * @file server_file_info_service.hpp
+ * @author DaneJoe001 (danejoe001.github)
  * @brief 服务器文件信息服务
- * @author DaneJoe001
+ * @date 2026-01-06
  */
 
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -14,10 +14,10 @@
 
 #include "repository/server_file_info_repository.hpp"
 
- /**
-  * @class ServerFileInfoService
-  * @brief 服务器端文件信息服务
-  */
+/**
+ * @class ServerFileInfoService
+ * @brief 服务器端文件信息服务
+ */
 class ServerFileInfoService
 {
 public:

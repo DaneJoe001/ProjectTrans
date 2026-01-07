@@ -37,6 +37,24 @@ namespace
         ASSERT_TRUE(db->connect());
     }
 
+    TaskEntity make_task_entity(
+        int64_t file_id,
+        std::string saved_path,
+        std::string source_url,
+        Operation operation,
+        TaskState state)
+    {
+        TaskEntity t;
+        t.file_id = file_id;
+        t.saved_path = std::move(saved_path);
+        t.source_url = std::move(source_url);
+        t.operation = operation;
+        t.state = state;
+        t.start_time = std::chrono::system_clock::now();
+        t.end_time = t.start_time;
+        return t;
+    }
+
     class TaskServiceTest : public ::testing::Test
     {
     protected:
@@ -59,14 +77,12 @@ TEST_F(TaskServiceTest, InitEmptyDbStartsFromOne)
     TaskService service;
     service.init();
 
-    TaskEntity t;
-    t.file_id = 1;
-    t.saved_path = "/tmp/test.bin";
-    t.source_url = "http://example.com/test.bin";
-    t.operation = Operation::Download;
-    t.state = TaskState::Waiting;
-    t.start_time = std::chrono::system_clock::now();
-    t.end_time = t.start_time;
+    TaskEntity t = make_task_entity(
+        1,
+        "/tmp/test.bin",
+        "http://example.com/test.bin",
+        Operation::Download,
+        TaskState::Waiting);
 
     ASSERT_TRUE(service.add(t));
 
@@ -92,18 +108,107 @@ TEST_F(TaskServiceTest, InitUsesMaxTaskIdPlusOne)
     TaskService service;
     service.init();
 
-    TaskEntity t;
-    t.file_id = 2;
-    t.saved_path = "/tmp/test2.bin";
-    t.source_url = "http://example.com/test2.bin";
-    t.operation = Operation::Download;
-    t.state = TaskState::Waiting;
-    t.start_time = std::chrono::system_clock::now();
-    t.end_time = t.start_time;
+    TaskEntity t = make_task_entity(
+        2,
+        "/tmp/test2.bin",
+        "http://example.com/test2.bin",
+        Operation::Download,
+        TaskState::Waiting);
 
     ASSERT_TRUE(service.add(t));
 
     auto inserted = m_repo.get_by_task_id(101);
     ASSERT_TRUE(inserted.has_value());
     EXPECT_EQ(inserted->file_id, 2);
+}
+
+TEST_F(TaskServiceTest, AddAndGetByTaskId)
+{
+    TaskService service;
+    service.init();
+
+    TaskEntity t = make_task_entity(
+        10,
+        "/tmp/add_get.bin",
+        "http://example.com/add_get.bin",
+        Operation::Download,
+        TaskState::Waiting);
+
+    ASSERT_TRUE(service.add(t));
+    ASSERT_GT(t.task_id, 0);
+
+    auto found = service.get_by_task_id(t.task_id);
+    ASSERT_TRUE(found.has_value());
+    EXPECT_EQ(found->task_id, t.task_id);
+    EXPECT_EQ(found->file_id, 10);
+    EXPECT_EQ(found->saved_path, "/tmp/add_get.bin");
+    EXPECT_EQ(found->source_url, "http://example.com/add_get.bin");
+    EXPECT_EQ(found->operation, Operation::Download);
+    EXPECT_EQ(found->state, TaskState::Waiting);
+}
+
+TEST_F(TaskServiceTest, UpdatePersistsChanges)
+{
+    TaskService service;
+    service.init();
+
+    TaskEntity t = make_task_entity(
+        20,
+        "/tmp/update.bin",
+        "http://example.com/update.bin",
+        Operation::Download,
+        TaskState::Waiting);
+    ASSERT_TRUE(service.add(t));
+
+    auto before = service.get_by_task_id(t.task_id);
+    ASSERT_TRUE(before.has_value());
+    EXPECT_EQ(before->state, TaskState::Waiting);
+
+    auto updated = before.value();
+    updated.state = TaskState::Completed;
+    updated.end_time = std::chrono::system_clock::now();
+    ASSERT_TRUE(service.update(updated));
+
+    auto after = service.get_by_task_id(t.task_id);
+    ASSERT_TRUE(after.has_value());
+    EXPECT_EQ(after->state, TaskState::Completed);
+}
+
+TEST_F(TaskServiceTest, RemoveDeletesTask)
+{
+    TaskService service;
+    service.init();
+
+    TaskEntity t = make_task_entity(
+        30,
+        "/tmp/remove.bin",
+        "http://example.com/remove.bin",
+        Operation::Download,
+        TaskState::Waiting);
+    ASSERT_TRUE(service.add(t));
+
+    ASSERT_TRUE(service.remove(t.task_id));
+    EXPECT_FALSE(service.get_by_task_id(t.task_id).has_value());
+}
+
+TEST_F(TaskServiceTest, UpdateNonExistentTaskReturnsTrueButDoesNotInsertOrModify)
+{
+    TaskService service;
+    service.init();
+
+    EXPECT_TRUE(m_repo.get_all().empty());
+
+    TaskEntity non_existent = make_task_entity(
+        40,
+        "/tmp/non_existent.bin",
+        "http://example.com/non_existent.bin",
+        Operation::Download,
+        TaskState::Completed);
+    non_existent.task_id = 999;
+    non_existent.end_time = std::chrono::system_clock::now();
+
+    ASSERT_TRUE(service.update(non_existent));
+
+    EXPECT_TRUE(m_repo.get_all().empty());
+    EXPECT_FALSE(service.get_by_task_id(999).has_value());
 }

@@ -1,10 +1,10 @@
-#pragma once
-
 /**
- * @file block_request_info_repository.hpp
- * @brief 块请求信息仓库
+ * @file block_repository.hpp
+ * @brief 块信息仓库
  * @author DaneJoe001
+ * @date 2026-01-06
  */
+#pragma once
 
 #include <optional>
 
@@ -16,7 +16,8 @@
 
  /**
   * @class BlockRepository
-  * @brief 块请求信息仓库
+  * @brief 块信息仓库
+  * @details 负责对块实体（BlockEntity）进行数据库持久化读写操作。
   */
 class BlockRepository
 {
@@ -38,29 +39,28 @@ public:
      * @return 是否成功
      */
     bool ensure_table_exists();
-
     /**
      * @brief 获取所有块请求信息
      * @return 块请求信息列表
      */
     std::vector<BlockEntity> get_all();
     /**
-     * @brief 获取指定文件的块请求信息
-     * @param file_id 文件ID
-     * @return 块请求信息列表
+     * @brief 获取指定任务的块信息
+     * @param task_id 任务ID
+     * @return 块信息列表
      */
     std::vector<BlockEntity> get_by_task_id(int64_t task_id);
     /**
-     * @brief 获取指定文件的块请求信息
-     * @param file_id 文件ID
-     * @param state 状态
-     * @return 块请求信息列表
+     * @brief 获取指定任务的指定状态块信息
+     * @param task_id 任务ID
+     * @param state 块状态
+     * @return 块信息列表
      */
     std::vector<BlockEntity> get_by_task_id_and_block_state(int64_t task_id, BlockState state);
     /**
-     * @brief 获取指定任务的块请求信息数量
+     * @brief 获取指定任务的指定状态块数量
      * @param task_id 任务ID
-     * @param state 状态
+     * @param state 块状态
      * @return 数量
      */
     int64_t get_count_by_task_id_and_block_state(int64_t task_id, BlockState state);
@@ -71,15 +71,15 @@ public:
      */
     bool add(const BlockEntity& block);
     /**
-     * @brief 获取块请求信息
+     * @brief 删除块信息
      * @param block_id 块ID
-     * @return 块请求信息
+     * @return 是否成功
      */
     bool remove(int64_t block_id);
     /**
-     * @brief 获取块请求信息
+     * @brief 通过块ID获取块信息
      * @param block_id 块ID
-     * @return 块请求信息
+     * @return 块信息（不存在时返回空）
      */
     std::optional<BlockEntity> get_by_block_id(int64_t block_id);
     /**
@@ -88,10 +88,17 @@ public:
      * @return 是否成功
      */
     bool update(const BlockEntity& block);
+    /**
+     * @brief 将查询结果转换为块信息实体列表
+     * @param data 查询结果数据
+     * @return 块信息实体列表
+     */
     std::vector<BlockEntity> from_query_data(const std::vector<std::vector<DaneJoe::SqlCell>>& data);
 private:
+    /// @brief 是否已初始化
     bool m_is_init = false;
     /// @brief 数据库
     std::shared_ptr<DaneJoe::SqlTableItem> m_table;
+    /// @brief 数据表查询器
     DaneJoe::SqlTableQuery m_table_query;
 };
