@@ -36,7 +36,7 @@ void ServerApp::init()
     // 初始化日志
     init_logger();
     // 清理数据库
-    // clear_database();
+    clear_database();
     // 初始化数据库
     init_database();
     // 清理日志

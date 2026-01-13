@@ -18,7 +18,7 @@
 struct BlockParam
 {
     /// @brief 分块大小（Bytes）
-    int64_t block_bytes = 10 * 1024 * 1024;
+    int64_t block_bytes = 128 * 1024 * 1024;
 };
 
 /**

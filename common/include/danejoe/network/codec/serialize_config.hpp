@@ -10,10 +10,10 @@
 
 #include <cstdint>
 
-/**
- * @namespace DaneJoe
- * @brief DaneJoe 命名空间
- */
+ /**
+  * @namespace DaneJoe
+  * @brief DaneJoe 命名空间
+  */
 namespace DaneJoe
 {
     /**
@@ -26,7 +26,7 @@ namespace DaneJoe
     struct SerializeConfig
     {
         /// @brief 最大字段值长度
-        uint64_t max_field_value_length = 40 * 1024 * 1024;
+        uint64_t max_field_value_length = 256 * 1024 * 1024;
         /// @brief 最大字段名称长度
         uint32_t max_field_name_length = 128;
         /// @brief 预分配大小

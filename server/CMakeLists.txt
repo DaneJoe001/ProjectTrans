@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 
 # @brief 项目名称
 set(PROJECT_NAME ProjectTransServer)
